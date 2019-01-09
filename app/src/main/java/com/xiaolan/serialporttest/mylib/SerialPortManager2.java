@@ -26,13 +26,6 @@ import io.reactivex.schedulers.Schedulers;
  *
  */
 
-/**
- * 测试push
- */
-
-/**
- * 测试github push
- */
 public class SerialPortManager2 {
     private static final String TAG = "SerialPortManager2";
     private SerialPort mSerialPort;
