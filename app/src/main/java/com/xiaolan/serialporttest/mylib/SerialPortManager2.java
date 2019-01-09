@@ -23,6 +23,11 @@ import io.reactivex.schedulers.Schedulers;
 
 /**
  * 串口操作工具类
+ *
+ */
+
+/**
+ * 测试push
  */
 public class SerialPortManager2 {
     private static final String TAG = "SerialPortManager2";
