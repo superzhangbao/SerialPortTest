@@ -486,12 +486,22 @@ public class Main2Activity extends AppCompatActivity implements RadioGroup.OnChe
 
     @Override
     public void onSerialPortReadDataSuccess() {
-        Toast.makeText(this,"串口读取数据成功",Toast.LENGTH_SHORT).show();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(Main2Activity.this,"串口读取数据成功",Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
     public void onSerialPortReadDataFail(String msg) {
-        Toast.makeText(this,msg,Toast.LENGTH_SHORT).show();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(Main2Activity.this,msg,Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     //----------------------------------------------------刷新显示线程

@@ -69,8 +69,12 @@ public class SerialPortManager2 {
     private int mSendCount = 0;//发送的某个报文次数
     private long mDataTrueData = 0;
     private long mFirstDataTime = 0;
+    private boolean mFirstDisconnect = true;
+    private long mFirstDisconnectTime = 0;
     private boolean mFirstData = true;
-    private long mNotFirstDataTime;
+    private long mNotFirstDataTime = 0;
+
+
 
     public SerialPortManager2() {
         this("/dev/ttyS3", 9600);
@@ -127,6 +131,12 @@ public class SerialPortManager2 {
             mBufferedOutputStream = null;
         }
         _isOpen = false;
+        mFirstData = true;
+        mNotFirstDataTime = 0;
+        mFirstDisconnect = true;
+        mFirstDataTime = 0;
+        mDataTrueData = 0;
+        mFirstDisconnectTime = 0;
     }
 
     public void send(byte[] bOutArray) {
@@ -161,14 +171,30 @@ public class SerialPortManager2 {
                         mBufferedInputStream = new BufferedInputStream(mInputStream, 1024 * 64);
                     byte[] buffer = new byte[DATA_LENGTH];
                     int len;
+                    try {
+                        sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                     if (mBufferedInputStream.available() <= 0) {
-                        continue;
-                    } else {
-                        try {
-                            sleep(50);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
+                        //串口断开会走这里
+                        if (mFirstDisconnect) {
+                            mFirstDisconnectTime = new Date().getTime();
+                            mFirstDisconnect = false;
+                            mDataTrueData = 0;
+                            mNotFirstDataTime = 0;
+                            mFirstData = true;
+                        }else {
+                            long time = new Date().getTime();
+                            if (time - mFirstDisconnectTime > 5000) {
+                                if (mSerialPortReadDataListener != null) {
+                                    mSerialPortReadDataListener.onSerialPortReadDataFail("串口断开");
+                                }
+                                mFirstDisconnectTime = time;
+                                Log.e(TAG,"串口断开");
+                            }
                         }
+                    } else {
                         if (mFirstData) {
                             mFirstDataTime = new Date().getTime();
                             mFirstData = false;
@@ -179,9 +205,9 @@ public class SerialPortManager2 {
                                     mSerialPortReadDataListener.onSerialPortReadDataFail("串口无数据");
                                     Log.e(TAG,"串口无数据");
                                 }
-                                mFirstDataTime = mNotFirstDataTime;
                                 mFirstData = true;
                             }
+                            mFirstDataTime = mNotFirstDataTime;
                         }
                         len = mBufferedInputStream.read(buffer);
                         if (len != -1) {
@@ -194,6 +220,9 @@ public class SerialPortManager2 {
                     }
                 } catch (Throwable e) {
                     e.printStackTrace();
+                    if (mSerialPortReadDataListener != null) {
+                        mSerialPortReadDataListener.onSerialPortReadDataFail(e.toString());
+                    }
                     Log.e(TAG, "run: 数据读取异常：" + e.toString());
                     break;
                 }
@@ -224,12 +253,6 @@ public class SerialPortManager2 {
                         //判断串口是否掉线
                         if (mDataTrueData == 0) {
                             mDataTrueData = new Date().getTime();
-                            if (mDataTrueData - mFirstDataTime > 5000) {
-                                if (mSerialPortReadDataListener != null) {
-                                    mSerialPortReadDataListener.onSerialPortReadDataFail("串口断开");
-                                    Log.e(TAG,"串口断开");
-                                }
-                            }
                         }else if (mDataTrueData > 0){
                             long time = new Date().getTime();
                             if (time - mDataTrueData > 5000) {
@@ -237,6 +260,8 @@ public class SerialPortManager2 {
                                     mSerialPortReadDataListener.onSerialPortReadDataFail("串口无正确数据");
                                     Log.e(TAG,"串口无正确数据");
                                 }
+                            }else {
+                                Log.e(TAG,"串口上报数据正常");
                             }
                             mDataTrueData = time;
                         }
@@ -256,6 +281,8 @@ public class SerialPortManager2 {
                             }).subscribeOn(AndroidSchedulers.mainThread())
                                     .subscribe();
                         }
+                    }else {
+                        Log.e(TAG,"串口无正确数据");
                     }
                 }
             }
