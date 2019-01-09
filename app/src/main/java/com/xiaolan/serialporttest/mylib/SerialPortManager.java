@@ -3,6 +3,7 @@ package com.xiaolan.serialporttest.mylib;
 import android.util.Log;
 
 import com.xiaolan.serialporttest.bean.ComBean;
+import com.xiaolan.serialporttest.util1.WriteLogUtil;
 
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -138,6 +139,7 @@ public class SerialPortManager {
             }
         }
         _isOpen = false;
+        WriteLogUtil.writeLogClose();
     }
 
     public void send(byte[] bOutArray) {
@@ -182,11 +184,14 @@ public class SerialPortManager {
                         }
                         len = mBufferedInputStream.read(buffer);
                         if (len != -1) {
-                            //Log.e("buffer", "len:" + len + "值：" + MyFunc.ByteArrToHex(buffer));
-                            if (len >= 30) {
-                                //读巨人洗衣机上报报文
-                                JuRenPlusWashRead(buffer, len);
-                            }
+                            String hex = MyFunc.ByteArrToHex(buffer);
+                            Log.e("buffer", "len:" + len + "值：" + hex);
+                            //将数据写入文件
+                            WriteLogUtil.writeLog(hex);
+//                            if (len >= 30) {
+//                                //读巨人洗衣机上报报文
+//                                JuRenPlusWashRead(buffer, len);
+//                            }
                         }
                     }
                 } catch (Throwable e) {

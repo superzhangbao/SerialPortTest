@@ -5,8 +5,10 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
@@ -27,6 +29,7 @@ import com.xiaolan.serialporttest.mylib.MyFunc;
 import com.xiaolan.serialporttest.mylib.SerialPortManager;
 import com.xiaolan.serialporttest.mylib.SerialPortManager.OnDataSendListener;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -132,6 +135,14 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         mButtons.add(mBtnSoft);
     }
 
+    public void notifySystemToScan() {
+        Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        File file = new File(Environment.getExternalStorageDirectory().getPath());
+        Uri uri = Uri.fromFile(file);
+        intent.setData(uri);
+        sendBroadcast(intent);
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @SuppressLint("SetTextI18n")
     @OnClick({R.id.btn_activity2,R.id.btn_set_port, R.id.btn_set_baud, R.id.btn_set_data, R.id.btn_set_stop,
@@ -222,6 +233,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                 } else {
                     mPortHelper.close();
                     mBtnOpenPort.setText("打开串口");
+                    notifySystemToScan();
                 }
                 break;
             case R.id.btn_clear:
