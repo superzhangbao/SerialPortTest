@@ -317,18 +317,24 @@ public class SerialPortManager2 {
                                 }
                             }
                         } else {//设置模式
-                            if (mRecCount > recCount) {//收到新报文
+                            if (mWashStatusEvent.getIsWashing() == 0x30) {//未开始洗衣
+                                if (mRecCount > recCount) {//收到新报文
+                                    if (mOnSendInstructionListener != null) {
+                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+                                    }
+                                } else {
+                                    if (mSendCount <= 3) {
+                                        mSendCount++;
+                                        sendHot();
+                                    } else {//连续发3轮没收到新报文则判定指令发送失败
+                                        if (mOnSendInstructionListener != null) {
+                                            mOnSendInstructionListener.sendInstructionFail(mKey, "send hot error");
+                                        }
+                                    }
+                                }
+                            }else {
                                 if (mOnSendInstructionListener != null) {
                                     mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-                                }
-                            } else {
-                                if (mSendCount <= 3) {
-                                    mSendCount++;
-                                    sendHot();
-                                } else {//连续发3轮没收到新报文则判定指令发送失败
-                                    if (mOnSendInstructionListener != null) {
-                                        mOnSendInstructionListener.sendInstructionFail(mKey, "send hot error");
-                                    }
                                 }
                             }
                         }
@@ -365,18 +371,24 @@ public class SerialPortManager2 {
                                 }
                             }
                         } else {//设置模式
-                            if (mRecCount > recCount) {//收到新报文
+                            if (mWashStatusEvent.getIsWashing() == 0x30) {//未开始洗衣
+                                if (mRecCount > recCount) {//收到新报文
+                                    if (mOnSendInstructionListener != null) {
+                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+                                    }
+                                } else {
+                                    if (mSendCount <= 3) {
+                                        mSendCount++;
+                                        sendWarm();
+                                    } else {//连续发3轮没收到新报文则判定指令发送失败
+                                        if (mOnSendInstructionListener != null) {
+                                            mOnSendInstructionListener.sendInstructionFail(mKey, "send warm error");
+                                        }
+                                    }
+                                }
+                            }else {
                                 if (mOnSendInstructionListener != null) {
                                     mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-                                }
-                            } else {
-                                if (mSendCount <= 3) {
-                                    mSendCount++;
-                                    sendWarm();
-                                } else {//连续发3轮没收到新报文则判定指令发送失败
-                                    if (mOnSendInstructionListener != null) {
-                                        mOnSendInstructionListener.sendInstructionFail(mKey, "send warm error");
-                                    }
                                 }
                             }
                         }
@@ -413,18 +425,24 @@ public class SerialPortManager2 {
                                 }
                             }
                         } else {//设置模式
-                            if (mRecCount > recCount) {//收到新报文
+                            if (mWashStatusEvent.getIsWashing() == 0x30) {//未开始洗衣
+                                if (mRecCount > recCount) {//收到新报文
+                                    if (mOnSendInstructionListener != null) {
+                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+                                    }
+                                } else {
+                                    if (mSendCount <= 3) {
+                                        mSendCount++;
+                                        sendCold();
+                                    } else {//连续发3轮没收到新报文则判定指令发送失败
+                                        if (mOnSendInstructionListener != null) {
+                                            mOnSendInstructionListener.sendInstructionFail(mKey, "send cold error");
+                                        }
+                                    }
+                                }
+                            }else {
                                 if (mOnSendInstructionListener != null) {
                                     mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-                                }
-                            } else {
-                                if (mSendCount <= 3) {
-                                    mSendCount++;
-                                    sendCold();
-                                } else {//连续发3轮没收到新报文则判定指令发送失败
-                                    if (mOnSendInstructionListener != null) {
-                                        mOnSendInstructionListener.sendInstructionFail(mKey, "send cold error");
-                                    }
                                 }
                             }
                         }
@@ -462,18 +480,24 @@ public class SerialPortManager2 {
                                 }
                             }
                         } else {//设置模式
-                            if (mRecCount > recCount) {//收到新报文
+                            if (mWashStatusEvent.getIsWashing() == 0x30) {//未开始洗衣
+                                if (mRecCount > recCount) {//收到新报文
+                                    if (mOnSendInstructionListener != null) {
+                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+                                    }
+                                } else {
+                                    if (mSendCount <= 3) {
+                                        mSendCount++;
+                                        sendDelicates();
+                                    } else {//连续发3轮没收到新报文则判定指令发送失败
+                                        if (mOnSendInstructionListener != null) {
+                                            mOnSendInstructionListener.sendInstructionFail(mKey, "send delicates error");
+                                        }
+                                    }
+                                }
+                            }else {
                                 if (mOnSendInstructionListener != null) {
                                     mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-                                }
-                            } else {
-                                if (mSendCount <= 3) {
-                                    mSendCount++;
-                                    sendDelicates();
-                                } else {//连续发3轮没收到新报文则判定指令发送失败
-                                    if (mOnSendInstructionListener != null) {
-                                        mOnSendInstructionListener.sendInstructionFail(mKey, "send delicates error");
-                                    }
                                 }
                             }
                         }
