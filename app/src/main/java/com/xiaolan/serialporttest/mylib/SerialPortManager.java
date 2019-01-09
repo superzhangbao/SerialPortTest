@@ -64,6 +64,8 @@ public class SerialPortManager {
     private static final int KEY_8 = 8;//setting
     private int mCount = 0;
     private int mPreIsSupper;
+    private boolean mWriteLog = false;
+    private WriteLogUtil mWriteLogUtil;
 
 
     public SerialPortManager() {
@@ -81,6 +83,7 @@ public class SerialPortManager {
     public SerialPortManager(String sPort, int iBaudRate) {
         this.sPort = sPort;
         this.iBaudRate = iBaudRate;
+        mWriteLogUtil = new WriteLogUtil();
     }
 
     public void open() throws SecurityException, IOException, InvalidParameterException {
@@ -139,7 +142,7 @@ public class SerialPortManager {
             }
         }
         _isOpen = false;
-        WriteLogUtil.writeLogClose();
+        mWriteLogUtil.writeLogClose();
     }
 
     public void send(byte[] bOutArray) {
@@ -163,6 +166,7 @@ public class SerialPortManager {
 
     private class ReadThread extends Thread {
         private static final int DATA_LENGTH = 64;
+        private byte[] bRec;
 
         @Override
         public void run() {
@@ -186,12 +190,18 @@ public class SerialPortManager {
                         if (len != -1) {
                             String hex = MyFunc.ByteArrToHex(buffer);
                             Log.e("buffer", "len:" + len + "值：" + hex);
-                            //将数据写入文件
-                            WriteLogUtil.writeLog(hex);
-//                            if (len >= 30) {
-//                                //读巨人洗衣机上报报文
-//                                JuRenPlusWashRead(buffer, len);
-//                            }
+                            bRec = new byte[SHOW_LENGTH];
+                            System.arraycopy(buffer, 0, bRec, 0, SHOW_LENGTH);
+                            if (mWriteLog) {
+                                //将数据写入文件
+                                mWriteLogUtil.writeLog(MyFunc.ByteArrToHex(bRec));
+                            }
+                            if (!mWriteLog) {
+                                if (len >= 30) {
+                                    //读巨人洗衣机上报报文
+                                    JuRenPlusWashRead(buffer, len);
+                                }
+                            }
                         }
                     }
                 } catch (Throwable e) {
@@ -447,7 +457,7 @@ public class SerialPortManager {
         mKey = KEY_3;
         for (int i = 0; i < 3; i++) {
             sendData(mKey, 0);
-            if (isSettingMode()&& mText.equals(i + 1 + "")) {
+            if (isSettingMode() && mText.equals(i + 1 + "")) {
                 Log.e(TAG, "kill step2->" + i + "success");
             } else {
                 Log.e(TAG, "kill step2->" + i + "error");
@@ -518,7 +528,7 @@ public class SerialPortManager {
         sendData(mKey, 0);
         if (!isSettingMode()) {
             Log.e(TAG, "kill success");
-        }else {
+        } else {
             Log.e(TAG, "kill error");
         }
         isKilling = false;
@@ -611,7 +621,7 @@ public class SerialPortManager {
             case KEY_8:
                 if (isSettingMode() && mText.equals("0")) {
                     Log.e(TAG, "setting mode success");
-                }else {
+                } else {
                     break;
                 }
                 break;
@@ -733,6 +743,18 @@ public class SerialPortManager {
         if (mSendThread != null) {
             mSendThread.setSuspendFlag();
         }
+    }
+
+    public void writeLog() {
+        mWriteLog = true;
+    }
+
+    public void stopWriteLog() {
+        mWriteLog = false;
+    }
+
+    public boolean isWriteLog() {
+        return mWriteLog;
     }
 
     public interface OnDataReceivedListener {

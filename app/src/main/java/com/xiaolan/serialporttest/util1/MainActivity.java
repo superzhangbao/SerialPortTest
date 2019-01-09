@@ -40,7 +40,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class MainActivity extends AppCompatActivity implements RadioGroup.OnCheckedChangeListener, SerialPortManager.OnDataReceivedListener,OnDataSendListener {
+public class MainActivity extends AppCompatActivity implements RadioGroup.OnCheckedChangeListener, SerialPortManager.OnDataReceivedListener, OnDataSendListener {
     private static final String TAG = "MainActivity";
     @BindView(R.id.btn_set_port)
     Button mBtnSetPort;
@@ -96,6 +96,8 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
     Button mBtnWash;
     @BindView(R.id.btn_setting)
     Button mBtnSetting;
+    @BindView(R.id.btn_writelog)
+    Button mBtnWritelog;
 
     private MyHandler mMyHandler;
     private int sendType = 0;
@@ -145,14 +147,25 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @SuppressLint("SetTextI18n")
-    @OnClick({R.id.btn_activity2,R.id.btn_set_port, R.id.btn_set_baud, R.id.btn_set_data, R.id.btn_set_stop,
+    @OnClick({R.id.btn_writelog, R.id.btn_activity2, R.id.btn_set_port, R.id.btn_set_baud, R.id.btn_set_data, R.id.btn_set_stop,
             R.id.btn_set_verify, R.id.btn_open_port, R.id.btn_clear, R.id.btn_send, R.id.btn_hot,
             R.id.btn_warm, R.id.btn_cold, R.id.btn_soft, R.id.btn_super, R.id.btn_start_stop,
-            R.id.btn_kill, R.id.btn_wash,R.id.btn_setting})
+            R.id.btn_kill, R.id.btn_wash, R.id.btn_setting})
     public void onViewClicked(View view) {
         switch (view.getId()) {
+            case R.id.btn_writelog:
+                boolean writeLog = mPortHelper.isWriteLog();
+                writeLog = !writeLog;
+                if (writeLog) {
+                    mPortHelper.writeLog();
+                    mBtnWritelog.setText("停止记录报文");
+                } else {
+                    mPortHelper.stopWriteLog();
+                    mBtnWritelog.setText("开始记录报文");
+                }
+                break;
             case R.id.btn_activity2:
-                startActivity(new Intent(this,Main2Activity.class));
+                startActivity(new Intent(this, Main2Activity.class));
                 break;
             case R.id.btn_set_port:
                 new AlertDialog.Builder(this)
