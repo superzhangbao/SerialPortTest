@@ -26,6 +26,7 @@ import io.reactivex.schedulers.Schedulers;
  * 增加开始记录报文功能
  * 1
  * 2
+ * 3
  */
 
 public class SerialPortManager2 {
