@@ -253,6 +253,7 @@ public class SerialPortManager2 {
                         //判断串口是否掉线
                         if (mDataTrueData == 0) {
                             mDataTrueData = new Date().getTime();
+                            Log.e(TAG,"串口上报正确数据");
                         }else if (mDataTrueData > 0){
                             long time = new Date().getTime();
                             if (time - mDataTrueData > 5000) {
@@ -260,8 +261,6 @@ public class SerialPortManager2 {
                                     mSerialPortReadDataListener.onSerialPortReadDataFail("串口无正确数据");
                                     Log.e(TAG,"串口无正确数据");
                                 }
-                            }else {
-                                Log.e(TAG,"串口上报数据正常");
                             }
                             mDataTrueData = time;
                         }
