@@ -277,7 +277,7 @@ public class SerialPortManager2 {
                                     mCurrentStatusListener.currentStatus(mWashStatusEvent);
                                 }
                                 e.onComplete();
-                            }).subscribeOn(AndroidSchedulers.mainThread())
+                            }).observeOn(AndroidSchedulers.mainThread())
                                     .subscribe();
                         }
                     }else {
