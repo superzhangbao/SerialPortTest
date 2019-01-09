@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="@color/colorPrimary">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textSize="22sp"
+            android:textColor="@color/colorAccent"
+            android:layout_marginLeft="20dp"
+            android:layout_centerVertical="true"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="activity2"
+            android:id="@+id/btn_activity2"/>
+        <Button
+            android:id="@+id/btn_wash"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="模拟洗衣机"
+            android:textColor="@color/colorAccent"
+            android:textSize="20sp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            style="@style/Base.TextAppearance.AppCompat.Widget.Button"/>
+    </RelativeLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_set_port"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="串口"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/btn_set_baud"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="波特率"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/btn_set_data"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="数据位"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/btn_set_stop"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="停止位"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/btn_set_verify"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="校验位"
+            android:textAllCaps="false" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp">
+        <LinearLayout
+            android:id="@+id/ll_send"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:layout_marginTop="20dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <RadioGroup
+                    android:id="@+id/rg"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <RadioButton
+                        android:id="@+id/cb_hex"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Hex发送" />
+
+                    <RadioButton
+                        android:id="@+id/cb_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Text发送" />
+                </RadioGroup>
+            </LinearLayout>
+
+            <EditText
+                android:id="@+id/et"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@null" />
+
+            <Button
+                android:id="@+id/btn_send"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="发送"/>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/ll_wash"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:visibility="gone">
+            <Button
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:text="热水"
+                android:id="@+id/btn_hot"/>
+            <Button
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:text="温水"
+                android:id="@+id/btn_warm"/>
+            <Button
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:text="冷水"
+                android:id="@+id/btn_cold"/>
+            <Button
+                android:layout_width="0dp"
+                android:layout_weight="1.5"
+                android:layout_height="match_parent"
+                android:text="精致衣物"
+                android:id="@+id/btn_soft"/>
+            <Button
+                android:layout_width="0dp"
+                android:layout_weight="1.5"
+                android:layout_height="match_parent"
+                android:text="加强洗"
+                android:id="@+id/btn_super"/>
+            <Button
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:text="开始"
+                android:id="@+id/btn_start_stop"/>
+            <Button
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:text="设置"
+                android:id="@+id/btn_setting"/>
+            <Button
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:layout_height="match_parent"
+                android:text="强制停止"
+                android:id="@+id/btn_kill"/>
+        </LinearLayout>
+    </FrameLayout>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/btn_open_port"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:text="打开串口"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/btn_clear"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="清空"
+            android:textAllCaps="false" />
+
+        <RadioGroup
+            android:id="@+id/rg_rev"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/cb_hex_rev"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hex接收" />
+
+            <RadioButton
+                android:id="@+id/cb_text_rev"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Text接收" />
+        </RadioGroup>
+    </LinearLayout>
+    <EditText
+        android:id="@+id/editTextRecDisp"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clickable="false"
+        android:editable="false"
+        android:gravity="top"
+        android:longClickable="false"
+        android:textSize="14sp" />
+</LinearLayout>
