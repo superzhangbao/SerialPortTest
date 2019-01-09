@@ -280,8 +280,6 @@ public class SerialPortManager2 {
                             }).observeOn(AndroidSchedulers.mainThread())
                                     .subscribe();
                         }
-                    }else {
-                        Log.e(TAG,"串口无正确数据");
                     }
                 }
             }
