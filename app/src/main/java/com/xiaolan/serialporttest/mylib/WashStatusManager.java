@@ -47,7 +47,7 @@ public class WashStatusManager {
             mLightlock = (msg[23] & 0x01);//0 未锁  01 已锁
             //30  40可用来区分是否在洗涤  10&0xf0 = 10
             mIsWashing = (msg[5] & 0xf0);//30未洗 40在洗  10设置状态
-            //获取工作状态值 如msg[3] = E1,viewStep = 1  msg[3] = E6,viewStep = 6 viewStep = 2(暂停)
+            //获取工作状态值 如msg[3] = E1,viewStep = 1 ; msg[3] = E6,viewStep = 6(洗涤);msg[3] = 67 viewStep = 7(漂洗);msg[3] = 28 viewStep = 8(脱水); viewStep = 2(暂停)
             mViewStep = (msg[3] & 0xf);
             //故障代码 比如02
             mErr = msg[4];
@@ -96,7 +96,7 @@ public class WashStatusManager {
                 } else {//不是错误状态
                     Log.e(TAG, "错误状态：" + "否");
                     mLogmsg.append("错误状态：" + "否").append("\r\n");
-                    if (mWashMode == 0x00) {
+                    if (mWashMode == 0x00 && mViewStep == 0x01) {//模式是0,工作状态是1
                         Log.e(TAG, "push状态：" + "是");
                         mLogmsg.append("push状态：" + "是").append("\r\n");
                     }
@@ -132,14 +132,20 @@ public class WashStatusManager {
                         mLogmsg.append("洗衣状态：" + "未开始洗衣").append("\r\n");
                     } else if (mIsWashing == 0x40) {
                         if (mViewStep == 6) {
-                            Log.e(TAG, "洗衣状态：已开始洗衣--->" + "正在洗衣");
-                            mLogmsg.append("洗衣状态：已开始洗衣--->" + "正在洗衣").append("\r\n");
+                            Log.e(TAG, "洗衣状态：已开始洗衣--->" + "正在洗涤");
+                            mLogmsg.append("洗衣状态：已开始洗衣--->" + "正在洗涤").append("\r\n");
                         } else if (mViewStep == 2) {
                             Log.e(TAG, "洗衣状态：已开始洗衣--->" + "暂停洗衣");
                             mLogmsg.append("洗衣状态：已开始洗衣--->" + "暂停洗衣").append("\r\n");
                         } else if (mViewStep == 1) {
                             Log.e(TAG, "洗衣状态：已开始洗衣--->" + "刚开始洗衣");
                             mLogmsg.append("洗衣状态：已开始洗衣--->" + "刚开始洗衣").append("\r\n");
+                        }else if (mViewStep == 7) {
+                            Log.e(TAG, "洗衣状态：已开始洗衣--->" + "正在漂洗");
+                            mLogmsg.append("洗衣状态：已开始洗衣--->" + "正在漂洗").append("\r\n");
+                        }else if (mViewStep == 8) {
+                            Log.e(TAG, "洗衣状态：已开始洗衣--->" + "正在脱水");
+                            mLogmsg.append("洗衣状态：已开始洗衣--->" + "正在脱水").append("\r\n");
                         }
                     }else {
                         Log.e(TAG, "洗衣状态：未知");

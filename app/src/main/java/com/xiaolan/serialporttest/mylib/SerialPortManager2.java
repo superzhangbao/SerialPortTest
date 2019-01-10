@@ -3,7 +3,6 @@ package com.xiaolan.serialporttest.mylib;
 import android.util.Log;
 
 import com.xiaolan.serialporttest.event.WashStatusEvent;
-import com.xiaolan.serialporttest.util1.WriteLogUtil;
 
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -14,20 +13,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.InvalidParameterException;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import android_serialport_api.SerialPort;
 import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Action;
-import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
 /**
@@ -82,7 +75,6 @@ public class SerialPortManager2 {
     private Disposable mKill;
 
 
-
     public SerialPortManager2() {
         this("/dev/ttyS3", 9600);
     }
@@ -115,6 +107,7 @@ public class SerialPortManager2 {
     }
 
     public void close() throws IOException {
+        _isOpen = false;
         if (mReadThread != null)
             mReadThread.interrupt();
         if (mSerialPort != null) {
@@ -137,7 +130,6 @@ public class SerialPortManager2 {
             mBufferedOutputStream.close();
             mBufferedOutputStream = null;
         }
-        _isOpen = false;
         mFirstData = true;
         mNotFirstDataTime = 0;
         mFirstDisconnect = true;
@@ -191,26 +183,26 @@ public class SerialPortManager2 {
                             mDataTrueData = 0;
                             mNotFirstDataTime = 0;
                             mFirstData = true;
-                        }else {
+                        } else {
                             long time = new Date().getTime();
                             if (time - mFirstDisconnectTime > 5000) {
                                 if (mSerialPortReadDataListener != null) {
                                     mSerialPortReadDataListener.onSerialPortReadDataFail("串口断开");
                                 }
                                 mFirstDisconnectTime = time;
-                                Log.e(TAG,"串口断开");
+                                Log.e(TAG, "串口断开");
                             }
                         }
                     } else {
                         if (mFirstData) {
                             mFirstDataTime = new Date().getTime();
                             mFirstData = false;
-                        }else {
+                        } else {
                             mNotFirstDataTime = new Date().getTime();
                             if (mNotFirstDataTime - mFirstDataTime > 5000) {
                                 if (mSerialPortReadDataListener != null) {
                                     mSerialPortReadDataListener.onSerialPortReadDataFail("串口无数据");
-                                    Log.e(TAG,"串口无数据");
+                                    Log.e(TAG, "串口无数据");
                                 }
                                 mFirstData = true;
                             }
@@ -260,13 +252,13 @@ public class SerialPortManager2 {
                         //判断串口是否掉线
                         if (mDataTrueData == 0) {
                             mDataTrueData = new Date().getTime();
-                            Log.e(TAG,"串口上报正确数据");
-                        }else if (mDataTrueData > 0){
+                            Log.e(TAG, "串口上报正确数据");
+                        } else if (mDataTrueData > 0) {
                             long time = new Date().getTime();
                             if (time - mDataTrueData > 5000) {
                                 if (mSerialPortReadDataListener != null) {
                                     mSerialPortReadDataListener.onSerialPortReadDataFail("串口无正确数据");
-                                    Log.e(TAG,"串口无正确数据");
+                                    Log.e(TAG, "串口无正确数据");
                                 }
                             }
                             mDataTrueData = time;
@@ -274,7 +266,7 @@ public class SerialPortManager2 {
 //                            Log.e(TAG, "false" + Arrays.toString(ArrayUtils.subarray(buffer, 0, off02 + 1)));
                         byte[] subarray = ArrayUtils.subarray(buffer, off02, off02 + size);
                         if (!Objects.deepEquals(mPreMsg, subarray)) {
-                            Log.e(TAG, "接收：" +  MyFunc.ByteArrToHex(subarray));
+                            Log.e(TAG, "接收：" + MyFunc.ByteArrToHex(subarray));
                             mPreMsg = subarray;
                             //根据上报的报文，分析设备状态
                             mWashStatusEvent = mWashStatusManager.analyseStatus(subarray);
@@ -337,7 +329,7 @@ public class SerialPortManager2 {
                                         }
                                     }
                                 }
-                            }else {
+                            } else {
                                 if (mOnSendInstructionListener != null) {
                                     mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                                 }
@@ -391,7 +383,7 @@ public class SerialPortManager2 {
                                         }
                                     }
                                 }
-                            }else {
+                            } else {
                                 if (mOnSendInstructionListener != null) {
                                     mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                                 }
@@ -445,7 +437,7 @@ public class SerialPortManager2 {
                                         }
                                     }
                                 }
-                            }else {
+                            } else {
                                 if (mOnSendInstructionListener != null) {
                                     mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                                 }
@@ -500,7 +492,7 @@ public class SerialPortManager2 {
                                         }
                                     }
                                 }
-                            }else {
+                            } else {
                                 if (mOnSendInstructionListener != null) {
                                     mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                                 }
@@ -718,19 +710,19 @@ public class SerialPortManager2 {
         }
         mKey = KEY_1;
         sendData(mKey, 0);
-        mKill = Observable.intervalRange(0,120,0,1,TimeUnit.SECONDS).subscribeOn(Schedulers.io())
+        mKill = Observable.intervalRange(0, 120, 0, 1, TimeUnit.SECONDS).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnNext(aLong -> {
-                    if (mWashStatusEvent!= null) {
-                        if (mWashStatusEvent.getViewStep() == DeviceWorkType.WORKTYPR_END&&!mWashStatusEvent.isSetting()&& mWashStatusEvent.getText().equals("0")) {//push
+                    if (mWashStatusEvent != null) {
+                        if (mWashStatusEvent.getViewStep() == DeviceWorkType.WORKTYPR_END && !mWashStatusEvent.isSetting() && mWashStatusEvent.getLightlock() == 0) {//end状态
                             if (mOnSendInstructionListener != null) {
                                 mOnSendInstructionListener.sendInstructionSuccess(KEY_KILL, mWashStatusEvent);
                             }
                             Log.e(TAG, "kill success");
-                            if (mKill!= null && !mKill.isDisposed()) {
+                            if (mKill != null && !mKill.isDisposed()) {
                                 mKill.dispose();
                             }
-                        }else {
+                        } else {
                             if (aLong == 119) {
                                 if (mOnSendInstructionListener != null) {
                                     mOnSendInstructionListener.sendInstructionFail(KEY_KILL, "kill error");
