@@ -170,43 +170,43 @@ public class SerialPortManager2 {
                         mBufferedInputStream = new BufferedInputStream(mInputStream, 1024 * 64);
                     byte[] buffer = new byte[DATA_LENGTH];
                     int len;
-                    try {
-                        sleep(100);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
                     if (mBufferedInputStream.available() <= 0) {
-                        //串口断开会走这里
-                        if (mFirstDisconnect) {
-                            mFirstDisconnectTime = new Date().getTime();
-                            mFirstDisconnect = false;
-                            mDataTrueData = 0;
-                            mNotFirstDataTime = 0;
-                            mFirstData = true;
-                        } else {
-                            long time = new Date().getTime();
-                            if (time - mFirstDisconnectTime > 5000) {
-                                if (mSerialPortReadDataListener != null) {
-                                    mSerialPortReadDataListener.onSerialPortReadDataFail("串口断开");
-                                }
-                                mFirstDisconnectTime = time;
-                                Log.e(TAG, "串口断开");
-                            }
-                        }
+//                        //串口断开会走这里
+//                        if (mFirstDisconnect) {
+//                            mFirstDisconnectTime = new Date().getTime();
+//                            mFirstDisconnect = false;
+//                            mDataTrueData = 0;
+//                            mNotFirstDataTime = 0;
+//                            mFirstData = true;
+//                        } else {
+//                            long time = new Date().getTime();
+//                            if (time - mFirstDisconnectTime > 5000) {
+//                                if (mSerialPortReadDataListener != null) {
+//                                    mSerialPortReadDataListener.onSerialPortReadDataFail("串口断开");
+//                                }
+//                                mFirstDisconnectTime = time;
+//                                Log.e(TAG, "串口断开");
+//                            }
+//                        }
                     } else {
-                        if (mFirstData) {
-                            mFirstDataTime = new Date().getTime();
-                            mFirstData = false;
-                        } else {
-                            mNotFirstDataTime = new Date().getTime();
-                            if (mNotFirstDataTime - mFirstDataTime > 5000) {
-                                if (mSerialPortReadDataListener != null) {
-                                    mSerialPortReadDataListener.onSerialPortReadDataFail("串口无数据");
-                                    Log.e(TAG, "串口无数据");
-                                }
-                                mFirstData = true;
-                            }
-                            mFirstDataTime = mNotFirstDataTime;
+//                        if (mFirstData) {
+//                            mFirstDataTime = new Date().getTime();
+//                            mFirstData = false;
+//                        } else {
+//                            mNotFirstDataTime = new Date().getTime();
+//                            if (mNotFirstDataTime - mFirstDataTime > 5000) {
+//                                if (mSerialPortReadDataListener != null) {
+//                                    mSerialPortReadDataListener.onSerialPortReadDataFail("串口无数据");
+//                                    Log.e(TAG, "串口无数据");
+//                                }
+//                                mFirstData = true;
+//                            }
+//                            mFirstDataTime = mNotFirstDataTime;
+//                        }
+                        try {
+                            sleep(50);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
                         len = mBufferedInputStream.read(buffer);
                         if (len != -1) {
@@ -728,6 +728,9 @@ public class SerialPortManager2 {
                                     mOnSendInstructionListener.sendInstructionFail(KEY_KILL, "kill error");
                                 }
                                 Log.e(TAG, "kill error");
+                                if (mKill != null && !mKill.isDisposed()) {
+                                    mKill.dispose();
+                                }
                             }
                         }
                     }
