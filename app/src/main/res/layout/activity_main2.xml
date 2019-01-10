@@ -16,6 +16,11 @@
             android:layout_marginLeft="20dp"
             android:layout_centerVertical="true"/>
         <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="开始记录报文"
+            android:id="@+id/btn_writelog"/>
+        <Button
             android:id="@+id/btn_finsh"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
