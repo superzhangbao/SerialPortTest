@@ -67,12 +67,19 @@ public class SerialPortManager2 {
     private long mRecCount = 0;//接收到的报文次数
     private int mSendCount = 0;//发送的某个报文次数
     private long mDataTrueData = 0;
-    private long mFirstDataTime = 0;
-    private boolean mFirstDisconnect = true;
-    private long mFirstDisconnectTime = 0;
-    private boolean mFirstData = true;
-    private long mNotFirstDataTime = 0;
+//    private long mFirstDataTime = 0;
+//    private boolean mFirstDisconnect = true;
+//    private long mFirstDisconnectTime = 0;
+//    private boolean mFirstData = true;
+//    private long mNotFirstDataTime = 0;
     private Disposable mKill;
+    private Disposable mHotDisposable;
+    private Disposable mWarmDisposable;
+    private Disposable mColdDisposable;
+    private Disposable mDelicatesDisposable;
+    private Disposable mSuperDisposable;
+    private Disposable mStartDisposable;
+    private Disposable mSettingDisposable;
 
 
     public SerialPortManager2() {
@@ -130,12 +137,12 @@ public class SerialPortManager2 {
             mBufferedOutputStream.close();
             mBufferedOutputStream = null;
         }
-        mFirstData = true;
-        mNotFirstDataTime = 0;
-        mFirstDisconnect = true;
-        mFirstDataTime = 0;
+//        mFirstData = true;
+//        mNotFirstDataTime = 0;
+//        mFirstDisconnect = true;
+//        mFirstDataTime = 0;
         mDataTrueData = 0;
-        mFirstDisconnectTime = 0;
+//        mFirstDisconnectTime = 0;
     }
 
     public void send(byte[] bOutArray) {
@@ -291,7 +298,7 @@ public class SerialPortManager2 {
     public void sendHot() {
         mKey = KEY_2;
         long recCount = mRecCount;
-        Observable.create(e -> {
+        mHotDisposable = Observable.create(e -> {
             sendData(mKey, INSTRUCTION_MODE);
             e.onComplete();
         }).subscribeOn(Schedulers.io())
@@ -303,6 +310,7 @@ public class SerialPortManager2 {
                                 if (mOnSendInstructionListener != null) {
                                     mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                                 }
+                                dispose(mKey);
                             } else {
                                 if (mSendCount <= 3) {
                                     mSendCount++;
@@ -311,6 +319,7 @@ public class SerialPortManager2 {
                                     if (mOnSendInstructionListener != null) {
                                         mOnSendInstructionListener.sendInstructionFail(mKey, "send hot error");
                                     }
+                                    dispose(mKey);
                                 }
                             }
                         } else {//设置模式
@@ -319,6 +328,7 @@ public class SerialPortManager2 {
                                     if (mOnSendInstructionListener != null) {
                                         mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                                     }
+                                    dispose(mKey);
                                 } else {
                                     if (mSendCount <= 3) {
                                         mSendCount++;
@@ -327,12 +337,14 @@ public class SerialPortManager2 {
                                         if (mOnSendInstructionListener != null) {
                                             mOnSendInstructionListener.sendInstructionFail(mKey, "send hot error");
                                         }
+                                        dispose(mKey);
                                     }
                                 }
                             } else {
                                 if (mOnSendInstructionListener != null) {
                                     mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                                 }
+                                dispose(mKey);
                             }
                         }
                     }
@@ -346,7 +358,7 @@ public class SerialPortManager2 {
     public void sendWarm() {
         mKey = KEY_3;
         long recCount = mRecCount;
-        Observable.create(e -> {
+        mWarmDisposable = Observable.create(e -> {
             sendData(mKey, INSTRUCTION_MODE);
             e.onComplete();
         }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
@@ -357,6 +369,7 @@ public class SerialPortManager2 {
                                 if (mOnSendInstructionListener != null) {
                                     mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                                 }
+                                dispose(mKey);
                             } else {
                                 if (mSendCount <= 3) {
                                     mSendCount++;
@@ -365,6 +378,7 @@ public class SerialPortManager2 {
                                     if (mOnSendInstructionListener != null) {
                                         mOnSendInstructionListener.sendInstructionFail(mKey, "send warm error");
                                     }
+                                    dispose(mKey);
                                 }
                             }
                         } else {//设置模式
@@ -373,6 +387,7 @@ public class SerialPortManager2 {
                                     if (mOnSendInstructionListener != null) {
                                         mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                                     }
+                                    dispose(mKey);
                                 } else {
                                     if (mSendCount <= 3) {
                                         mSendCount++;
@@ -381,12 +396,14 @@ public class SerialPortManager2 {
                                         if (mOnSendInstructionListener != null) {
                                             mOnSendInstructionListener.sendInstructionFail(mKey, "send warm error");
                                         }
+                                        dispose(mKey);
                                     }
                                 }
                             } else {
                                 if (mOnSendInstructionListener != null) {
                                     mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                                 }
+                                dispose(mKey);
                             }
                         }
                     }
@@ -399,7 +416,7 @@ public class SerialPortManager2 {
     public void sendCold() {
         mKey = KEY_4;
         long recCount = mRecCount;
-        Observable.create(e -> {
+        mColdDisposable = Observable.create(e -> {
             sendData(mKey, INSTRUCTION_MODE);
             e.onComplete();
         }).subscribeOn(Schedulers.io())
@@ -411,6 +428,7 @@ public class SerialPortManager2 {
                                 if (mOnSendInstructionListener != null) {
                                     mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                                 }
+                                dispose(mKey);
                             } else {
                                 if (mSendCount <= 3) {
                                     mSendCount++;
@@ -419,6 +437,7 @@ public class SerialPortManager2 {
                                     if (mOnSendInstructionListener != null) {
                                         mOnSendInstructionListener.sendInstructionFail(mKey, "send cold error");
                                     }
+                                    dispose(mKey);
                                 }
                             }
                         } else {//设置模式
@@ -427,6 +446,7 @@ public class SerialPortManager2 {
                                     if (mOnSendInstructionListener != null) {
                                         mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                                     }
+                                    dispose(mKey);
                                 } else {
                                     if (mSendCount <= 3) {
                                         mSendCount++;
@@ -435,12 +455,14 @@ public class SerialPortManager2 {
                                         if (mOnSendInstructionListener != null) {
                                             mOnSendInstructionListener.sendInstructionFail(mKey, "send cold error");
                                         }
+                                        dispose(mKey);
                                     }
                                 }
                             } else {
                                 if (mOnSendInstructionListener != null) {
                                     mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                                 }
+                                dispose(mKey);
                             }
                         }
                     }
@@ -454,7 +476,7 @@ public class SerialPortManager2 {
     public void sendDelicates() {
         mKey = KEY_5;
         long recCount = mRecCount;
-        Observable.create(e -> {
+        mDelicatesDisposable = Observable.create(e -> {
             sendData(mKey, INSTRUCTION_MODE);
             e.onComplete();
         }).subscribeOn(Schedulers.io())
@@ -466,6 +488,7 @@ public class SerialPortManager2 {
                                 if (mOnSendInstructionListener != null) {
                                     mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                                 }
+                                dispose(mKey);
                             } else {
                                 if (mSendCount <= 3) {
                                     mSendCount++;
@@ -474,6 +497,7 @@ public class SerialPortManager2 {
                                     if (mOnSendInstructionListener != null) {
                                         mOnSendInstructionListener.sendInstructionFail(mKey, "send delicates error");
                                     }
+                                    dispose(mKey);
                                 }
                             }
                         } else {//设置模式
@@ -482,6 +506,7 @@ public class SerialPortManager2 {
                                     if (mOnSendInstructionListener != null) {
                                         mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                                     }
+                                    dispose(mKey);
                                 } else {
                                     if (mSendCount <= 3) {
                                         mSendCount++;
@@ -490,12 +515,14 @@ public class SerialPortManager2 {
                                         if (mOnSendInstructionListener != null) {
                                             mOnSendInstructionListener.sendInstructionFail(mKey, "send delicates error");
                                         }
+                                        dispose(mKey);
                                     }
                                 }
                             } else {
                                 if (mOnSendInstructionListener != null) {
                                     mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                                 }
+                                dispose(mKey);
                             }
                         }
                     }
@@ -508,26 +535,12 @@ public class SerialPortManager2 {
      */
     public void sendSuper() {
         mKey = KEY_6;
-        Observable.create(e -> {
+        mSuperDisposable = Observable.create(e -> {
             sendData(mKey, INSTRUCTION_MODE);
             e.onComplete();
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnComplete(() -> {
-//                    if (mRecCount > recCount) {//收到新报文
-//                        if (mOnSendInstructionListener != null) {
-//                            mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                        }
-//                    } else {
-//                        if (mSendCount <= 3) {
-//                            mSendCount++;
-//                            sendSuper();
-//                        } else {//连续发3轮没收到新报文则判定指令发送失败
-//                            if (mOnSendInstructionListener != null) {
-//                                mOnSendInstructionListener.sendInstructionFail(mKey,"send super error");
-//                            }
-//                        }
-//                    }
                     if (mWashStatusEvent != null) {
                         if (mCount == 0) {
                             mPreIsSupper = mWashStatusEvent.getLightSupper();
@@ -539,6 +552,7 @@ public class SerialPortManager2 {
                                     if (mOnSendInstructionListener != null) {
                                         mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                                     }
+                                    dispose(mKey);
                                 }
                             } else if (mPreIsSupper == 0) {
                                 if (mWashStatusEvent.getLightSupper() == 1) {
@@ -547,6 +561,7 @@ public class SerialPortManager2 {
                                     if (mOnSendInstructionListener != null) {
                                         mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                                     }
+                                    dispose(mKey);
                                 }
                             }
                         }
@@ -562,7 +577,7 @@ public class SerialPortManager2 {
     public void sendStartOrStop() {
         mKey = KEY_1;
         long recCount = mRecCount;
-        Observable.create(e -> {
+        mStartDisposable = Observable.create(e -> {
             sendData(mKey, INSTRUCTION_MODE);
             e.onComplete();
         }).subscribeOn(Schedulers.io())
@@ -572,6 +587,7 @@ public class SerialPortManager2 {
                         if (mOnSendInstructionListener != null) {
                             mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                         }
+                        dispose(mKey);
                     } else {
                         if (mSendCount <= 3) {
                             mSendCount++;
@@ -580,6 +596,7 @@ public class SerialPortManager2 {
                             if (mOnSendInstructionListener != null) {
                                 mOnSendInstructionListener.sendInstructionFail(mKey, "send startOrStop error");
                             }
+                            dispose(mKey);
                         }
                     }
                 })
@@ -591,7 +608,7 @@ public class SerialPortManager2 {
      */
     public void sendSetting() {
         mKey = KEY_8;
-        Observable.create(e -> {
+        mSettingDisposable = Observable.create(e -> {
             sendData(mKey, INSTRUCTION_MODE);
             e.onComplete();
         }).subscribeOn(Schedulers.io())
@@ -602,11 +619,13 @@ public class SerialPortManager2 {
                         if (mOnSendInstructionListener != null) {
                             mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                         }
+                        dispose(mKey);
                     } else {
                         Log.e(TAG, "setting mode error");
                         if (mOnSendInstructionListener != null) {
                             mOnSendInstructionListener.sendInstructionFail(mKey, "setting mode error");
                         }
+                        dispose(mKey);
                     }
                 })
                 .subscribe();
@@ -740,19 +759,6 @@ public class SerialPortManager2 {
                     mRecCount = 0;
                 })
                 .subscribe();
-//        if (mWashStatusEvent != null && !mWashStatusEvent.isSetting()) {
-//            if (mOnSendInstructionListener != null) {
-//                mOnSendInstructionListener.sendInstructionSuccess(KEY_KILL, mWashStatusEvent);
-//            }
-//            Log.e(TAG, "kill success");
-//        } else {
-//            if (mOnSendInstructionListener != null) {
-//                mOnSendInstructionListener.sendInstructionFail(mKey, "kill error");
-//            }
-//            Log.e(TAG, "kill error");
-//        }
-//        isKilling = false;
-//        mRecCount = 0;
     }
 
     private void sendData(int key, int t) {
@@ -766,7 +772,6 @@ public class SerialPortManager2 {
         msg[msg.length - 2] = (byte) (crc16_a >> 8);
         msg[msg.length - 3] = (byte) (crc16_a & 0xff);
         for (int i = 0; i < 8; i++) {
-//            if (checkWashStatus()) {
             try {
                 mBufferedOutputStream.write(msg);
                 mBufferedOutputStream.flush();
@@ -774,9 +779,6 @@ public class SerialPortManager2 {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-//            } else {
-//                break;
-////            }
             try {
                 Thread.sleep(50);
             } catch (InterruptedException ignored) {
@@ -785,27 +787,44 @@ public class SerialPortManager2 {
         seq++;
     }
 
-    /**
-     * 检查上报状态是否符合
-     */
-    private boolean checkWashStatus() {
-        switch (mKey) {
+    private void dispose(int key) {
+        switch (key) {
             case KEY_1:
+                if (mStartDisposable != null && !mStartDisposable.isDisposed()) {
+                    mStartDisposable.dispose();
+                }
                 break;
             case KEY_2:
+                if (mHotDisposable != null && !mHotDisposable.isDisposed()) {
+                    mHotDisposable.dispose();
+                }
                 break;
             case KEY_3:
+                if (mWarmDisposable != null && !mWarmDisposable.isDisposed()) {
+                    mWarmDisposable.dispose();
+                }
                 break;
             case KEY_4:
+                if (mColdDisposable != null && !mColdDisposable.isDisposed()) {
+                    mColdDisposable.dispose();
+                }
                 break;
             case KEY_5:
+                if (mDelicatesDisposable != null && !mDelicatesDisposable.isDisposed()) {
+                    mDelicatesDisposable.dispose();
+                }
                 break;
-            case KEY_6://加强洗
+            case KEY_6:
+                if (mSuperDisposable != null && !mSuperDisposable.isDisposed()) {
+                    mSuperDisposable.dispose();
+                }
                 break;
             case KEY_8:
+                if (mSettingDisposable != null && !mSettingDisposable.isDisposed()) {
+                    mSettingDisposable.dispose();
+                }
                 break;
         }
-        return true;
     }
 
     int getBaudRate() {
