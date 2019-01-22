@@ -2,7 +2,12 @@ package com.xiaolan.serialporttest.mylib;
 
 import android.util.Log;
 
-import com.xiaolan.serialporttest.event.WashStatusEvent;
+import com.xiaolan.serialporttest.mylib.event.WashStatusEvent;
+import com.xiaolan.serialporttest.mylib.listener.CurrentStatusListener;
+import com.xiaolan.serialporttest.mylib.listener.OnSendInstructionListener;
+import com.xiaolan.serialporttest.mylib.listener.SerialPortReadDataListener;
+import com.xiaolan.serialporttest.mylib.utils.CRC16;
+import com.xiaolan.serialporttest.mylib.utils.MyFunc;
 
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -48,15 +53,16 @@ public class SerialPortManager2 {
     private int seq;
     private int mKey;
     private boolean isKilling = false;//强制停止
-    private static final int KEY_1 = 1;//开始
-    private static final int KEY_2 = 2;//热水
-    private static final int KEY_3 = 3;//温水
-    private static final int KEY_4 = 4;//冷水
-    private static final int KEY_5 = 5;//精致衣物
-    private static final int KEY_6 = 6;//加强洗
-    private static final int KEY_8 = 8;//setting
-    private static final int KEY_KILL = 10;//setting
-    private static final int INSTRUCTION_MODE = 0;
+    private static final int KEY_RESTORATION = 0;//复位
+    private static final int KEY_START = 1;//开始
+    private static final int KEY_HOT = 2;//热水
+    private static final int KEY_WARM = 3;//温水
+    private static final int KEY_COLD = 4;//冷水
+    private static final int KEY_DELICATES = 5;//精致衣物
+    private static final int KEY_SUPER = 6;//加强洗
+    private static final int KEY_SETTING = 8;//setting
+    private static final int KEY_KILL = 10;//kill
+    private static final int INSTRUCTION_MODE = 0;//指令类型
     private int mCount = 0;
     private int mPreIsSupper;
     private WashStatusManager mWashStatusManager;
@@ -67,11 +73,6 @@ public class SerialPortManager2 {
     private long mRecCount = 0;//接收到的报文次数
     private int mSendCount = 0;//发送的某个报文次数
     private long mDataTrueData = 0;
-//    private long mFirstDataTime = 0;
-//    private boolean mFirstDisconnect = true;
-//    private long mFirstDisconnectTime = 0;
-//    private boolean mFirstData = true;
-//    private long mNotFirstDataTime = 0;
     private Disposable mKill;
     private Disposable mHotDisposable;
     private Disposable mWarmDisposable;
@@ -99,7 +100,7 @@ public class SerialPortManager2 {
         this.iBaudRate = iBaudRate;
     }
 
-    public void juRenPlusOpen() throws SecurityException, IOException, InvalidParameterException {
+    public void juRenProOpen() throws SecurityException, IOException, InvalidParameterException {
         mSerialPort = new SerialPort(new File(sPort), iBaudRate, 0, mDataBits, mStopBits, mParityBits);
         mOutputStream = mSerialPort.getOutputStream();
         mInputStream = mSerialPort.getInputStream();
@@ -137,12 +138,7 @@ public class SerialPortManager2 {
             mBufferedOutputStream.close();
             mBufferedOutputStream = null;
         }
-//        mFirstData = true;
-//        mNotFirstDataTime = 0;
-//        mFirstDisconnect = true;
-//        mFirstDataTime = 0;
         mDataTrueData = 0;
-//        mFirstDisconnectTime = 0;
     }
 
     public void send(byte[] bOutArray) {
@@ -177,39 +173,7 @@ public class SerialPortManager2 {
                         mBufferedInputStream = new BufferedInputStream(mInputStream, 1024 * 64);
                     byte[] buffer = new byte[DATA_LENGTH];
                     int len;
-                    if (mBufferedInputStream.available() <= 0) {
-//                        //串口断开会走这里
-//                        if (mFirstDisconnect) {
-//                            mFirstDisconnectTime = new Date().getTime();
-//                            mFirstDisconnect = false;
-//                            mDataTrueData = 0;
-//                            mNotFirstDataTime = 0;
-//                            mFirstData = true;
-//                        } else {
-//                            long time = new Date().getTime();
-//                            if (time - mFirstDisconnectTime > 5000) {
-//                                if (mSerialPortReadDataListener != null) {
-//                                    mSerialPortReadDataListener.onSerialPortReadDataFail("串口断开");
-//                                }
-//                                mFirstDisconnectTime = time;
-//                                Log.e(TAG, "串口断开");
-//                            }
-//                        }
-                    } else {
-//                        if (mFirstData) {
-//                            mFirstDataTime = new Date().getTime();
-//                            mFirstData = false;
-//                        } else {
-//                            mNotFirstDataTime = new Date().getTime();
-//                            if (mNotFirstDataTime - mFirstDataTime > 5000) {
-//                                if (mSerialPortReadDataListener != null) {
-//                                    mSerialPortReadDataListener.onSerialPortReadDataFail("串口无数据");
-//                                    Log.e(TAG, "串口无数据");
-//                                }
-//                                mFirstData = true;
-//                            }
-//                            mFirstDataTime = mNotFirstDataTime;
-//                        }
+                    if (mBufferedInputStream.available() > 0) {
                         try {
                             sleep(50);
                         } catch (InterruptedException e) {
@@ -224,12 +188,16 @@ public class SerialPortManager2 {
                             }
                         }
                     }
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                    if (mSerialPortReadDataListener != null) {
-                        mSerialPortReadDataListener.onSerialPortReadDataFail(e.toString());
-                    }
-                    Log.e(TAG, "run: 数据读取异常：" + e.toString());
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                    Observable.just(1).observeOn(AndroidSchedulers.mainThread())
+                            .doOnComplete(() -> {
+                                if (mSerialPortReadDataListener != null) {
+                                    mSerialPortReadDataListener.onSerialPortReadDataFail(t.getMessage());
+                                }
+                            })
+                            .subscribe();
+                    Log.e(TAG, "run: 数据读取异常：" + t.toString());
                     break;
                 }
             }
@@ -263,10 +231,13 @@ public class SerialPortManager2 {
                         } else if (mDataTrueData > 0) {
                             long time = new Date().getTime();
                             if (time - mDataTrueData > 5000) {
-                                if (mSerialPortReadDataListener != null) {
-                                    mSerialPortReadDataListener.onSerialPortReadDataFail("串口无正确数据");
-                                    Log.e(TAG, "串口无正确数据");
-                                }
+                                Observable.just(1).observeOn(AndroidSchedulers.mainThread())
+                                        .doOnComplete(() -> {
+                                            if (mSerialPortReadDataListener != null) {
+                                                mSerialPortReadDataListener.onSerialPortReadDataFail("串口无正确数据");
+                                                Log.e(TAG, "串口无正确数据");
+                                            }
+                                        }).subscribe();
                             }
                             mDataTrueData = time;
                         }
@@ -278,12 +249,15 @@ public class SerialPortManager2 {
                             //根据上报的报文，分析设备状态
                             mWashStatusEvent = mWashStatusManager.analyseStatus(subarray);
                             mRecCount++;
-                            Observable.create(e -> {
-                                if (mCurrentStatusListener != null) {
-                                    mCurrentStatusListener.currentStatus(mWashStatusEvent);
-                                }
-                                e.onComplete();
-                            }).observeOn(AndroidSchedulers.mainThread())
+                            Observable.just(1).observeOn(AndroidSchedulers.mainThread())
+                                    .doOnComplete(() -> {
+                                        if (mSerialPortReadDataListener != null) {
+                                            mSerialPortReadDataListener.onSerialPortReadDataSuccess(subarray);
+                                        }
+                                        if (mCurrentStatusListener != null) {
+                                            mCurrentStatusListener.currentStatus(mWashStatusEvent);
+                                        }
+                                    })
                                     .subscribe();
                         }
                     }
@@ -292,11 +266,11 @@ public class SerialPortManager2 {
         }
     }
 
-    /**
+    /*
      * 发送热水指令
      */
-    public void sendHot() {
-        mKey = KEY_2;
+    void sendHot() {
+        mKey = KEY_HOT;
         long recCount = mRecCount;
         mHotDisposable = Observable.create(e -> {
             sendData(mKey, INSTRUCTION_MODE);
@@ -352,11 +326,11 @@ public class SerialPortManager2 {
                 .subscribe();
     }
 
-    /**
+    /*
      * 发送温水指令
      */
-    public void sendWarm() {
-        mKey = KEY_3;
+    void sendWarm() {
+        mKey = KEY_WARM;
         long recCount = mRecCount;
         mWarmDisposable = Observable.create(e -> {
             sendData(mKey, INSTRUCTION_MODE);
@@ -410,11 +384,11 @@ public class SerialPortManager2 {
                 }).subscribe();
     }
 
-    /**
+    /*
      * 发送冷水指令
      */
-    public void sendCold() {
-        mKey = KEY_4;
+    void sendCold() {
+        mKey = KEY_COLD;
         long recCount = mRecCount;
         mColdDisposable = Observable.create(e -> {
             sendData(mKey, INSTRUCTION_MODE);
@@ -470,11 +444,11 @@ public class SerialPortManager2 {
                 .subscribe();
     }
 
-    /**
+    /*
      * 发送精致衣物指令
      */
-    public void sendDelicates() {
-        mKey = KEY_5;
+    void sendDelicates() {
+        mKey = KEY_DELICATES;
         long recCount = mRecCount;
         mDelicatesDisposable = Observable.create(e -> {
             sendData(mKey, INSTRUCTION_MODE);
@@ -530,11 +504,11 @@ public class SerialPortManager2 {
                 .subscribe();
     }
 
-    /**
+    /*
      * 发送加强指令
      */
-    public void sendSuper() {
-        mKey = KEY_6;
+    void sendSuper() {
+        mKey = KEY_SUPER;
         mSuperDisposable = Observable.create(e -> {
             sendData(mKey, INSTRUCTION_MODE);
             e.onComplete();
@@ -571,11 +545,11 @@ public class SerialPortManager2 {
                 .subscribe();
     }
 
-    /**
+    /*
      * 发送开始指令
      */
-    public void sendStartOrStop() {
-        mKey = KEY_1;
+    void sendStartOrStop() {
+        mKey = KEY_START;
         long recCount = mRecCount;
         mStartDisposable = Observable.create(e -> {
             sendData(mKey, INSTRUCTION_MODE);
@@ -603,11 +577,11 @@ public class SerialPortManager2 {
                 .subscribe();
     }
 
-    /**
+    /*
      * 发送设置指令
      */
-    public void sendSetting() {
-        mKey = KEY_8;
+    void sendSetting() {
+        mKey = KEY_SETTING;
         mSettingDisposable = Observable.create(e -> {
             sendData(mKey, INSTRUCTION_MODE);
             e.onComplete();
@@ -631,10 +605,10 @@ public class SerialPortManager2 {
                 .subscribe();
     }
 
-    /**
+    /*
      * 发送kill指令
      */
-    public void sendKill() {
+    void sendKill() {
         //判断是处于洗衣状态才可以使用kill
         if (mWashStatusEvent != null && mWashStatusEvent.getIsWashing() == 0x40) {
             Observable.create(e -> {
@@ -645,19 +619,19 @@ public class SerialPortManager2 {
         }
     }
 
-    /**
+    /*
      * 执行kill过程
      */
-    public void kill() {
+    private void kill() {
         isKilling = true;
-        mKey = KEY_8;
+        mKey = KEY_SETTING;
         sendData(mKey, 0);
         if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("0").equals(mWashStatusEvent.getText())) {
             Log.e(TAG, "kill step1 success");
         } else {
             Log.e(TAG, "kill step1 error");
         }
-        mKey = KEY_3;
+        mKey = KEY_WARM;
         for (int i = 0; i < 3; i++) {
             sendData(mKey, 0);
             if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && (i + 1 + "").equals(mWashStatusEvent.getText())) {
@@ -666,14 +640,14 @@ public class SerialPortManager2 {
                 Log.e(TAG, "kill step2->" + i + "error");
             }
         }
-        mKey = KEY_1;
+        mKey = KEY_START;
         sendData(mKey, 0);
         if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("LgC1").equals(mWashStatusEvent.getText())) {
             Log.e(TAG, "kill step3 success");
         } else {
             Log.e(TAG, "kill step3 error");
         }
-        mKey = KEY_3;
+        mKey = KEY_WARM;
         for (int i = 0; i < 4; i++) {
             sendData(mKey, 0);
             if (mWashStatusEvent != null && mWashStatusEvent.isSetting()) {
@@ -711,14 +685,14 @@ public class SerialPortManager2 {
                 Log.e(TAG, "kill step4->" + i + "error");
             }
         }
-        mKey = KEY_1;
+        mKey = KEY_START;
         sendData(mKey, 0);
         if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("0").equals(mWashStatusEvent.getText())) {
             Log.e(TAG, "kill step5 success");
         } else {
             Log.e(TAG, "kill step5 error");
         }
-        mKey = KEY_3;
+        mKey = KEY_WARM;
         for (int i = 0; i < 17; i++) {
             sendData(mKey, 0);
             if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && (i + 1 + "").equals(mWashStatusEvent.getText())) {
@@ -727,11 +701,12 @@ public class SerialPortManager2 {
                 Log.e(TAG, "kill step6 error");
             }
         }
-        mKey = KEY_1;
+        mKey = KEY_START;
         sendData(mKey, 0);
-        mKill = Observable.intervalRange(0, 120, 0, 1, TimeUnit.SECONDS).subscribeOn(Schedulers.io())
+        mKill = Observable.intervalRange(0, 240, 0, 1, TimeUnit.SECONDS).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnNext(aLong -> {
+                    Log.e(TAG, "doOnNext--->" + aLong);
                     if (mWashStatusEvent != null) {
                         if (mWashStatusEvent.getViewStep() == DeviceWorkType.WORKTYPR_END && !mWashStatusEvent.isSetting() && mWashStatusEvent.getLightlock() == 0) {//end状态
                             if (mOnSendInstructionListener != null) {
@@ -742,7 +717,7 @@ public class SerialPortManager2 {
                                 mKill.dispose();
                             }
                         } else {
-                            if (aLong == 119) {
+                            if (aLong == 239) {
                                 if (mOnSendInstructionListener != null) {
                                     mOnSendInstructionListener.sendInstructionFail(KEY_KILL, "kill error");
                                 }
@@ -789,37 +764,37 @@ public class SerialPortManager2 {
 
     private void dispose(int key) {
         switch (key) {
-            case KEY_1:
+            case KEY_START:
                 if (mStartDisposable != null && !mStartDisposable.isDisposed()) {
                     mStartDisposable.dispose();
                 }
                 break;
-            case KEY_2:
+            case KEY_HOT:
                 if (mHotDisposable != null && !mHotDisposable.isDisposed()) {
                     mHotDisposable.dispose();
                 }
                 break;
-            case KEY_3:
+            case KEY_WARM:
                 if (mWarmDisposable != null && !mWarmDisposable.isDisposed()) {
                     mWarmDisposable.dispose();
                 }
                 break;
-            case KEY_4:
+            case KEY_COLD:
                 if (mColdDisposable != null && !mColdDisposable.isDisposed()) {
                     mColdDisposable.dispose();
                 }
                 break;
-            case KEY_5:
+            case KEY_DELICATES:
                 if (mDelicatesDisposable != null && !mDelicatesDisposable.isDisposed()) {
                     mDelicatesDisposable.dispose();
                 }
                 break;
-            case KEY_6:
+            case KEY_SUPER:
                 if (mSuperDisposable != null && !mSuperDisposable.isDisposed()) {
                     mSuperDisposable.dispose();
                 }
                 break;
-            case KEY_8:
+            case KEY_SETTING:
                 if (mSettingDisposable != null && !mSettingDisposable.isDisposed()) {
                     mSettingDisposable.dispose();
                 }
@@ -840,11 +815,11 @@ public class SerialPortManager2 {
         }
     }
 
-    public String getPort() {
+    String getPort() {
         return sPort;
     }
 
-    public boolean setPort(String sPort) {
+    boolean setPort(String sPort) {
         if (_isOpen) {
             return false;
         } else {
@@ -853,11 +828,11 @@ public class SerialPortManager2 {
         }
     }
 
-    public String getDataBits() {
+    String getDataBits() {
         return mDataBits;
     }
 
-    public boolean setDataBits(String dataBits) {
+    boolean setDataBits(String dataBits) {
         if (_isOpen) {
             return false;
         } else {
@@ -866,11 +841,11 @@ public class SerialPortManager2 {
         }
     }
 
-    public String getStopBits() {
+    String getStopBits() {
         return mStopBits;
     }
 
-    public boolean setStopBits(String stopBits) {
+    boolean setStopBits(String stopBits) {
         if (_isOpen) {
             return false;
         } else {
@@ -879,11 +854,11 @@ public class SerialPortManager2 {
         }
     }
 
-    public String getParityBits() {
+    String getParityBits() {
         return mParityBits;
     }
 
-    public boolean setParityBits(String parityBits) {
+    boolean setParityBits(String parityBits) {
         if (_isOpen) {
             return false;
         } else {
@@ -892,19 +867,19 @@ public class SerialPortManager2 {
         }
     }
 
-    public boolean isOpen() {
+    boolean isOpen() {
         return _isOpen;
     }
 
-    public void setOnSendInstructionListener(OnSendInstructionListener onSendInstructionListener) {
+    void setOnSendInstructionListener(OnSendInstructionListener onSendInstructionListener) {
         mOnSendInstructionListener = onSendInstructionListener;
     }
 
-    public void setOnCurrentStatusListener(CurrentStatusListener currentStatusListener) {
+    void setOnCurrentStatusListener(CurrentStatusListener currentStatusListener) {
         mCurrentStatusListener = currentStatusListener;
     }
 
-    public void setOnSerialPortConnectListener(SerialPortReadDataListener serialPortReadDataListener) {
+    void setOnSerialPortReadDataListener(SerialPortReadDataListener serialPortReadDataListener) {
         mSerialPortReadDataListener = serialPortReadDataListener;
     }
 }
