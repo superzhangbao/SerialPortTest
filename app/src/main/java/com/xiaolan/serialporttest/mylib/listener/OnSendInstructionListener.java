@@ -1,6 +1,6 @@
-package com.xiaolan.serialporttest.mylib;
+package com.xiaolan.serialporttest.mylib.listener;
 
-import com.xiaolan.serialporttest.event.WashStatusEvent;
+import com.xiaolan.serialporttest.mylib.event.WashStatusEvent;
 
 public interface OnSendInstructionListener {
 

@@ -1,5 +1,11 @@
 package com.xiaolan.serialporttest.mylib;
 
+import com.xiaolan.serialporttest.mylib.listener.CurrentStatusListener;
+import com.xiaolan.serialporttest.mylib.listener.OnSendInstructionListener;
+import com.xiaolan.serialporttest.mylib.listener.SerialPortReadDataListener;
+import com.xiaolan.serialporttest.wash.juren.JuRenWashManager;
+import com.xiaolan.serialporttest.wash.jurenpro.JuRenProWashManager;
+
 import java.io.IOException;
 
 /**
@@ -7,99 +13,66 @@ import java.io.IOException;
  */
 public class DeviceEngine {
 
-    private DeviceEngine() { }
+    private static DeviceEngineIService DEVICE_ENGINE_I_SERVICE;
+
+    private DeviceEngine() {
+    }
 
     public static DeviceEngine getInstance() {
         return DeviceEngineHolder.DEVICE_ENGINE;
     }
 
-    private static class DeviceEngineHolder{
+
+    private static class DeviceEngineHolder {
         private static final DeviceEngine DEVICE_ENGINE = new DeviceEngine();
+    }
+
+    public void selectDevice(int model) {
+        switch (model) {
+            case 0:
+                DEVICE_ENGINE_I_SERVICE =  JuRenProWashManager.getInstance();
+                break;
+            case 1:
+                DEVICE_ENGINE_I_SERVICE =  JuRenWashManager.getInstance();
+                break;
+        }
     }
 
     /**
      * 打开串口
      */
     public void open() throws IOException {
-        JuRenPlusWashManager.getInstance().open();
+        DEVICE_ENGINE_I_SERVICE.open();
     }
 
     /**
      * 关闭串口
      */
     public void close() throws IOException {
-        JuRenPlusWashManager.getInstance().close();
+        DEVICE_ENGINE_I_SERVICE.close();
     }
 
-    public void push(int action) {
-        JuRenPlusWashManager.getInstance().push(action);
+    public synchronized void push(int action) {
+        DEVICE_ENGINE_I_SERVICE.push(action);
     }
 
     public void pull() {
-        JuRenPlusWashManager.getInstance().pull();
-    }
-
-    public void setPort(String port) {
-        JuRenPlusWashManager.getInstance().setPort(port);
-    }
-
-    public void setBaudRate(int baudRate) {
-        JuRenPlusWashManager.getInstance().setBaudRate(baudRate);
-    }
-
-    public void setDataBits(String dataBits) {
-        JuRenPlusWashManager.getInstance().setDataBits(dataBits);
-    }
-
-    public void setStopBits(String stopBits) {
-        JuRenPlusWashManager.getInstance().setStopBits(stopBits);
-    }
-
-    public void setParityBits(String parityBits) {
-        JuRenPlusWashManager.getInstance().setParityBits(parityBits);
+        DEVICE_ENGINE_I_SERVICE.pull();
     }
 
     public void setOnSendInstructionListener(OnSendInstructionListener onSendInstructionListener) {
-        JuRenPlusWashManager.getInstance().setOnSendInstructionListener(onSendInstructionListener);
+        DEVICE_ENGINE_I_SERVICE.setOnSendInstructionListener(onSendInstructionListener);
     }
 
     public void setOnCurrentStatusListener(CurrentStatusListener onCurrentStatusListener) {
-        JuRenPlusWashManager.getInstance().setOnCurrentStatusListener(onCurrentStatusListener);
+        DEVICE_ENGINE_I_SERVICE.setOnCurrentStatusListener(onCurrentStatusListener);
     }
 
-    public void setOnSerialPortConnectListener(SerialPortReadDataListener onSerialPortReadDataListener) {
-        JuRenPlusWashManager.getInstance().setOnSerialPortConnectListener(onSerialPortReadDataListener);
-    }
-
-    public String getPort() {
-        return JuRenPlusWashManager.getInstance().getPort();
-    }
-
-    public int getBaudRate() {
-        return JuRenPlusWashManager.getInstance().getBaudRate();
-    }
-
-    public String getDataBits() {
-        return JuRenPlusWashManager.getInstance().getDataBits();
-    }
-
-    public String getStopBits() {
-        return JuRenPlusWashManager.getInstance().getStopBits();
-    }
-
-    public String getParityBits() {
-        return JuRenPlusWashManager.getInstance().getParityBits();
+    public void setOnSerialPortReadDataListener(SerialPortReadDataListener onSerialPortReadDataListener) {
+        DEVICE_ENGINE_I_SERVICE.setOnSerialPortReadDataListener(onSerialPortReadDataListener);
     }
 
     public boolean isOpen() {
-        return JuRenPlusWashManager.getInstance().isOpen();
-    }
-
-    public void sendHex(String hex) {
-        JuRenPlusWashManager.getInstance().sendHex(hex);
-    }
-
-    public void sendText(String text) {
-        JuRenPlusWashManager.getInstance().sendText(text);
+        return DEVICE_ENGINE_I_SERVICE.isOpen();
     }
 }

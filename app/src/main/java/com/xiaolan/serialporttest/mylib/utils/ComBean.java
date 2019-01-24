@@ -1,4 +1,4 @@
-package com.xiaolan.serialporttest.bean;
+package com.xiaolan.serialporttest.mylib.utils;
 
 import java.text.SimpleDateFormat;
 

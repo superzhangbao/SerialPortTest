@@ -22,12 +22,11 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
-import com.xiaolan.serialporttest.Main2Activity;
+import com.xiaolan.serialporttest.JuRenProWashActivity;
 import com.xiaolan.serialporttest.R;
-import com.xiaolan.serialporttest.bean.ComBean;
-import com.xiaolan.serialporttest.mylib.MyFunc;
-import com.xiaolan.serialporttest.mylib.SerialPortManager;
-import com.xiaolan.serialporttest.mylib.SerialPortManager.OnDataSendListener;
+import com.xiaolan.serialporttest.mylib.utils.ComBean;
+import com.xiaolan.serialporttest.mylib.utils.MyFunc;
+import com.xiaolan.serialporttest.util1.SerialPortManager.OnDataSendListener;
 
 import java.io.File;
 import java.io.IOException;
@@ -165,7 +164,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                 }
                 break;
             case R.id.btn_activity2:
-                startActivity(new Intent(this, Main2Activity.class));
+                startActivity(new Intent(this, JuRenProWashActivity.class));
                 break;
             case R.id.btn_set_port:
                 new AlertDialog.Builder(this)

@@ -1,4 +1,4 @@
-package com.xiaolan.serialporttest.mylib;
+package com.xiaolan.serialporttest.mylib.utils;
 
 public class CRC16 {
     private short[] crcTable = new short[256];

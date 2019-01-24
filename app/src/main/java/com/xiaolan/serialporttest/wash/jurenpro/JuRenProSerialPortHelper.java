@@ -1,7 +1,9 @@
-package com.xiaolan.serialporttest.mylib;
+package com.xiaolan.serialporttest.wash.jurenpro;
 
 import android.util.Log;
 
+import com.xiaolan.serialporttest.mylib.DeviceWorkType;
+import com.xiaolan.serialporttest.mylib.WashStatusManager;
 import com.xiaolan.serialporttest.mylib.event.WashStatusEvent;
 import com.xiaolan.serialporttest.mylib.listener.CurrentStatusListener;
 import com.xiaolan.serialporttest.mylib.listener.OnSendInstructionListener;
@@ -29,12 +31,11 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 /**
- * 串口操作工具类
- * 增加开始记录报文功能
+ * 巨人Pro串口操作工具类
  */
 
-public class SerialPortManager2 {
-    private static final String TAG = "SerialPortManager2";
+public class JuRenProSerialPortHelper {
+    private static final String TAG = "JuRenProSerialPort";
     private SerialPort mSerialPort;
     private OutputStream mOutputStream;
     private InputStream mInputStream;
@@ -83,19 +84,19 @@ public class SerialPortManager2 {
     private Disposable mSettingDisposable;
 
 
-    public SerialPortManager2() {
+    public JuRenProSerialPortHelper() {
         this("/dev/ttyS3", 9600);
     }
 
-    public SerialPortManager2(String sPort) {
+    public JuRenProSerialPortHelper(String sPort) {
         this(sPort, 9600);
     }
 
-    public SerialPortManager2(String sPort, String sBaudRate) {
+    public JuRenProSerialPortHelper(String sPort, String sBaudRate) {
         this(sPort, Integer.parseInt(sBaudRate));
     }
 
-    public SerialPortManager2(String sPort, int iBaudRate) {
+    public JuRenProSerialPortHelper(String sPort, int iBaudRate) {
         this.sPort = sPort;
         this.iBaudRate = iBaudRate;
     }
@@ -140,25 +141,6 @@ public class SerialPortManager2 {
         }
         mDataTrueData = 0;
     }
-
-    public void send(byte[] bOutArray) {
-        try {
-            mBufferedOutputStream.write(bOutArray);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void sendHex(String sHex) {
-        byte[] bOutArray = MyFunc.HexToByteArr(sHex);
-        send(bOutArray);
-    }
-
-    public void sendTxt(String sTxt) {
-        byte[] bOutArray = sTxt.getBytes();
-        send(bOutArray);
-    }
-
 
     private class ReadThread extends Thread {
         private static final int DATA_LENGTH = 64;
@@ -247,7 +229,7 @@ public class SerialPortManager2 {
                             Log.e(TAG, "接收：" + MyFunc.ByteArrToHex(subarray));
                             mPreMsg = subarray;
                             //根据上报的报文，分析设备状态
-                            mWashStatusEvent = mWashStatusManager.analyseStatus(subarray);
+                            mWashStatusEvent = mWashStatusManager.analyseStatus("DeviceAction.JuRenPro", subarray);
                             mRecCount++;
                             Observable.just(1).observeOn(AndroidSchedulers.mainThread())
                                     .doOnComplete(() -> {
@@ -269,7 +251,7 @@ public class SerialPortManager2 {
     /*
      * 发送热水指令
      */
-    void sendHot() {
+    public void sendHot() {
         mKey = KEY_HOT;
         long recCount = mRecCount;
         mHotDisposable = Observable.create(e -> {
@@ -329,7 +311,7 @@ public class SerialPortManager2 {
     /*
      * 发送温水指令
      */
-    void sendWarm() {
+    public void sendWarm() {
         mKey = KEY_WARM;
         long recCount = mRecCount;
         mWarmDisposable = Observable.create(e -> {
@@ -387,7 +369,7 @@ public class SerialPortManager2 {
     /*
      * 发送冷水指令
      */
-    void sendCold() {
+    public void sendCold() {
         mKey = KEY_COLD;
         long recCount = mRecCount;
         mColdDisposable = Observable.create(e -> {
@@ -447,7 +429,7 @@ public class SerialPortManager2 {
     /*
      * 发送精致衣物指令
      */
-    void sendDelicates() {
+    public void sendDelicates() {
         mKey = KEY_DELICATES;
         long recCount = mRecCount;
         mDelicatesDisposable = Observable.create(e -> {
@@ -507,7 +489,7 @@ public class SerialPortManager2 {
     /*
      * 发送加强指令
      */
-    void sendSuper() {
+    public void sendSuper() {
         mKey = KEY_SUPER;
         mSuperDisposable = Observable.create(e -> {
             sendData(mKey, INSTRUCTION_MODE);
@@ -548,7 +530,7 @@ public class SerialPortManager2 {
     /*
      * 发送开始指令
      */
-    void sendStartOrStop() {
+    public void sendStartOrStop() {
         mKey = KEY_START;
         long recCount = mRecCount;
         mStartDisposable = Observable.create(e -> {
@@ -580,7 +562,7 @@ public class SerialPortManager2 {
     /*
      * 发送设置指令
      */
-    void sendSetting() {
+    public void sendSetting() {
         mKey = KEY_SETTING;
         mSettingDisposable = Observable.create(e -> {
             sendData(mKey, INSTRUCTION_MODE);
@@ -608,7 +590,7 @@ public class SerialPortManager2 {
     /*
      * 发送kill指令
      */
-    void sendKill() {
+    public void sendKill() {
         //判断是处于洗衣状态才可以使用kill
         if (mWashStatusEvent != null && mWashStatusEvent.getIsWashing() == 0x40) {
             Observable.create(e -> {
@@ -625,7 +607,7 @@ public class SerialPortManager2 {
     private void kill() {
         isKilling = true;
         mKey = KEY_SETTING;
-        sendData(mKey, 0);
+        sendData(mKey, INSTRUCTION_MODE);
         if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("0").equals(mWashStatusEvent.getText())) {
             Log.e(TAG, "kill step1 success");
         } else {
@@ -633,7 +615,7 @@ public class SerialPortManager2 {
         }
         mKey = KEY_WARM;
         for (int i = 0; i < 3; i++) {
-            sendData(mKey, 0);
+            sendData(mKey, INSTRUCTION_MODE);
             if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && (i + 1 + "").equals(mWashStatusEvent.getText())) {
                 Log.e(TAG, "kill step2->" + i + "success");
             } else {
@@ -641,7 +623,7 @@ public class SerialPortManager2 {
             }
         }
         mKey = KEY_START;
-        sendData(mKey, 0);
+        sendData(mKey, INSTRUCTION_MODE);
         if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("LgC1").equals(mWashStatusEvent.getText())) {
             Log.e(TAG, "kill step3 success");
         } else {
@@ -649,7 +631,7 @@ public class SerialPortManager2 {
         }
         mKey = KEY_WARM;
         for (int i = 0; i < 4; i++) {
-            sendData(mKey, 0);
+            sendData(mKey, INSTRUCTION_MODE);
             if (mWashStatusEvent != null && mWashStatusEvent.isSetting()) {
                 switch (i) {
                     case 0:
@@ -686,7 +668,7 @@ public class SerialPortManager2 {
             }
         }
         mKey = KEY_START;
-        sendData(mKey, 0);
+        sendData(mKey, INSTRUCTION_MODE);
         if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("0").equals(mWashStatusEvent.getText())) {
             Log.e(TAG, "kill step5 success");
         } else {
@@ -694,7 +676,7 @@ public class SerialPortManager2 {
         }
         mKey = KEY_WARM;
         for (int i = 0; i < 17; i++) {
-            sendData(mKey, 0);
+            sendData(mKey, INSTRUCTION_MODE);
             if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && (i + 1 + "").equals(mWashStatusEvent.getText())) {
                 Log.e(TAG, "kill step6 success");
             } else {
@@ -702,7 +684,7 @@ public class SerialPortManager2 {
             }
         }
         mKey = KEY_START;
-        sendData(mKey, 0);
+        sendData(mKey, INSTRUCTION_MODE);
         mKill = Observable.intervalRange(0, 240, 0, 1, TimeUnit.SECONDS).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnNext(aLong -> {
@@ -750,10 +732,10 @@ public class SerialPortManager2 {
             try {
                 mBufferedOutputStream.write(msg);
                 mBufferedOutputStream.flush();
-                Log.e(TAG, "发送：" + MyFunc.ByteArrToHex(msg));
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            Log.e(TAG, "发送：" + MyFunc.ByteArrToHex(msg));
             try {
                 Thread.sleep(50);
             } catch (InterruptedException ignored) {
@@ -802,84 +784,19 @@ public class SerialPortManager2 {
         }
     }
 
-    int getBaudRate() {
-        return iBaudRate;
-    }
-
-    boolean setBaudRate(int iBaud) {
-        if (_isOpen) {
-            return false;
-        } else {
-            iBaudRate = iBaud;
-            return true;
-        }
-    }
-
-    String getPort() {
-        return sPort;
-    }
-
-    boolean setPort(String sPort) {
-        if (_isOpen) {
-            return false;
-        } else {
-            this.sPort = sPort;
-            return true;
-        }
-    }
-
-    String getDataBits() {
-        return mDataBits;
-    }
-
-    boolean setDataBits(String dataBits) {
-        if (_isOpen) {
-            return false;
-        } else {
-            mDataBits = dataBits;
-            return true;
-        }
-    }
-
-    String getStopBits() {
-        return mStopBits;
-    }
-
-    boolean setStopBits(String stopBits) {
-        if (_isOpen) {
-            return false;
-        } else {
-            mStopBits = stopBits;
-            return true;
-        }
-    }
-
-    String getParityBits() {
-        return mParityBits;
-    }
-
-    boolean setParityBits(String parityBits) {
-        if (_isOpen) {
-            return false;
-        } else {
-            mParityBits = parityBits;
-            return true;
-        }
-    }
-
-    boolean isOpen() {
+    public boolean isOpen() {
         return _isOpen;
     }
 
-    void setOnSendInstructionListener(OnSendInstructionListener onSendInstructionListener) {
+    public void setOnSendInstructionListener(OnSendInstructionListener onSendInstructionListener) {
         mOnSendInstructionListener = onSendInstructionListener;
     }
 
-    void setOnCurrentStatusListener(CurrentStatusListener currentStatusListener) {
+    public void setOnCurrentStatusListener(CurrentStatusListener currentStatusListener) {
         mCurrentStatusListener = currentStatusListener;
     }
 
-    void setOnSerialPortReadDataListener(SerialPortReadDataListener serialPortReadDataListener) {
+    public void setOnSerialPortReadDataListener(SerialPortReadDataListener serialPortReadDataListener) {
         mSerialPortReadDataListener = serialPortReadDataListener;
     }
 }

@@ -1,9 +1,11 @@
-package com.xiaolan.serialporttest.mylib;
+package com.xiaolan.serialporttest.util1;
 
 import android.util.Log;
 
-import com.xiaolan.serialporttest.bean.ComBean;
-import com.xiaolan.serialporttest.util1.WriteLogUtil;
+import com.xiaolan.serialporttest.mylib.utils.CRC16;
+import com.xiaolan.serialporttest.mylib.utils.ComBean;
+import com.xiaolan.serialporttest.mylib.utils.LightMsg;
+import com.xiaolan.serialporttest.mylib.utils.MyFunc;
 
 import org.apache.commons.lang3.ArrayUtils;
 

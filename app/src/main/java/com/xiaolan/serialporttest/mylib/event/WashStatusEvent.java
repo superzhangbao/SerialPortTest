@@ -1,4 +1,4 @@
-package com.xiaolan.serialporttest.event;
+package com.xiaolan.serialporttest.mylib.event;
 
 public class WashStatusEvent {
     private int mWashMode;

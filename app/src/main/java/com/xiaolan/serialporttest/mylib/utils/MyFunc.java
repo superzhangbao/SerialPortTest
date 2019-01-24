@@ -1,4 +1,4 @@
-package com.xiaolan.serialporttest.mylib;
+package com.xiaolan.serialporttest.mylib.utils;
 
 public class MyFunc {
     //-------------------------------------------------------

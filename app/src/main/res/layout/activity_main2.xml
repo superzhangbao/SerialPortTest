@@ -16,11 +16,6 @@
             android:layout_marginLeft="20dp"
             android:layout_centerVertical="true"/>
         <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="开始记录报文"
-            android:id="@+id/btn_writelog"/>
-        <Button
             android:id="@+id/btn_finsh"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -29,21 +24,12 @@
             android:textColor="@color/colorAccent"
             android:textSize="20sp"
             style="@style/Base.TextAppearance.AppCompat.Widget.Button"/>
-        <Button
-            android:id="@+id/btn_wash"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="模拟洗衣机"
-            android:textColor="@color/colorAccent"
-            android:textSize="20sp"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            style="@style/Base.TextAppearance.AppCompat.Widget.Button"/>
     </RelativeLayout>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:visibility="gone">
 
         <Button
             android:id="@+id/btn_set_port"
@@ -90,57 +76,11 @@
         android:layout_width="match_parent"
         android:layout_height="100dp">
         <LinearLayout
-            android:id="@+id/ll_send"
-            android:layout_width="match_parent"
-            android:layout_height="100dp"
-            android:layout_marginTop="20dp">
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:orientation="vertical">
-
-                <RadioGroup
-                    android:id="@+id/rg"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:orientation="horizontal">
-
-                    <RadioButton
-                        android:id="@+id/cb_hex"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Hex发送" />
-
-                    <RadioButton
-                        android:id="@+id/cb_text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Text发送" />
-                </RadioGroup>
-            </LinearLayout>
-
-            <EditText
-                android:id="@+id/et"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="@null" />
-
-            <Button
-                android:id="@+id/btn_send"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:text="发送"/>
-        </LinearLayout>
-        <LinearLayout
             android:id="@+id/ll_wash"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="horizontal"
-            android:visibility="gone">
+            android:visibility="visible">
             <Button
                 android:layout_width="0dp"
                 android:layout_weight="1"

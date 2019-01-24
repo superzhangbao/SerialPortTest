@@ -1,4 +1,4 @@
-package com.xiaolan.serialporttest.mylib;
+package com.xiaolan.serialporttest.mylib.utils;
 
 import java.util.HashMap;
 import java.util.Map;

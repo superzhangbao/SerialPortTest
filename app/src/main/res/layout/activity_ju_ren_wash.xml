@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="@color/colorPrimary">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="巨人洗衣机"
+            android:textSize="22sp"
+            android:textColor="@color/colorAccent"
+            android:layout_marginLeft="20dp"
+            android:layout_centerVertical="true"/>
+        <Button
+            android:id="@+id/btn_finsh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="关闭"
+            android:layout_alignParentEnd="true"
+            android:textColor="@color/colorAccent"
+            android:textSize="20sp"
+            style="@style/Base.TextAppearance.AppCompat.Widget.Button" />
+    </RelativeLayout>
+    <LinearLayout
+        android:id="@+id/ll_wash"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="visible">
+        <Button
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:text="whites"
+            android:id="@+id/btn_whites"/>
+        <Button
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:text="colors"
+            android:id="@+id/btn_colors"/>
+        <Button
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:text="delicates"
+            android:id="@+id/btn_delicates"/>
+        <Button
+            android:layout_width="0dp"
+            android:layout_weight="1.5"
+            android:layout_height="match_parent"
+            android:text="perm_press"
+            android:id="@+id/btn_perm.press"/>
+        <Button
+            android:layout_width="0dp"
+            android:layout_weight="1.5"
+            android:layout_height="match_parent"
+            android:text="加强洗"
+            android:id="@+id/btn_super"/>
+        <Button
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:text="开始"
+            android:id="@+id/btn_start"/>
+        <Button
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:text="设置"
+            android:id="@+id/btn_setting"/>
+        <Button
+            android:layout_width="0dp"
+            android:layout_weight="2"
+            android:layout_height="match_parent"
+            android:text="kill"
+            android:id="@+id/btn_kill"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/btn_open_port"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:text="打开串口"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/btn_clear"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="清空"
+            android:textAllCaps="false" />
+
+        <RadioGroup
+            android:id="@+id/rg_rev"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/cb_hex_rev"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hex接收" />
+
+            <RadioButton
+                android:id="@+id/cb_text_rev"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Text接收" />
+        </RadioGroup>
+    </LinearLayout>
+    <EditText
+        android:id="@+id/editTextRecDisp"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clickable="false"
+        android:editable="false"
+        android:gravity="top"
+        android:longClickable="false"
+        android:textSize="14sp" />
+</LinearLayout>

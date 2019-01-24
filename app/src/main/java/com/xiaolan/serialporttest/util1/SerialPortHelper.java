@@ -2,8 +2,8 @@ package com.xiaolan.serialporttest.util1;
 
 import android.util.Log;
 
-import com.xiaolan.serialporttest.bean.ComBean;
-import com.xiaolan.serialporttest.mylib.MyFunc;
+import com.xiaolan.serialporttest.mylib.utils.ComBean;
+import com.xiaolan.serialporttest.mylib.utils.MyFunc;
 
 import java.io.BufferedInputStream;
 import java.io.File;
