@@ -583,7 +583,116 @@ public class JuRenSerialPortHelper {
     }
 
     private void kill() {
-
+        mKey = DeviceAction.JuRen.ACTION_SETTING;
+        sendData(mKey);
+//        if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("0").equals(mWashStatusEvent.getText())) {
+//            Log.e(TAG, "kill step1 success");
+//        } else {
+//            Log.e(TAG, "kill step1 error");
+//        }
+        mKey = DeviceAction.JuRen.ACTION_COLORS;
+        for (int i = 0; i < 3; i++) {
+            sendData(mKey);
+//            if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && (i + 1 + "").equals(mWashStatusEvent.getText())) {
+////                Log.e(TAG, "kill step2->" + i + "success");
+////            } else {
+////                Log.e(TAG, "kill step2->" + i + "error");
+////            }
+        }
+        mKey = DeviceAction.JuRen.ACTION_START;
+        sendData(mKey);
+//        if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("LgC1").equals(mWashStatusEvent.getText())) {
+//            Log.e(TAG, "kill step3 success");
+//        } else {
+//            Log.e(TAG, "kill step3 error");
+//        }
+        mKey = DeviceAction.JuRen.ACTION_COLORS;
+        for (int i = 0; i < 2; i++) {
+            sendData(mKey);
+//            if (mWashStatusEvent != null && mWashStatusEvent.isSetting()) {
+//                switch (i) {
+//                    case 0:
+//                        if (("tcL").equals(mWashStatusEvent.getText())) {
+//                            Log.e(TAG, "kill step4->" + i + "success");
+//                        } else {
+//                            Log.e(TAG, "kill step4->" + i + "error");
+//                        }
+//                        break;
+//                    case 1:
+//                        if (("PA55").equals(mWashStatusEvent.getText())) {
+//                            Log.e(TAG, "kill step4->" + i + "success");
+//                        } else {
+//                            Log.e(TAG, "kill step4->" + i + "error");
+//                        }
+//                        break;
+//                    case 2:
+//                        if (("dUCt").equals(mWashStatusEvent.getText())) {
+//                            Log.e(TAG, "kill step4->" + i + "success");
+//                        } else {
+//                            Log.e(TAG, "kill step4->" + i + "error");
+//                        }
+//                        break;
+//                    case 3:
+//                        if (("h1LL").equals(mWashStatusEvent.getText())) {
+//                            Log.e(TAG, "kill step4->" + i + "success");
+//                        } else {
+//                            Log.e(TAG, "kill step4->" + i + "error");
+//                        }
+//                        break;
+//                }
+//            } else {
+//                Log.e(TAG, "kill step4->" + i + "error");
+//            }
+        }
+        mKey = DeviceAction.JuRen.ACTION_START;
+        sendData(mKey);
+//        if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("0").equals(mWashStatusEvent.getText())) {
+//            Log.e(TAG, "kill step5 success");
+//        } else {
+//            Log.e(TAG, "kill step5 error");
+//        }
+        mKey = DeviceAction.JuRen.ACTION_COLORS;
+        for (int i = 0; i < 17; i++) {
+            sendData(mKey);
+//            if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && (i + 1 + "").equals(mWashStatusEvent.getText())) {
+//                Log.e(TAG, "kill step6 success");
+//            } else {
+//                Log.e(TAG, "kill step6 error");
+//            }
+        }
+        mKey = DeviceAction.JuRen.ACTION_START;
+        sendData(mKey);
+//        mKill = Observable.intervalRange(0, 240, 0, 1, TimeUnit.SECONDS).subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .doOnNext(aLong -> {
+//                    Log.e(TAG, "doOnNext--->" + aLong);
+//                    if (mWashStatusEvent != null) {
+//                        if (mWashStatusEvent.getViewStep() == DeviceWorkType.WORKTYPR_END && !mWashStatusEvent.isSetting() && mWashStatusEvent.getLightlock() == 0) {//end状态
+//                            if (mOnSendInstructionListener != null) {
+//                                mOnSendInstructionListener.sendInstructionSuccess(KEY_KILL, mWashStatusEvent);
+//                            }
+//                            Log.e(TAG, "kill success");
+//                            if (mKill != null && !mKill.isDisposed()) {
+//                                mKill.dispose();
+//                            }
+//                        } else {
+//                            if (aLong == 239) {
+//                                if (mOnSendInstructionListener != null) {
+//                                    mOnSendInstructionListener.sendInstructionFail(KEY_KILL, "kill error");
+//                                }
+//                                Log.e(TAG, "kill error");
+//                                if (mKill != null && !mKill.isDisposed()) {
+//                                    mKill.dispose();
+//                                }
+//                            }
+//                        }
+//                    }
+//                })
+//                .doOnComplete(() -> {
+//                    isKilling = false;
+//                    mRecCount = 0;
+//                })
+//                .subscribe();
     }
 
     private void sendData(int key) {
@@ -591,7 +700,7 @@ public class JuRenSerialPortHelper {
         short crc16_a = mCrc16.getCrc(msg, 0, msg.length - 3);
         msg[msg.length - 2] = (byte) (crc16_a >> 8);
         msg[msg.length - 3] = (byte) (crc16_a & 0xff);
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 12; i++) {
             try {
                 mBufferedOutputStream.write(msg);
                 mBufferedOutputStream.flush();
