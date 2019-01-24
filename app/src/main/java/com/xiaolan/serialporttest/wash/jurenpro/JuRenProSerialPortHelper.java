@@ -3,7 +3,6 @@ package com.xiaolan.serialporttest.wash.jurenpro;
 import android.util.Log;
 
 import com.xiaolan.serialporttest.mylib.DeviceWorkType;
-import com.xiaolan.serialporttest.mylib.WashStatusManager;
 import com.xiaolan.serialporttest.mylib.event.WashStatusEvent;
 import com.xiaolan.serialporttest.mylib.listener.CurrentStatusListener;
 import com.xiaolan.serialporttest.mylib.listener.OnSendInstructionListener;
@@ -66,7 +65,7 @@ public class JuRenProSerialPortHelper {
     private static final int INSTRUCTION_MODE = 0;//指令类型
     private int mCount = 0;
     private int mPreIsSupper;
-    private WashStatusManager mWashStatusManager;
+    private JuRenProWashStatus mJuRenProWashStatus;
     private OnSendInstructionListener mOnSendInstructionListener;
     private SerialPortReadDataListener mSerialPortReadDataListener;
     private CurrentStatusListener mCurrentStatusListener;
@@ -109,7 +108,7 @@ public class JuRenProSerialPortHelper {
         mBufferedInputStream = new BufferedInputStream(mInputStream, 1024 * 64);
         mBufferedOutputStream = new BufferedOutputStream(mOutputStream, 1024 * 64);
         mCrc16 = new CRC16();
-        mWashStatusManager = new WashStatusManager();
+        mJuRenProWashStatus = new JuRenProWashStatus();
         mReadThread = new ReadThread();
         mReadThread.start();
         _isOpen = true;
@@ -223,13 +222,12 @@ public class JuRenProSerialPortHelper {
                             }
                             mDataTrueData = time;
                         }
-//                            Log.e(TAG, "false" + Arrays.toString(ArrayUtils.subarray(buffer, 0, off02 + 1)));
                         byte[] subarray = ArrayUtils.subarray(buffer, off02, off02 + size);
                         if (!Objects.deepEquals(mPreMsg, subarray)) {
                             Log.e(TAG, "接收：" + MyFunc.ByteArrToHex(subarray));
                             mPreMsg = subarray;
                             //根据上报的报文，分析设备状态
-                            mWashStatusEvent = mWashStatusManager.analyseStatus("DeviceAction.JuRenPro", subarray);
+                            mWashStatusEvent = mJuRenProWashStatus.analyseStatus(subarray);
                             mRecCount++;
                             Observable.just(1).observeOn(AndroidSchedulers.mainThread())
                                     .doOnComplete(() -> {
@@ -242,6 +240,8 @@ public class JuRenProSerialPortHelper {
                                     })
                                     .subscribe();
                         }
+                    }else {
+                        //Log.e(TAG, "false" + Arrays.toString(ArrayUtils.subarray(buffer, 0, off02 + 1)));
                     }
                 }
             }

@@ -18,6 +18,7 @@ import com.xiaolan.serialporttest.mylib.listener.CurrentStatusListener;
 import com.xiaolan.serialporttest.mylib.listener.OnSendInstructionListener;
 import com.xiaolan.serialporttest.mylib.listener.SerialPortReadDataListener;
 import com.xiaolan.serialporttest.mylib.utils.MyFunc;
+import com.xiaolan.serialporttest.util1.ToastUtil;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -83,27 +84,35 @@ public class JuRenWashActivity extends AppCompatActivity implements OnSendInstru
         switch (key) {
             case 1:
                 Log.e(TAG, "开始指令成功");
+                ToastUtil.show("开始指令成功");
                 break;
             case 2:
                 Log.e(TAG, "whites指令成功");
+                ToastUtil.show("whites指令成功");
                 break;
             case 3:
                 Log.e(TAG, "colors指令成功");
+                ToastUtil.show("colors指令成功");
                 break;
             case 4:
                 Log.e(TAG, "delicates指令成功");
+                ToastUtil.show("delicates指令成功");
                 break;
             case 5:
                 Log.e(TAG, "perm.press指令成功");
+                ToastUtil.show("perm.press指令成功");
                 break;
             case 6:
                 Log.e(TAG, "加强洗指令成功");
+                ToastUtil.show("加强洗指令成功");
                 break;
             case 8:
                 Log.e(TAG, "设置指令成功");
+                ToastUtil.show("设置指令成功");
                 break;
             case 10:
                 Log.e(TAG, "kill指令成功");
+                ToastUtil.show("kill指令成功");
                 break;
         }
         mDispQueueThread2.AddQueue(washStatusEvent);//线程定时刷新显示
@@ -114,27 +123,35 @@ public class JuRenWashActivity extends AppCompatActivity implements OnSendInstru
         switch (key) {
             case 1:
                 Log.e(TAG, "开始指令失败");
+                ToastUtil.show("开始指令失败");
                 break;
             case 2:
                 Log.e(TAG, "热水指令失败");
+                ToastUtil.show("热水指令失败");
                 break;
             case 3:
                 Log.e(TAG, "温水指令失败");
+                ToastUtil.show("温水指令失败");
                 break;
             case 4:
                 Log.e(TAG, "冷水指令失败");
+                ToastUtil.show("冷水指令失败");
                 break;
             case 5:
                 Log.e(TAG, "精致衣物指令失败");
+                ToastUtil.show("精致衣物指令失败");
                 break;
             case 6:
                 Log.e(TAG, "加强洗指令失败");
+                ToastUtil.show("加强洗指令失败");
                 break;
             case 8:
                 Log.e(TAG, "设置指令失败");
+                ToastUtil.show("设置指令失败");
                 break;
             case 10:
                 Log.e(TAG, "kill指令失败");
+                ToastUtil.show("kill指令失败");
                 break;
         }
     }
@@ -143,19 +160,21 @@ public class JuRenWashActivity extends AppCompatActivity implements OnSendInstru
     public void onSerialPortReadDataSuccess(byte[] bytes) {
         String s = MyFunc.ByteArrToHex(bytes);
         Log.e(TAG, "串口读取数据成功:" + s);
-        Toast.makeText(JuRenWashActivity.this, "串口读取数据成功" + s, Toast.LENGTH_SHORT).show();
+        ToastUtil.show("串口读取数据成功" + s);
     }
 
     @Override
     public void onSerialPortReadDataFail(String msg) {
         Log.e(TAG, "串口读取数据失败:" + msg);
-        Toast.makeText(JuRenWashActivity.this, msg, Toast.LENGTH_SHORT).show();
+        ToastUtil.show( msg);
     }
 
     @Override
     public void currentStatus(WashStatusEvent washStatusEvent) {
-        if (washStatusEvent != null)
+        if (washStatusEvent != null) {
             Log.e(TAG, "屏显：" + washStatusEvent.getText());
+            mDispQueueThread2.AddQueue(washStatusEvent);//线程定时刷新显示
+        }
     }
 
     @OnClick({R.id.btn_finsh, R.id.btn_open_port, R.id.btn_clear, R.id.btn_whites, R.id.btn_colors,
