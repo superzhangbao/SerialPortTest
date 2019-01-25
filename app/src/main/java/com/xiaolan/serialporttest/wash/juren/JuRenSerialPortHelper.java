@@ -198,6 +198,7 @@ public class JuRenSerialPortHelper {
                         Log.e(TAG,"lights3灯的状态："+"lights3.isOn"+isOn(lights3)+",lights3.isOff"+isOff(lights3)+",lights3.isFlash"+isFlash(lights3));
                         Log.e(TAG,"lightlk灯的状态："+"lightlk.isOn"+isOn(lightlk)+",lightlk.isOff"+isOff(lightlk)+",lightlk.isFlash"+isFlash(lightlk));
                         Log.e(TAG,"lighttxt的状态："+"lighttxt.isOn"+isOn(lighttxt)+",lighttxt.isOff"+isOff(lighttxt)+",lighttxt.isFlash"+isFlash(lighttxt));
+                        Log.e(TAG,"text:"+text);
                     }else {
                         //Log.e(TAG, "false" + Arrays.toString(ArrayUtils.subarray(buffer, 0, off02 + 1)));
                     }
