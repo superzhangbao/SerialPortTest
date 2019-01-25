@@ -187,18 +187,19 @@ public class JuRenSerialPortHelper {
                         }
                         enqueueState(msg);
                         if (his.size()>HIS_SIZE) dequeueState();
-                        Log.e(TAG,"light1灯的状态："+"light1.isOn"+isOn(light1)+",light1.isOff"+isOff(light1)+",light1.isFlash"+isFlash(light1));
-                        Log.e(TAG,"light2灯的状态："+"light2.isOn"+isOn(light2)+",light2.isOff"+isOff(light2)+",light2.isFlash"+isFlash(light2));
-                        Log.e(TAG,"light3灯的状态："+"light3.isOn"+isOn(light3)+",light3.isOff"+isOff(light3)+",light3.isFlash"+isFlash(light3));
-                        Log.e(TAG,"light4灯的状态："+"light4.isOn"+isOn(light4)+",light4.isOff"+isOff(light4)+",light4.isFlash"+isFlash(light4));
-                        Log.e(TAG,"light5灯的状态："+"light5.isOn"+isOn(light5)+",light5.isOff"+isOff(light5)+",light5.isFlash"+isFlash(light5));
-                        Log.e(TAG,"lightst灯的状态："+"lightst.isOn"+isOn(lightst)+",lightst.isOff"+isOff(lightst)+",lightst.isFlash"+isFlash(lightst));
-                        Log.e(TAG,"lights1灯的状态："+"lights1.isOn"+isOn(lights1)+",lights1.isOff"+isOff(lights1)+",lights1.isFlash"+isFlash(lights1));
-                        Log.e(TAG,"lights2灯的状态："+"lights2.isOn"+isOn(lights2)+",lights2.isOff"+isOff(lights2)+",lights2.isFlash"+isFlash(lights2));
-                        Log.e(TAG,"lights3灯的状态："+"lights3.isOn"+isOn(lights3)+",lights3.isOff"+isOff(lights3)+",lights3.isFlash"+isFlash(lights3));
-                        Log.e(TAG,"lightlk灯的状态："+"lightlk.isOn"+isOn(lightlk)+",lightlk.isOff"+isOff(lightlk)+",lightlk.isFlash"+isFlash(lightlk));
-                        Log.e(TAG,"lighttxt的状态："+"lighttxt.isOn"+isOn(lighttxt)+",lighttxt.isOff"+isOff(lighttxt)+",lighttxt.isFlash"+isFlash(lighttxt));
-                        Log.e(TAG,"text:"+text);
+                        Log.e("light","isRunning:-->"+isRunning());
+                        Log.e("light","light1灯的值：-->"+light1+",light1.isOn-->"+isOn(light1)+",light1.isOff-->"+isOff(light1)+",light1.isFlash-->"+isFlash(light1));
+                        Log.e("light","light2灯的值：-->"+light2+",light2.isOn-->"+isOn(light2)+",light2.isOff-->"+isOff(light2)+",light2.isFlash-->"+isFlash(light2));
+                        Log.e("light","light3灯的值：-->"+light3+",light3.isOn-->"+isOn(light3)+",light3.isOff-->"+isOff(light3)+",light3.isFlash-->"+isFlash(light3));
+                        Log.e("light","light4灯的值：-->"+light4+",light4.isOn-->"+isOn(light4)+",light4.isOff-->"+isOff(light4)+",light4.isFlash-->"+isFlash(light4));
+                        Log.e("light","light5灯的值：-->"+light5+",light5.isOn-->"+isOn(light5)+",light5.isOff-->"+isOff(light5)+",light5.isFlash-->"+isFlash(light5));
+                        Log.e("light","lightst灯的值：-->"+lightst+",lightst.isOn-->"+isOn(lightst)+",lightst.isOff-->"+isOff(lightst)+",lightst.isFlash-->"+isFlash(lightst));
+                        Log.e("light","lights1灯的值：-->"+lights1+",lights1.isOn-->"+isOn(lights1)+",lights1.isOff-->"+isOff(lights1)+",lights1.isFlash-->"+isFlash(lights1));
+                        Log.e("light","lights2灯的值：-->"+lights2+",lights2.isOn-->"+isOn(lights2)+",lights2.isOff-->"+isOff(lights2)+",lights2.isFlash-->"+isFlash(lights2));
+                        Log.e("light","lights3灯的值：-->"+lights3+",lights3.isOn-->"+isOn(lights3)+",lights3.isOff-->"+isOff(lights3)+",lights3.isFlash-->"+isFlash(lights3));
+                        Log.e("light","lightlk灯的值：-->"+lightlk+",lightlk.isOn-->"+isOn(lightlk)+",lightlk.isOff-->"+isOff(lightlk)+",lightlk.isFlash-->"+isFlash(lightlk));
+                        Log.e("light","lighttxt的值：-->"+lighttxt+",lighttxt.isOn-->"+isOn(lighttxt)+",lighttxt.isOff-->"+isOff(lighttxt)+",lighttxt.isFlash-->"+isFlash(lighttxt));
+                        Log.e("light","text:"+text);
                     }else {
                         //Log.e(TAG, "false" + Arrays.toString(ArrayUtils.subarray(buffer, 0, off02 + 1)));
                     }
