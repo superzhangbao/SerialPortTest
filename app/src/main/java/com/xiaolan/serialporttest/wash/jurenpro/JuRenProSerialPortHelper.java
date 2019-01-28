@@ -240,7 +240,7 @@ public class JuRenProSerialPortHelper {
                                     })
                                     .subscribe();
                         }
-                    }else {
+                    } else {
                         //Log.e(TAG, "false" + Arrays.toString(ArrayUtils.subarray(buffer, 0, off02 + 1)));
                     }
                 }
@@ -716,6 +716,47 @@ public class JuRenProSerialPortHelper {
                     mRecCount = 0;
                 })
                 .subscribe();
+    }
+
+    /**
+     * 设置音量到HIGH
+     */
+    public void sendVomHigh() {
+        Observable.create(e -> {
+            vomHigh();
+            e.onComplete();
+        }).subscribeOn(Schedulers.io())
+                .subscribe();
+
+    }
+
+    private void vomHigh() {
+        mKey = KEY_SETTING;
+        sendData(mKey, INSTRUCTION_MODE);
+        mKey = KEY_WARM;
+        for (int i = 0; i < 3; i++) {
+            sendData(mKey, INSTRUCTION_MODE);
+        }
+        mKey = KEY_START;
+        sendData(mKey, INSTRUCTION_MODE);
+        mKey = KEY_HOT;
+        sendData(mKey, INSTRUCTION_MODE);
+        mKey = KEY_WARM;
+        sendData(mKey, INSTRUCTION_MODE);
+        mKey = KEY_START;
+        sendData(mKey, INSTRUCTION_MODE);
+        mKey = KEY_WARM;
+        for (int i = 0; i < 9; i++) {
+            sendData(mKey, INSTRUCTION_MODE);
+        }
+        mKey = KEY_START;
+        sendData(mKey, INSTRUCTION_MODE);
+        while (!mWashStatusEvent.getText().equals("H19H")) {
+            mKey = KEY_WARM;
+            sendData(mKey, INSTRUCTION_MODE);
+        }
+        mKey = KEY_START;
+        sendData(mKey, INSTRUCTION_MODE);
     }
 
     private void sendData(int key, int t) {

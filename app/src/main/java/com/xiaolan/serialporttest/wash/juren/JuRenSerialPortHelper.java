@@ -94,14 +94,6 @@ public class JuRenSerialPortHelper {
         this("/dev/ttyS3", 9600);
     }
 
-    public JuRenSerialPortHelper(String sPort) {
-        this(sPort, 9600);
-    }
-
-    public JuRenSerialPortHelper(String sPort, String sBaudRate) {
-        this(sPort, Integer.parseInt(sBaudRate));
-    }
-
     public JuRenSerialPortHelper(String sPort, int iBaudRate) {
         this.sPort = sPort;
         this.iBaudRate = iBaudRate;
