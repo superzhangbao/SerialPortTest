@@ -1,4 +1,4 @@
-package com.xiaolan.serialporttest;
+package com.xiaolan.serialporttest.wash.jurenpro;
 
 import android.annotation.SuppressLint;
 import android.content.res.ColorStateList;
@@ -16,12 +16,13 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import com.xiaolan.serialporttest.R;
 import com.xiaolan.serialporttest.mylib.DeviceAction;
 import com.xiaolan.serialporttest.mylib.DeviceEngine;
 import com.xiaolan.serialporttest.mylib.event.WashStatusEvent;
 import com.xiaolan.serialporttest.mylib.listener.CurrentStatusListener;
 import com.xiaolan.serialporttest.mylib.listener.OnSendInstructionListener;
-import com.xiaolan.serialporttest.mylib.listener.SerialPortReadDataListener;
+import com.xiaolan.serialporttest.mylib.listener.SerialPortOnlineListener;
 import com.xiaolan.serialporttest.mylib.utils.MyFunc;
 import com.xiaolan.serialporttest.util1.KeybordUtils;
 
@@ -30,7 +31,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import android_serialport_api.SerialPortFinder;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -38,7 +38,7 @@ import butterknife.OnClick;
 /**
  * 巨人pro洗衣机页面
  */
-public class JuRenProWashActivity extends AppCompatActivity implements RadioGroup.OnCheckedChangeListener, OnSendInstructionListener, CurrentStatusListener, SerialPortReadDataListener {
+public class JuRenProWashActivity extends AppCompatActivity implements RadioGroup.OnCheckedChangeListener, OnSendInstructionListener, CurrentStatusListener, SerialPortOnlineListener {
     private static final String TAG = "JuRenProWashActivity";
     @BindView(R.id.btn_open_port)
     Button mBtnOpenPort;
@@ -73,8 +73,8 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
 
     //    private MyHandler mMyHandler;
 //    private DispQueueThread mDispQueueThread;
-    private SerialPortFinder mPortFinder;
-    private int sendType = 0;
+//    private SerialPortFinder mPortFinder;
+//    private int sendType = 0;
     private int revType = 0;
     private ArrayList<Button> mButtons = new ArrayList<>();
     private int mSelectMode = -1;
@@ -102,10 +102,13 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
 //        mDispQueueThread.start();
         mDispQueueThread2 = new DispQueueThread2();
         mDispQueueThread2.start();
-        mPortFinder = new SerialPortFinder();
+//        mPortFinder = new SerialPortFinder();
+        //设置发送指令监听
         DeviceEngine.getInstance().setOnSendInstructionListener(this);
+        //设置上报状态监听
         DeviceEngine.getInstance().setOnCurrentStatusListener(this);
-        DeviceEngine.getInstance().setOnSerialPortReadDataListener(this);
+        //设置读取串口数据监听
+        DeviceEngine.getInstance().setOnSerialPortOnlineListener(this);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -116,7 +119,16 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_finsh:
-                finish();
+                boolean open = DeviceEngine.getInstance().isOpen();
+                if (open) {
+                    try {
+                        DeviceEngine.getInstance().close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }finally {
+                        finish();
+                    }
+                }
                 break;
             case R.id.btn_open_port:
                 //打开/关闭串口
@@ -200,6 +212,7 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
         if (!DeviceEngine.getInstance().isOpen()) {
             try {
                 DeviceEngine.getInstance().open();
+                mBtnOpenPort.setText("关闭串口");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -317,16 +330,16 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
     }
 
     @Override
-    public void onSerialPortReadDataSuccess(byte[] bytes) {
+    public void onSerialPortOnline(byte[] bytes) {
         String s = MyFunc.ByteArrToHex(bytes);
-        Log.e(TAG, "串口读取数据成功:" + s);
-        Toast.makeText(JuRenProWashActivity.this, "串口读取数据成功" + s, Toast.LENGTH_SHORT).show();
+        Log.e(TAG, "串口上线:" + s);
+        Toast.makeText(this, "串口上线" + s, Toast.LENGTH_SHORT).show();
     }
 
     @Override
-    public void onSerialPortReadDataFail(String msg) {
-        Log.e(TAG, "串口读取数据失败:" + msg);
-        Toast.makeText(JuRenProWashActivity.this, msg, Toast.LENGTH_SHORT).show();
+    public void onSerialPortOffline(String msg) {
+        Log.e(TAG, msg);
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
     //----------------------------------------------------刷新显示线程

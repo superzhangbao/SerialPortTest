@@ -4,14 +4,13 @@ import com.xiaolan.serialporttest.mylib.DeviceAction;
 import com.xiaolan.serialporttest.mylib.DeviceEngineIService;
 import com.xiaolan.serialporttest.mylib.listener.CurrentStatusListener;
 import com.xiaolan.serialporttest.mylib.listener.OnSendInstructionListener;
-import com.xiaolan.serialporttest.mylib.listener.SerialPortReadDataListener;
+import com.xiaolan.serialporttest.mylib.listener.SerialPortOnlineListener;
 
 import java.io.IOException;
 
 public class JuRenWashManager implements DeviceEngineIService {
 
     private JuRenSerialPortHelper mJuRenSerialPortHelper;
-
 
     public JuRenWashManager() {
         if (mJuRenSerialPortHelper == null) {
@@ -44,8 +43,8 @@ public class JuRenWashManager implements DeviceEngineIService {
     }
 
     @Override
-    public void setOnSerialPortReadDataListener(SerialPortReadDataListener serialPortReadDataListener) {
-        mJuRenSerialPortHelper.setOnSerialPortReadDataListener(serialPortReadDataListener);
+    public void setOnSerialPortOnlineListener(SerialPortOnlineListener serialPortOnlineListener) {
+        mJuRenSerialPortHelper.setOnSerialPortOnlineListener(serialPortOnlineListener);
     }
 
     @Override

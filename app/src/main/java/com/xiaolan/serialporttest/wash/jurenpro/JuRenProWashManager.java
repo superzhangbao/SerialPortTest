@@ -4,7 +4,7 @@ import com.xiaolan.serialporttest.mylib.DeviceAction;
 import com.xiaolan.serialporttest.mylib.DeviceEngineIService;
 import com.xiaolan.serialporttest.mylib.listener.CurrentStatusListener;
 import com.xiaolan.serialporttest.mylib.listener.OnSendInstructionListener;
-import com.xiaolan.serialporttest.mylib.listener.SerialPortReadDataListener;
+import com.xiaolan.serialporttest.mylib.listener.SerialPortOnlineListener;
 
 import java.io.IOException;
 
@@ -45,8 +45,8 @@ public class JuRenProWashManager implements DeviceEngineIService {
     }
 
     @Override
-    public void setOnSerialPortReadDataListener(SerialPortReadDataListener onSerialPortReadDataListener) {
-        mJuRenProSerialPortHelper.setOnSerialPortReadDataListener(onSerialPortReadDataListener);
+    public void setOnSerialPortOnlineListener(SerialPortOnlineListener onSerialPortOnlineListener) {
+        mJuRenProSerialPortHelper.setOnSerialPortOnlineListener(onSerialPortOnlineListener);
     }
 
     @Override

@@ -16,7 +16,7 @@ import com.xiaolan.serialporttest.mylib.DeviceEngine;
 import com.xiaolan.serialporttest.mylib.event.WashStatusEvent;
 import com.xiaolan.serialporttest.mylib.listener.CurrentStatusListener;
 import com.xiaolan.serialporttest.mylib.listener.OnSendInstructionListener;
-import com.xiaolan.serialporttest.mylib.listener.SerialPortReadDataListener;
+import com.xiaolan.serialporttest.mylib.listener.SerialPortOnlineListener;
 import com.xiaolan.serialporttest.mylib.utils.MyFunc;
 import com.xiaolan.serialporttest.util1.ToastUtil;
 
@@ -31,7 +31,7 @@ import butterknife.OnClick;
 /**
  * 巨人洗衣机页面
  */
-public class JuRenWashActivity extends AppCompatActivity implements OnSendInstructionListener, SerialPortReadDataListener, CurrentStatusListener {
+public class JuRenWashActivity extends AppCompatActivity implements OnSendInstructionListener, SerialPortOnlineListener, CurrentStatusListener {
 
     private static final String TAG = "JuRenWashActivity";
     @BindView(R.id.btn_finsh)
@@ -75,7 +75,7 @@ public class JuRenWashActivity extends AppCompatActivity implements OnSendInstru
         mDispQueueThread2 = new DispQueueThread2();
         mDispQueueThread2.start();
         DeviceEngine.getInstance().setOnSendInstructionListener(this);
-        DeviceEngine.getInstance().setOnSerialPortReadDataListener(this);
+        DeviceEngine.getInstance().setOnSerialPortOnlineListener(this);
         DeviceEngine.getInstance().setOnCurrentStatusListener(this);
     }
 
@@ -157,19 +157,6 @@ public class JuRenWashActivity extends AppCompatActivity implements OnSendInstru
     }
 
     @Override
-    public void onSerialPortReadDataSuccess(byte[] bytes) {
-        String s = MyFunc.ByteArrToHex(bytes);
-        Log.e(TAG, "串口读取数据成功:" + s);
-        ToastUtil.show("串口读取数据成功" + s);
-    }
-
-    @Override
-    public void onSerialPortReadDataFail(String msg) {
-        Log.e(TAG, "串口读取数据失败:" + msg);
-        ToastUtil.show( msg);
-    }
-
-    @Override
     public void currentStatus(WashStatusEvent washStatusEvent) {
         if (washStatusEvent != null) {
             Log.e(TAG, "屏显：" + washStatusEvent.getText());
@@ -232,6 +219,19 @@ public class JuRenWashActivity extends AppCompatActivity implements OnSendInstru
                 DeviceEngine.getInstance().push(DeviceAction.JuRen.ACTION_KILL);
                 break;
         }
+    }
+
+    @Override
+    public void onSerialPortOnline(byte[] bytes) {
+        String s = MyFunc.ByteArrToHex(bytes);
+        Log.e(TAG, "串口上线:" + s);
+        Toast.makeText(this, "串口上线" + s, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onSerialPortOffline(String msg) {
+        Log.e(TAG, msg);
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
     //----------------------------------------------------刷新显示线程

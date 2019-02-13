@@ -29,7 +29,7 @@
             android:windowSoftInputMode="adjustUnspecified|stateHidden">
         </activity>
         <activity
-            android:name=".JuRenProWashActivity"
+            android:name=".wash.jurenpro.JuRenProWashActivity"
             android:windowSoftInputMode="adjustUnspecified|stateHidden">
         </activity>
         <activity

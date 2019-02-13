@@ -22,7 +22,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
-import com.xiaolan.serialporttest.JuRenProWashActivity;
+import com.xiaolan.serialporttest.wash.jurenpro.JuRenProWashActivity;
 import com.xiaolan.serialporttest.R;
 import com.xiaolan.serialporttest.mylib.utils.ComBean;
 import com.xiaolan.serialporttest.mylib.utils.MyFunc;

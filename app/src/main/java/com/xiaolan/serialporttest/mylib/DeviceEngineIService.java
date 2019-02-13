@@ -2,7 +2,7 @@ package com.xiaolan.serialporttest.mylib;
 
 import com.xiaolan.serialporttest.mylib.listener.CurrentStatusListener;
 import com.xiaolan.serialporttest.mylib.listener.OnSendInstructionListener;
-import com.xiaolan.serialporttest.mylib.listener.SerialPortReadDataListener;
+import com.xiaolan.serialporttest.mylib.listener.SerialPortOnlineListener;
 
 import java.io.IOException;
 
@@ -13,7 +13,7 @@ public interface DeviceEngineIService {
 
     void setOnCurrentStatusListener(CurrentStatusListener currentStatusListener);
 
-    void setOnSerialPortReadDataListener(SerialPortReadDataListener onSerialPortReadDataListener);
+    void setOnSerialPortOnlineListener(SerialPortOnlineListener onSerialPortOnlineListener);
 
     boolean isOpen();
 

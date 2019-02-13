@@ -6,7 +6,7 @@ import com.xiaolan.serialporttest.mylib.DeviceWorkType;
 import com.xiaolan.serialporttest.mylib.event.WashStatusEvent;
 import com.xiaolan.serialporttest.mylib.listener.CurrentStatusListener;
 import com.xiaolan.serialporttest.mylib.listener.OnSendInstructionListener;
-import com.xiaolan.serialporttest.mylib.listener.SerialPortReadDataListener;
+import com.xiaolan.serialporttest.mylib.listener.SerialPortOnlineListener;
 import com.xiaolan.serialporttest.mylib.utils.CRC16;
 import com.xiaolan.serialporttest.mylib.utils.MyFunc;
 
@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.InvalidParameterException;
-import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -67,12 +66,11 @@ public class JuRenProSerialPortHelper {
     private int mPreIsSupper;
     private JuRenProWashStatus mJuRenProWashStatus;
     private OnSendInstructionListener mOnSendInstructionListener;
-    private SerialPortReadDataListener mSerialPortReadDataListener;
+    private SerialPortOnlineListener mSerialPortOnlineListener;
     private CurrentStatusListener mCurrentStatusListener;
     private WashStatusEvent mWashStatusEvent;
     private long mRecCount = 0;//接收到的报文次数
     private int mSendCount = 0;//发送的某个报文次数
-    private long mDataTrueData = 0;
     private Disposable mKill;
     private Disposable mHotDisposable;
     private Disposable mWarmDisposable;
@@ -81,19 +79,23 @@ public class JuRenProSerialPortHelper {
     private Disposable mSuperDisposable;
     private Disposable mStartDisposable;
     private Disposable mSettingDisposable;
+    private boolean isOnline = false;
+    private boolean hasOnline = false;
+    private long mPreOnlineTime = 0;
+    private long readThreadStartTime = 0;
 
 
     public JuRenProSerialPortHelper() {
         this("/dev/ttyS3", 9600);
     }
 
-    public JuRenProSerialPortHelper(String sPort) {
-        this(sPort, 9600);
-    }
-
-    public JuRenProSerialPortHelper(String sPort, String sBaudRate) {
-        this(sPort, Integer.parseInt(sBaudRate));
-    }
+//    public JuRenProSerialPortHelper(String sPort) {
+//        this(sPort, 9600);
+//    }
+//
+//    public JuRenProSerialPortHelper(String sPort, String sBaudRate) {
+//        this(sPort, Integer.parseInt(sBaudRate));
+//    }
 
     public JuRenProSerialPortHelper(String sPort, int iBaudRate) {
         this.sPort = sPort;
@@ -111,6 +113,7 @@ public class JuRenProSerialPortHelper {
         mJuRenProWashStatus = new JuRenProWashStatus();
         mReadThread = new ReadThread();
         mReadThread.start();
+        readThreadStartTime = System.currentTimeMillis();
         _isOpen = true;
     }
 
@@ -138,7 +141,9 @@ public class JuRenProSerialPortHelper {
             mBufferedOutputStream.close();
             mBufferedOutputStream = null;
         }
-        mDataTrueData = 0;
+        isOnline = false;
+        hasOnline = false;
+        readThreadStartTime = 0;
     }
 
     private class ReadThread extends Thread {
@@ -168,16 +173,41 @@ public class JuRenProSerialPortHelper {
                                 JuRenPlusWashRead(buffer, len);
                             }
                         }
+                    } else {
+                        long now = System.currentTimeMillis();
+                        if (hasOnline) {
+                            //上线过
+                            if (now - mPreOnlineTime > 5000) {
+                                //掉线
+                                mPreOnlineTime = now;
+                                isOnline = false;
+                                Observable.just(1).observeOn(AndroidSchedulers.mainThread())
+                                        .doOnComplete(() -> {
+                                            if (mSerialPortOnlineListener != null) {
+                                                mSerialPortOnlineListener.onSerialPortOffline("串口掉线");
+                                            }
+                                        }).subscribe();
+                            }
+                        } else {
+                            //没上线过
+                            if (!isOnline) {
+                                long current = System.currentTimeMillis();
+                                if (current - readThreadStartTime > 5000) {
+                                    //5秒未读到数据
+                                    Observable.just(1).observeOn(AndroidSchedulers.mainThread())
+                                            .doOnComplete(() -> {
+                                                if (mSerialPortOnlineListener != null) {
+                                                    mSerialPortOnlineListener.onSerialPortOffline("串口未连接");
+                                                }
+                                            }).subscribe();
+                                    readThreadStartTime = current;
+                                }
+                            }
+                        }
+
                     }
                 } catch (Throwable t) {
                     t.printStackTrace();
-                    Observable.just(1).observeOn(AndroidSchedulers.mainThread())
-                            .doOnComplete(() -> {
-                                if (mSerialPortReadDataListener != null) {
-                                    mSerialPortReadDataListener.onSerialPortReadDataFail(t.getMessage());
-                                }
-                            })
-                            .subscribe();
                     Log.e(TAG, "run: 数据读取异常：" + t.toString());
                     break;
                 }
@@ -205,24 +235,23 @@ public class JuRenProSerialPortHelper {
                     short crc16_a = mCrc16.getCrc(buffer, off02, size - 3);
                     short crc16_msg = (short) (buffer[off02 + size - 3] << 8 | (buffer[off02 + size - 2] & 0xff));
                     if (crc16_a == crc16_msg) {
-                        //判断串口是否掉线
-                        if (mDataTrueData == 0) {
-                            mDataTrueData = new Date().getTime();
-                            Log.e(TAG, "串口上报正确数据");
-                        } else if (mDataTrueData > 0) {
-                            long time = new Date().getTime();
-                            if (time - mDataTrueData > 5000) {
-                                Observable.just(1).observeOn(AndroidSchedulers.mainThread())
-                                        .doOnComplete(() -> {
-                                            if (mSerialPortReadDataListener != null) {
-                                                mSerialPortReadDataListener.onSerialPortReadDataFail("串口无正确数据");
-                                                Log.e(TAG, "串口无正确数据");
-                                            }
-                                        }).subscribe();
-                            }
-                            mDataTrueData = time;
-                        }
                         byte[] subarray = ArrayUtils.subarray(buffer, off02, off02 + size);
+                        //判断串口是否掉线
+                        if (!isOnline) {
+                            isOnline = true;
+                            hasOnline = true;
+                            mPreOnlineTime = System.currentTimeMillis();
+                            Observable.just(1).observeOn(AndroidSchedulers.mainThread())
+                                    .doOnComplete(() -> {
+                                        if (mSerialPortOnlineListener != null) {
+                                            mSerialPortOnlineListener.onSerialPortOnline(subarray);
+                                            Log.e(TAG, "串口上线");
+                                        }
+                                    }).subscribe();
+                        } else {
+                            mPreOnlineTime = System.currentTimeMillis();
+                        }
+
                         if (!Objects.deepEquals(mPreMsg, subarray)) {
                             Log.e(TAG, "接收：" + MyFunc.ByteArrToHex(subarray));
                             mPreMsg = subarray;
@@ -231,9 +260,6 @@ public class JuRenProSerialPortHelper {
                             mRecCount++;
                             Observable.just(1).observeOn(AndroidSchedulers.mainThread())
                                     .doOnComplete(() -> {
-                                        if (mSerialPortReadDataListener != null) {
-                                            mSerialPortReadDataListener.onSerialPortReadDataSuccess(subarray);
-                                        }
                                         if (mCurrentStatusListener != null) {
                                             mCurrentStatusListener.currentStatus(mWashStatusEvent);
                                         }
@@ -837,8 +863,8 @@ public class JuRenProSerialPortHelper {
         mCurrentStatusListener = currentStatusListener;
     }
 
-    public void setOnSerialPortReadDataListener(SerialPortReadDataListener serialPortReadDataListener) {
-        mSerialPortReadDataListener = serialPortReadDataListener;
+    public void setOnSerialPortOnlineListener(SerialPortOnlineListener serialPortOnlineListener) {
+        mSerialPortOnlineListener = serialPortOnlineListener;
     }
 }
 

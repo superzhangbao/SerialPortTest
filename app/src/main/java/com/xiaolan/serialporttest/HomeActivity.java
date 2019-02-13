@@ -8,6 +8,7 @@ import android.view.View;
 import com.xiaolan.serialporttest.mylib.DeviceEngine;
 import com.xiaolan.serialporttest.wash.juren.JuRenWashActivity;
 import com.xiaolan.serialporttest.util1.MainActivity;
+import com.xiaolan.serialporttest.wash.jurenpro.JuRenProWashActivity;
 
 import butterknife.ButterKnife;
 import butterknife.OnClick;

@@ -2,7 +2,7 @@ package com.xiaolan.serialporttest.mylib;
 
 import com.xiaolan.serialporttest.mylib.listener.CurrentStatusListener;
 import com.xiaolan.serialporttest.mylib.listener.OnSendInstructionListener;
-import com.xiaolan.serialporttest.mylib.listener.SerialPortReadDataListener;
+import com.xiaolan.serialporttest.mylib.listener.SerialPortOnlineListener;
 import com.xiaolan.serialporttest.wash.juren.JuRenWashManager;
 import com.xiaolan.serialporttest.wash.jurenpro.JuRenProWashManager;
 
@@ -68,8 +68,8 @@ public class DeviceEngine {
         DEVICE_ENGINE_I_SERVICE.setOnCurrentStatusListener(onCurrentStatusListener);
     }
 
-    public void setOnSerialPortReadDataListener(SerialPortReadDataListener onSerialPortReadDataListener) {
-        DEVICE_ENGINE_I_SERVICE.setOnSerialPortReadDataListener(onSerialPortReadDataListener);
+    public void setOnSerialPortOnlineListener(SerialPortOnlineListener onSerialPortOnlineListener) {
+        DEVICE_ENGINE_I_SERVICE.setOnSerialPortOnlineListener(onSerialPortOnlineListener);
     }
 
     public boolean isOpen() {
