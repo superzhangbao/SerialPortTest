@@ -1,4 +1,4 @@
-package com.xiaolan.serialporttest.wash.jurenpro;
+package com.xiaolan.serialporttest.wash.xjl;
 
 import android.util.Log;
 
@@ -7,26 +7,28 @@ import com.xiaolan.serialporttest.mylib.utils.LightMsg;
 
 import java.util.Map;
 
-/**
- * 洗衣机状态管理类
- */
-public class JuRenProWashStatus {
-    private static final String TAG = "JuRenProWashStatus";
-    private int mWashMode;
-    private int mLights1;
-    private int mLights2;
-    private int mLights3;
-    private int mLightSupper;
-    private int mLightlock;
-    private int mIsWashing;
+public class XjlWashStatus {
+
+    private static final String TAG = "XjlWashStatus";
+private int mWashMode = 0;
+    private int mLightSupper = 0;   // 加强
+    private int lightst = 0;    // 开始
+    private int mLights1 = 0;    // 第1步
+    private int mLights2 = 0;    // 第2步
+    private int mLights3 = 0;    // 第3步
+    private int mLightlock = 0;    // 锁
+    private int view;
     private int mViewStep;
-    private int mErr;
-    private int mMsgInt;
+    private int mErr = 0;
+    private int mMsgInt = 0;
     private String mText;
+    private String mText2;
+    private Map<Byte, String> textTable = LightMsg.getText();
     private boolean mIsSetting = false;
+    private int mIsWashing = 0;
     private StringBuilder mLogmsg;
 
-    public JuRenProWashStatus() {
+    public XjlWashStatus() {
         if (mLogmsg == null) {
             mLogmsg = new StringBuilder();
         }
@@ -43,7 +45,7 @@ public class JuRenProWashStatus {
             //脱水灯
             mLights3 = (msg[3] & 0x20) >> 5;
             //是否加强洗
-            mLightSupper = ((msg[21] & 0xf0) >> 6 > 0) ? 1 : 0;//1是 0否
+            mLightSupper = ((msg[21] & 0xf0) >> 6 > 0) ? 1 : 0;
             //门锁的状态
             mLightlock = (msg[23] & 0x01);//0 未锁  01 已锁
             //30  40可用来区分是否在洗涤  10&0xf0 = 10
@@ -58,12 +60,16 @@ public class JuRenProWashStatus {
             if (mMsgInt == 0xc || mMsgInt == 0xd || mMsgInt == 0x3) {
                 mText = "" + msg[7];
             } else {
-                Map<Byte, String> textTable = LightMsg.getText();
-                mText = textTable.get(msg[7]) + textTable.get(msg[8]) + textTable.get(msg[13]) + textTable.get(msg[14]);
+                mText = textTable.get(msg[7]) + textTable.get(msg[8]) + textTable.get(msg[12]) + textTable.get(msg[13]);
+            }
+            mText2 = "" + msg[11] + msg[10];
+            if (mText2.length()>1 && mText2.startsWith("0")) {
+                mText2 = mText2.substring(1,mText2.length());
             }
             mIsSetting = mIsWashing == 0x10;
+            Log.e(TAG,"----------------------------start--------------------------------------");
             Log.e(TAG, "lights1:" + mLights1 + "--" + "lights2:" + mLights2 + "--" + "lights3:" + mLights3 + "--" + "lightsupper:" + mLightSupper + "--" + "lightlock:" + mLightlock + "--"
-                    + "mIsWashing:" + mIsWashing + "--" + "viewStep:" + mViewStep + "--" + "err:" + mErr + "--" + "msgInt:" + mMsgInt + "--" + "text:" + mText);
+                    + "mIsWashing:" + mIsWashing + "--" + "viewStep:" + mViewStep + "--" + "err:" + mErr + "--" + "msgInt:" + mMsgInt + "--" + "text:" + mText+ "--" + "text2:" + mText2);
             if (mLogmsg != null && mLogmsg.length() > 0) {
                 mLogmsg.delete(0, mLogmsg.length());
                 mLogmsg.append("当前模式：----->");
@@ -161,12 +167,13 @@ public class JuRenProWashStatus {
                         mLogmsg.append("门锁状态：" + "未锁").append("\r\n");
                     }
                     //屏显
-                    Log.e(TAG, "屏显：" + mText);
-                    mLogmsg.append("屏显：").append(mText).append("\r\n");
+                    Log.e(TAG, "屏显：text1:" + mText+"----text2:"+mText2);
+                    mLogmsg.append("屏显：").append(mText).append("----text2:").append(mText2).append("\r\n");
                 }
             }
+            Log.e(TAG,"-----------------------------end---------------------------------------");
         }
-        return new WashStatusEvent(mIsSetting, mWashMode, mLights1, mLights2, mLights3, mLightSupper, mLightlock, mIsWashing, mViewStep, mErr, mMsgInt, mText,"", mLogmsg);
+        return new WashStatusEvent(mIsSetting,mWashMode,mLights1,mLights2,mLights3,mLightSupper,mLightlock,mIsWashing,mViewStep,mErr,mMsgInt,mText,mText2,mLogmsg);
     }
 
     /**
@@ -174,30 +181,5 @@ public class JuRenProWashStatus {
      */
     public boolean isError() {
         return mErr > 0;
-    }
-
-    /**
-     * 判断是否是闲置的
-     */
-    public boolean isIdle() {
-        return !isRunning() && !isError();
-    }
-
-    /**
-     * 判断是否处于运行状态
-     */
-    public boolean isRunning() {//mViewStep == 2是暂停状态
-        return (mViewStep == 6 || mViewStep == 7 || mViewStep == 8) && mErr == 0;
-    }
-
-    /**
-     * 灯是否亮
-     */
-    public boolean isOn(int light) {
-        return light > 0;
-    }
-
-    public boolean isOff(int light) {
-        return light == 0;
     }
 }

@@ -19,7 +19,7 @@ public interface DeviceEngineIService {
 
     void close() throws IOException;
 
-    void push(int action);
+    void push(int action) throws IOException;
 
     void pull();
 }

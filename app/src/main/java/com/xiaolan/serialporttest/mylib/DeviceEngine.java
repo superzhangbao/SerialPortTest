@@ -5,6 +5,7 @@ import com.xiaolan.serialporttest.mylib.listener.OnSendInstructionListener;
 import com.xiaolan.serialporttest.mylib.listener.SerialPortOnlineListener;
 import com.xiaolan.serialporttest.wash.juren.JuRenWashManager;
 import com.xiaolan.serialporttest.wash.jurenpro.JuRenProWashManager;
+import com.xiaolan.serialporttest.wash.xjl.XjlWashManager;
 
 import java.io.IOException;
 
@@ -35,6 +36,9 @@ public class DeviceEngine {
             case 1:
                 DEVICE_ENGINE_I_SERVICE =  JuRenWashManager.getInstance();
                 break;
+            case 2:
+                DEVICE_ENGINE_I_SERVICE =  XjlWashManager.getInstance();
+                break;
         }
     }
 
@@ -52,7 +56,7 @@ public class DeviceEngine {
         DEVICE_ENGINE_I_SERVICE.close();
     }
 
-    public synchronized void push(int action) {
+    public synchronized void push(int action) throws IOException {
         DEVICE_ENGINE_I_SERVICE.push(action);
     }
 

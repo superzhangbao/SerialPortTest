@@ -9,6 +9,7 @@ import com.xiaolan.serialporttest.mylib.DeviceEngine;
 import com.xiaolan.serialporttest.wash.juren.JuRenWashActivity;
 import com.xiaolan.serialporttest.util1.MainActivity;
 import com.xiaolan.serialporttest.wash.jurenpro.JuRenProWashActivity;
+import com.xiaolan.serialporttest.wash.xjl.XjlWashActivity;
 
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -22,7 +23,7 @@ public class HomeActivity extends AppCompatActivity {
         ButterKnife.bind(this);
     }
 
-    @OnClick({R.id.btn_wash_message, R.id.btn_juren_pro, R.id.btn_juren})
+    @OnClick({R.id.btn_wash_message, R.id.btn_juren_pro, R.id.btn_juren,R.id.btn_xjl})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_wash_message:
@@ -35,6 +36,10 @@ public class HomeActivity extends AppCompatActivity {
             case R.id.btn_juren:
                 DeviceEngine.getInstance().selectDevice(1);
                 startActivity(new Intent(this,JuRenWashActivity.class));
+                break;
+            case R.id.btn_xjl:
+                DeviceEngine.getInstance().selectDevice(2);
+                startActivity(new Intent(this,XjlWashActivity.class));
                 break;
         }
     }

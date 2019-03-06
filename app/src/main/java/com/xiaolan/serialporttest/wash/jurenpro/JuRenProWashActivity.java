@@ -158,31 +158,51 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
                 checkIsOpen();
                 mSelectMode = 0;
                 setBackgroundColor(R.id.btn_hot);
-                DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_HOT);
+                try {
+                    DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_HOT);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
             case R.id.btn_warm:
                 checkIsOpen();
                 mSelectMode = 1;
                 setBackgroundColor(R.id.btn_warm);
-                DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_WARM);
+                try {
+                    DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_WARM);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
             case R.id.btn_cold:
                 checkIsOpen();
                 mSelectMode = 2;
                 setBackgroundColor(R.id.btn_cold);
-                DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_COLD);
+                try {
+                    DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_COLD);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
             case R.id.btn_soft:
                 checkIsOpen();
                 mSelectMode = 3;
                 setBackgroundColor(R.id.btn_soft);
-                DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_DELICATES);
+                try {
+                    DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_DELICATES);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
             case R.id.btn_super:
                 checkIsOpen();
                 mSuper = !mSuper;
                 setBackgroundColor(R.id.btn_super);
-                DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_SUPER);
+                try {
+                    DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_SUPER);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
             case R.id.btn_start_stop:
                 checkIsOpen();
@@ -194,16 +214,28 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
                     mBtnStatus = 1;
                 }
                 setBackgroundColor(R.id.btn_start_stop);
-                DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_START);
+                try {
+                    DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_START);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
             case R.id.btn_setting:
                 checkIsOpen();
-                DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_SETTING);
+                try {
+                    DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_SETTING);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
             case R.id.btn_kill:
                 checkIsOpen();
                 setBackgroundColor(R.id.btn_kill);
-                DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_KILL);
+                try {
+                    DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_KILL);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
         }
     }

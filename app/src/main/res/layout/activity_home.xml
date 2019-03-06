@@ -20,4 +20,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="巨人洗衣机"/>
+    <Button
+        android:id="@+id/btn_xjl"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="小精灵洗衣机"/>
 </LinearLayout>

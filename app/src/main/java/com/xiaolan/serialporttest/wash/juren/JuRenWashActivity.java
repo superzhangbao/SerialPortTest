@@ -195,28 +195,60 @@ public class JuRenWashActivity extends AppCompatActivity implements OnSendInstru
                 mEditTextRecDisp.setText("");
                 break;
             case R.id.btn_whites:
-                DeviceEngine.getInstance().push(DeviceAction.JuRen.ACTION_WHITES);
+                try {
+                    DeviceEngine.getInstance().push(DeviceAction.JuRen.ACTION_WHITES);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
             case R.id.btn_colors:
-                DeviceEngine.getInstance().push(DeviceAction.JuRen.ACTION_COLORS);
+                try {
+                    DeviceEngine.getInstance().push(DeviceAction.JuRen.ACTION_COLORS);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
             case R.id.btn_delicates:
-                DeviceEngine.getInstance().push(DeviceAction.JuRen.ACTION_DELICATES);
+                try {
+                    DeviceEngine.getInstance().push(DeviceAction.JuRen.ACTION_DELICATES);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
             case R.id.btn_perm_press:
-                DeviceEngine.getInstance().push(DeviceAction.JuRen.ACTION_PERM_PRESS);
+                try {
+                    DeviceEngine.getInstance().push(DeviceAction.JuRen.ACTION_PERM_PRESS);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
             case R.id.btn_super:
-                DeviceEngine.getInstance().push(DeviceAction.JuRen.ACTION_SUPER);
+                try {
+                    DeviceEngine.getInstance().push(DeviceAction.JuRen.ACTION_SUPER);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
             case R.id.btn_start:
-                DeviceEngine.getInstance().push(DeviceAction.JuRen.ACTION_START);
+                try {
+                    DeviceEngine.getInstance().push(DeviceAction.JuRen.ACTION_START);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
             case R.id.btn_setting:
-                DeviceEngine.getInstance().push(DeviceAction.JuRen.ACTION_SETTING);
+                try {
+                    DeviceEngine.getInstance().push(DeviceAction.JuRen.ACTION_SETTING);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
             case R.id.btn_kill:
-                DeviceEngine.getInstance().push(DeviceAction.JuRen.ACTION_KILL);
+                try {
+                    DeviceEngine.getInstance().push(DeviceAction.JuRen.ACTION_KILL);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
         }
     }

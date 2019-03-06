@@ -9,13 +9,15 @@ public class WashStatusEvent {
     private int mLightlock;
     private int mIsWashing;
     private int mViewStep;
-    private byte mErr;
+    private int mErr;
     private int mMsgInt;
     private String mText;
+    private String mText2;
     private boolean mIsSetting;
     private StringBuilder mLogmsg;
 
-    public WashStatusEvent(boolean isSetting,int washMode, int lights1, int lights2, int lights3, int lightsupper, int lightlock, int isWashing, int viewStep, byte err, int msgInt, String text,StringBuilder logmsg) {
+
+    public WashStatusEvent(boolean isSetting, int washMode, int lights1, int lights2, int lights3, int lightsupper, int lightlock, int isWashing, int viewStep, int err, int msgInt, String text,String text2, StringBuilder logmsg) {
         mIsSetting = isSetting;
         mWashMode = washMode;
         mLights1 = lights1;
@@ -28,6 +30,7 @@ public class WashStatusEvent {
         mErr = err;
         mMsgInt = msgInt;
         mText = text;
+        mText2 = text2;
         mLogmsg = logmsg;
     }
 
@@ -63,7 +66,7 @@ public class WashStatusEvent {
         return mViewStep;
     }
 
-    public byte getErr() {
+    public int getErr() {
         return mErr;
     }
 
@@ -81,5 +84,9 @@ public class WashStatusEvent {
 
     public StringBuilder getLogmsg() {
         return mLogmsg;
+    }
+
+    public String getText2() {
+        return mText2;
     }
 }
