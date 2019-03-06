@@ -91,7 +91,7 @@ private int mWashMode = 0;
                             Log.e(TAG, "错误原因：" + "进水管故障");
                             mLogmsg.append("错误原因：" + "进水管故障").append("\r\n");
                             break;
-                        case 0x11:
+                        case 0x01:
                             Log.e(TAG, "错误原因：" + "关门失败");
                             mLogmsg.append("错误原因：" + "关门失败").append("\r\n");
                             break;
@@ -100,6 +100,8 @@ private int mWashMode = 0;
                             mLogmsg.append("错误原因：" + "未知错误").append("\r\n");
                             break;
                     }
+                    //屏显
+                    Log.e(TAG, "屏显：text1:" + mText+"----text2:"+mText2);
                 } else {//不是错误状态
                     Log.e(TAG, "错误状态：" + "否");
                     mLogmsg.append("错误状态：" + "否").append("\r\n");
