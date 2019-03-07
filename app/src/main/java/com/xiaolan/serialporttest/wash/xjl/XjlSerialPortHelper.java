@@ -369,10 +369,9 @@ public class XjlSerialPortHelper {
     public synchronized void sendDelicates() {
         mKey = KEY_DELICATES;
         long recCount = mRecCount;
-        mDelicatesDisposable = Observable.create(e -> {
-            sendData(mKey);
-            e.onComplete();
-        }).subscribeOn(Schedulers.io())
+        mDelicatesDisposable =  Observable.interval(0,3,TimeUnit.SECONDS)
+                .doOnNext(aLong -> sendData(mKey))
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnComplete(() -> {
                     if (mWashStatusEvent != null) {//不是设置模式，
@@ -421,6 +420,59 @@ public class XjlSerialPortHelper {
                     }
                 })
                 .subscribe();
+
+//        mDelicatesDisposable = Observable.create(e -> {
+//            sendData(mKey);
+//            e.onComplete();
+//        }).subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .doOnComplete(() -> {
+//                    if (mWashStatusEvent != null) {//不是设置模式，
+//                        if (!mWashStatusEvent.isSetting()) {
+//                            if (mWashStatusEvent.getIsWashing() == 0x30 && mWashStatusEvent.getWashMode() == 0x05) {//未开始洗衣 && 洗衣模式为热水
+//                                if (mOnSendInstructionListener != null) {
+//                                    mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+//                                }
+//                                dispose(mKey);
+//                            } else {
+//                                if (mSendCount <= 3) {
+//                                    mSendCount++;
+//                                    sendDelicates();
+//                                } else {//连续发3轮没收到新报文则判定指令发送失败
+//                                    if (mOnSendInstructionListener != null) {
+//                                        mOnSendInstructionListener.sendInstructionFail(mKey, "send delicates error");
+//                                    }
+//                                    dispose(mKey);
+//                                }
+//                            }
+//                        } else {//设置模式
+//                            if (mWashStatusEvent.getIsWashing() == 0x30) {//未开始洗衣
+//                                if (mRecCount > recCount) {//收到新报文
+//                                    if (mOnSendInstructionListener != null) {
+//                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+//                                    }
+//                                    dispose(mKey);
+//                                } else {
+//                                    if (mSendCount <= 3) {
+//                                        mSendCount++;
+//                                        sendDelicates();
+//                                    } else {//连续发3轮没收到新报文则判定指令发送失败
+//                                        if (mOnSendInstructionListener != null) {
+//                                            mOnSendInstructionListener.sendInstructionFail(mKey, "send delicates error");
+//                                        }
+//                                        dispose(mKey);
+//                                    }
+//                                }
+//                            } else {
+//                                if (mOnSendInstructionListener != null) {
+//                                    mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+//                                }
+//                                dispose(mKey);
+//                            }
+//                        }
+//                    }
+//                })
+//                .subscribe();
     }
 
     /**
@@ -428,10 +480,9 @@ public class XjlSerialPortHelper {
      */
     public synchronized void sendSuper() {
         mKey = KEY_SUPER;
-        mSuperDisposable = Observable.create(e -> {
-            sendData(mKey);
-            e.onComplete();
-        }).subscribeOn(Schedulers.io())
+        mSuperDisposable = Observable.interval(0,3,TimeUnit.SECONDS)
+                .doOnNext(aLong -> sendData(mKey))
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnComplete(() -> {
                     if (mWashStatusEvent != null) {
@@ -462,6 +513,41 @@ public class XjlSerialPortHelper {
                     }
                 })
                 .subscribe();
+
+//        mSuperDisposable = Observable.create(e -> {
+//            sendData(mKey);
+//            e.onComplete();
+//        }).subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .doOnComplete(() -> {
+//                    if (mWashStatusEvent != null) {
+//                        if (mCount == 0) {
+//                            mPreIsSupper = mWashStatusEvent.getLightSupper();
+//                        } else {
+//                            if (mPreIsSupper == 1) {
+//                                if (mWashStatusEvent.getLightSupper() == 0) {
+//                                    mPreIsSupper = mWashStatusEvent.getLightSupper();
+//                                    mCount = 0;
+//                                    if (mOnSendInstructionListener != null) {
+//                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+//                                    }
+//                                    dispose(mKey);
+//                                }
+//                            } else if (mPreIsSupper == 0) {
+//                                if (mWashStatusEvent.getLightSupper() == 1) {
+//                                    mPreIsSupper = mWashStatusEvent.getLightSupper();
+//                                    mCount = 0;
+//                                    if (mOnSendInstructionListener != null) {
+//                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+//                                    }
+//                                    dispose(mKey);
+//                                }
+//                            }
+//                        }
+//                        mCount++;
+//                    }
+//                })
+//                .subscribe();
     }
 
     /**
