@@ -18,11 +18,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.InvalidParameterException;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import android_serialport_api.SerialPort;
 import io.reactivex.Observable;
+import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -666,9 +668,9 @@ public class XjlSerialPortHelper {
         for (int i = 0; i < 17; i++) {
             sendData(mKey);
             if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && (i + 1 + "").equals(mWashStatusEvent.getText())) {
-                Log.e(TAG, "kill step6 success");
+                Log.e(TAG, "kill step6_+"+i+"+ success");
             } else {
-                Log.e(TAG, "kill step6 error");
+                Log.e(TAG, "kill step6_+"+i+"+ error");
             }
         }
         mKey = KEY_START;
@@ -875,13 +877,17 @@ public class XjlSerialPortHelper {
     }
 
     private void sendData(int key) throws IOException {
-        byte[] msg = {0x02, 0x06, (byte) (key & 0xff), (byte) (seq & 0xff), (byte) 0x80, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03};
+        byte[] msg = {0x02, 0x06, (byte) (key & 0xff), (byte) (seq & 0xff), (byte) 0x80, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03};
         short crc16_a = mCrc16.getCrc(msg, 0, msg.length - 3);
         msg[msg.length - 2] = (byte) (crc16_a >> 8);
         msg[msg.length - 3] = (byte) (crc16_a & 0xff);
         for (int i = 0; i < 12; ++i) {
+            if (i>5 && msg[6]!=0x01) {
+                msg[6] = 0x01;
+            }
             mBufferedOutputStream.write(msg);
             mBufferedOutputStream.flush();
+            Log.e("send",Arrays.toString(msg));
             try {
                 Thread.sleep(50);
             } catch (InterruptedException ignored) {
