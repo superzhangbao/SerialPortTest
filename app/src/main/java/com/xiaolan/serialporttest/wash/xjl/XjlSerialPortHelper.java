@@ -250,68 +250,68 @@ public class XjlSerialPortHelper {
     public synchronized void sendWarm() {
         mKey = KEY_WARM;
         long recCount = mRecCount;
-        mWarmDisposable = Observable.create(e -> {
-            sendData(mKey);
-            e.onComplete();
-        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                .doOnComplete(() -> {
-                    if (mWashStatusEvent != null) {//不是设置模式
-                        if (!mWashStatusEvent.isSetting()) {
-                            if (mWashStatusEvent.getIsWashing() == 0x30 && mWashStatusEvent.getWashMode() == 0x03) {//未开始洗衣 && 洗衣模式为热水
-                                if (mOnSendInstructionListener != null) {
-                                    mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-                                }
-                                dispose(mKey);
-                            } else {
-                                if (mSendCount <= 3) {
-                                    mSendCount++;
-                                    sendWarm();
-                                } else {//连续发3轮没收到新报文则判定指令发送失败
-                                    if (mOnSendInstructionListener != null) {
-                                        mOnSendInstructionListener.sendInstructionFail(mKey, "send warm error");
-                                    }
-                                    dispose(mKey);
-                                }
-                            }
-                        } else {//设置模式
-                            if (mWashStatusEvent.getIsWashing() == 0x30) {//未开始洗衣
-                                if (mRecCount > recCount) {//收到新报文
-                                    if (mOnSendInstructionListener != null) {
-                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-                                    }
-                                    dispose(mKey);
-                                } else {
-                                    if (mSendCount <= 3) {
-                                        mSendCount++;
-                                        sendWarm();
-                                    } else {//连续发3轮没收到新报文则判定指令发送失败
-                                        if (mOnSendInstructionListener != null) {
-                                            mOnSendInstructionListener.sendInstructionFail(mKey, "send warm error");
-                                        }
-                                        dispose(mKey);
-                                    }
-                                }
-                            } else {
-                                if (mOnSendInstructionListener != null) {
-                                    mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-                                }
-                                dispose(mKey);
-                            }
-                        }
-                    }
-                }).subscribe();
+//        mWarmDisposable = Observable.create(e -> {
+//            sendData(mKey);
+//            e.onComplete();
+//        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+//                .doOnComplete(() -> {
+//                    if (mWashStatusEvent != null) {//不是设置模式
+//                        if (!mWashStatusEvent.isSetting()) {
+//                            if (mWashStatusEvent.getIsWashing() == 0x30 && mWashStatusEvent.getWashMode() == 0x03) {//未开始洗衣 && 洗衣模式为热水
+//                                if (mOnSendInstructionListener != null) {
+//                                    mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+//                                }
+//                                dispose(mKey);
+//                            } else {
+//                                if (mSendCount <= 3) {
+//                                    mSendCount++;
+//                                    sendWarm();
+//                                } else {//连续发3轮没收到新报文则判定指令发送失败
+//                                    if (mOnSendInstructionListener != null) {
+//                                        mOnSendInstructionListener.sendInstructionFail(mKey, "send warm error");
+//                                    }
+//                                    dispose(mKey);
+//                                }
+//                            }
+//                        } else {//设置模式
+//                            if (mWashStatusEvent.getIsWashing() == 0x30) {//未开始洗衣
+//                                if (mRecCount > recCount) {//收到新报文
+//                                    if (mOnSendInstructionListener != null) {
+//                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+//                                    }
+//                                    dispose(mKey);
+//                                } else {
+//                                    if (mSendCount <= 3) {
+//                                        mSendCount++;
+//                                        sendWarm();
+//                                    } else {//连续发3轮没收到新报文则判定指令发送失败
+//                                        if (mOnSendInstructionListener != null) {
+//                                            mOnSendInstructionListener.sendInstructionFail(mKey, "send warm error");
+//                                        }
+//                                        dispose(mKey);
+//                                    }
+//                                }
+//                            } else {
+//                                if (mOnSendInstructionListener != null) {
+//                                    mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+//                                }
+//                                dispose(mKey);
+//                            }
+//                        }
+//                    }
+//                }).subscribe();
     }
 
     /**
      * 第三种模式(混纺尼龙衣物)
      */
     public synchronized void sendCold() {
+        dispose(mKey);
         mKey = KEY_COLD;
         long recCount = mRecCount;
-        mColdDisposable = Observable.create(e -> {
-            sendData(mKey);
-            e.onComplete();
-        }).subscribeOn(Schedulers.io())
+        mColdDisposable = Observable.interval(0,5,TimeUnit.SECONDS)
+                .doOnNext(aLong -> sendData(mKey))
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnComplete(() -> {
                     if (mWashStatusEvent != null) {//不是设置模式，
@@ -320,17 +320,17 @@ public class XjlSerialPortHelper {
                                 if (mOnSendInstructionListener != null) {
                                     mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                                 }
-                                dispose(mKey);
+//                                dispose(mKey);
                             } else {
-                                if (mSendCount <= 3) {
-                                    mSendCount++;
-                                    sendCold();
-                                } else {//连续发3轮没收到新报文则判定指令发送失败
-                                    if (mOnSendInstructionListener != null) {
-                                        mOnSendInstructionListener.sendInstructionFail(mKey, "send cold error");
-                                    }
-                                    dispose(mKey);
-                                }
+//                                if (mSendCount <= 3) {
+//                                    mSendCount++;
+//                                    sendCold();
+//                                } else {//连续发3轮没收到新报文则判定指令发送失败
+//                                    if (mOnSendInstructionListener != null) {
+//                                        mOnSendInstructionListener.sendInstructionFail(mKey, "send cold error");
+//                                    }
+//                                    dispose(mKey);
+//                                }
                             }
                         } else {//设置模式
                             if (mWashStatusEvent.getIsWashing() == 0x30) {//未开始洗衣
@@ -338,40 +338,97 @@ public class XjlSerialPortHelper {
                                     if (mOnSendInstructionListener != null) {
                                         mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                                     }
-                                    dispose(mKey);
+//                                    dispose(mKey);
                                 } else {
-                                    if (mSendCount <= 3) {
-                                        mSendCount++;
-                                        sendCold();
-                                    } else {//连续发3轮没收到新报文则判定指令发送失败
-                                        if (mOnSendInstructionListener != null) {
-                                            mOnSendInstructionListener.sendInstructionFail(mKey, "send cold error");
-                                        }
-                                        dispose(mKey);
-                                    }
+//                                    if (mSendCount <= 3) {
+//                                        mSendCount++;
+//                                        sendCold();
+//                                    } else {//连续发3轮没收到新报文则判定指令发送失败
+//                                        if (mOnSendInstructionListener != null) {
+//                                            mOnSendInstructionListener.sendInstructionFail(mKey, "send cold error");
+//                                        }
+//                                        dispose(mKey);
+//                                    }
                                 }
                             } else {
                                 if (mOnSendInstructionListener != null) {
                                     mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                                 }
-                                dispose(mKey);
+//                                dispose(mKey);
                             }
                         }
                     }
-                })
+                        })
                 .doOnError(throwable -> {
                     throw new IOException();
                 })
                 .subscribe();
+
+//        mColdDisposable = Observable.create(e -> {
+//            sendData(mKey);
+//            e.onComplete();
+//        }).subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .doOnComplete(() -> {
+//                    if (mWashStatusEvent != null) {//不是设置模式，
+//                        if (!mWashStatusEvent.isSetting()) {
+//                            if (mWashStatusEvent.getIsWashing() == 0x30 && mWashStatusEvent.getWashMode() == 0x04) {//未开始洗衣 && 洗衣模式为热水
+//                                if (mOnSendInstructionListener != null) {
+//                                    mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+//                                }
+//                                dispose(mKey);
+//                            } else {
+//                                if (mSendCount <= 3) {
+//                                    mSendCount++;
+//                                    sendCold();
+//                                } else {//连续发3轮没收到新报文则判定指令发送失败
+//                                    if (mOnSendInstructionListener != null) {
+//                                        mOnSendInstructionListener.sendInstructionFail(mKey, "send cold error");
+//                                    }
+//                                    dispose(mKey);
+//                                }
+//                            }
+//                        } else {//设置模式
+//                            if (mWashStatusEvent.getIsWashing() == 0x30) {//未开始洗衣
+//                                if (mRecCount > recCount) {//收到新报文
+//                                    if (mOnSendInstructionListener != null) {
+//                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+//                                    }
+//                                    dispose(mKey);
+//                                } else {
+//                                    if (mSendCount <= 3) {
+//                                        mSendCount++;
+//                                        sendCold();
+//                                    } else {//连续发3轮没收到新报文则判定指令发送失败
+//                                        if (mOnSendInstructionListener != null) {
+//                                            mOnSendInstructionListener.sendInstructionFail(mKey, "send cold error");
+//                                        }
+//                                        dispose(mKey);
+//                                    }
+//                                }
+//                            } else {
+//                                if (mOnSendInstructionListener != null) {
+//                                    mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+//                                }
+//                                dispose(mKey);
+//                            }
+//                        }
+//                    }
+//                })
+//                .doOnError(throwable -> {
+//                    throw new IOException();
+//                })
+//                .subscribe();
     }
 
     /**
      * 第四种模式(精致衣物)
      */
     public synchronized void sendDelicates() {
+        dispose(mKey);
         mKey = KEY_DELICATES;
         long recCount = mRecCount;
-        mDelicatesDisposable =  Observable.interval(0,3,TimeUnit.SECONDS)
+        mDelicatesDisposable =  Observable.interval(0,5,TimeUnit.SECONDS)
                 .doOnNext(aLong -> sendData(mKey))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -382,7 +439,7 @@ public class XjlSerialPortHelper {
                                 if (mOnSendInstructionListener != null) {
                                     mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                                 }
-                                dispose(mKey);
+//                                dispose(mKey);
                             } else {
                                 if (mSendCount <= 3) {
                                     mSendCount++;
@@ -391,7 +448,7 @@ public class XjlSerialPortHelper {
                                     if (mOnSendInstructionListener != null) {
                                         mOnSendInstructionListener.sendInstructionFail(mKey, "send delicates error");
                                     }
-                                    dispose(mKey);
+//                                    dispose(mKey);
                                 }
                             }
                         } else {//设置模式
@@ -400,7 +457,7 @@ public class XjlSerialPortHelper {
                                     if (mOnSendInstructionListener != null) {
                                         mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                                     }
-                                    dispose(mKey);
+//                                    dispose(mKey);
                                 } else {
                                     if (mSendCount <= 3) {
                                         mSendCount++;
@@ -409,17 +466,20 @@ public class XjlSerialPortHelper {
                                         if (mOnSendInstructionListener != null) {
                                             mOnSendInstructionListener.sendInstructionFail(mKey, "send delicates error");
                                         }
-                                        dispose(mKey);
+//                                        dispose(mKey);
                                     }
                                 }
                             } else {
                                 if (mOnSendInstructionListener != null) {
                                     mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                                 }
-                                dispose(mKey);
+//                                dispose(mKey);
                             }
                         }
                     }
+                })
+                .doOnError(throwable -> {
+                    throw new IOException();
                 })
                 .subscribe();
 
@@ -481,8 +541,9 @@ public class XjlSerialPortHelper {
      * 加强洗
      */
     public synchronized void sendSuper() {
+        dispose(mKey);
         mKey = KEY_SUPER;
-        mSuperDisposable = Observable.interval(0,3,TimeUnit.SECONDS)
+        mSuperDisposable = Observable.interval(0,5,TimeUnit.SECONDS)
                 .doOnNext(aLong -> sendData(mKey))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -498,7 +559,7 @@ public class XjlSerialPortHelper {
                                     if (mOnSendInstructionListener != null) {
                                         mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                                     }
-                                    dispose(mKey);
+//                                    dispose(mKey);
                                 }
                             } else if (mPreIsSupper == 0) {
                                 if (mWashStatusEvent.getLightSupper() == 1) {
@@ -507,12 +568,15 @@ public class XjlSerialPortHelper {
                                     if (mOnSendInstructionListener != null) {
                                         mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
                                     }
-                                    dispose(mKey);
+//                                    dispose(mKey);
                                 }
                             }
                         }
                         mCount++;
                     }
+                })
+                .doOnError(throwable -> {
+                    throw new IOException();
                 })
                 .subscribe();
 
@@ -894,6 +958,29 @@ public class XjlSerialPortHelper {
             }
         }
         ++seq;
+        switch (key) {
+            case KEY_START:
+                Log.e(TAG, "sendData: =====================================KEY_START" );
+                break;
+            case KEY_HOT:
+                Log.e(TAG, "sendData: =====================================KEY_HOT" );
+                break;
+            case KEY_WARM:
+                Log.e(TAG, "sendData: =====================================KEY_WARM" );
+                break;
+            case KEY_COLD:
+                Log.e(TAG, "sendData: =====================================KEY_COLD" );
+                break;
+            case KEY_DELICATES:
+                Log.e(TAG, "sendData: =====================================KEY_DELICATES" );
+                break;
+            case KEY_SUPER:
+                Log.e(TAG, "sendData: =====================================KEY_SUPER" );
+                break;
+            case KEY_SETTING:
+                Log.e(TAG, "sendData: =====================================KEY_SETTING" );
+                break;
+        }
     }
 
     public boolean isOpen() {
