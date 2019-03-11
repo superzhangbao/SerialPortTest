@@ -26,14 +26,15 @@
         </activity>
         <activity
             android:name=".util1.MainActivity"
-            android:windowSoftInputMode="adjustUnspecified|stateHidden"></activity>
+            android:windowSoftInputMode="adjustUnspecified|stateHidden" />
         <activity
             android:name=".wash.jurenpro.JuRenProWashActivity"
-            android:windowSoftInputMode="adjustUnspecified|stateHidden"></activity>
+            android:windowSoftInputMode="adjustUnspecified|stateHidden" />
         <activity
             android:name=".wash.juren.JuRenWashActivity"
-            android:windowSoftInputMode="adjustUnspecified|stateHidden"></activity>
-        <activity android:name=".wash.xjl.XjlWashActivity"></activity>
+            android:windowSoftInputMode="adjustUnspecified|stateHidden" />
+        <activity android:name=".wash.xjl.XjlWashActivity" />
+        <activity android:name=".WaterActivity"></activity>
     </application>
 
 </manifest>

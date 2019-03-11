@@ -71,7 +71,6 @@ public class SerialPortHelper {
 //                throw new SecurityException();
 //            }
 //        }
-
         mSerialPort = new SerialPort(new File(sPort), iBaudRate, 0, mDataBits, mStopBits, mParityBits);
         mOutputStream = mSerialPort.getOutputStream();
         mInputStream = mSerialPort.getInputStream();

@@ -23,7 +23,7 @@ public class HomeActivity extends AppCompatActivity {
         ButterKnife.bind(this);
     }
 
-    @OnClick({R.id.btn_wash_message, R.id.btn_juren_pro, R.id.btn_juren,R.id.btn_xjl})
+    @OnClick({R.id.btn_wash_message, R.id.btn_juren_pro, R.id.btn_juren,R.id.btn_xjl,R.id.btn_water})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_wash_message:
@@ -40,6 +40,9 @@ public class HomeActivity extends AppCompatActivity {
             case R.id.btn_xjl:
                 DeviceEngine.getInstance().selectDevice(2);
                 startActivity(new Intent(this,XjlWashActivity.class));
+                break;
+            case R.id.btn_water:
+                startActivity(new Intent(this,WaterActivity.class));
                 break;
         }
     }
