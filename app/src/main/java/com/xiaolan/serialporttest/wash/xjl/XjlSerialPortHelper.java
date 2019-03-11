@@ -48,7 +48,6 @@ public class XjlSerialPortHelper {
     private byte[] mPreMsg = new byte[SHOW_LENGTH];
     private int seq = -1;
     private int mKey;
-    private int mPreKey = -1;
     private OnSendInstructionListener mOnSendInstructionListener;
     private SerialPortOnlineListener mSerialPortOnlineListener;
     private CurrentStatusListener mCurrentStatusListener;
@@ -59,7 +58,6 @@ public class XjlSerialPortHelper {
     private XjlWashStatus mXjlWashStatus;
     private WashStatusEvent mWashStatusEvent;
     private long mRecCount = 0;//接收到的报文次数
-    private int mSendCount = 0;//发送的某个报文次数
     private static final int KEY_RESTORATION = 0;//复位
     private static final int KEY_START = 1;//开始
     private static final int KEY_HOT = 2;//热水
@@ -78,9 +76,7 @@ public class XjlSerialPortHelper {
     private Disposable mSuperDisposable;
     private Disposable mSettingDisposable;
     private Disposable mKill;
-    private int mCount = 0;
-    private int mPreIsSupper;
-    private final int mPeriod = 400;
+    private final int mPeriod = 400;//每次指令的循环时间(毫秒)
 
     public XjlSerialPortHelper() {
         this("/dev/ttyS3", 9600);
@@ -1091,6 +1087,10 @@ public class XjlSerialPortHelper {
 
     public boolean isOpen() {
         return _isOpen;
+    }
+
+    public boolean isKilling() {
+        return isKilling;
     }
 
     public void setOnSendInstructionListener(OnSendInstructionListener onSendInstructionListener) {
