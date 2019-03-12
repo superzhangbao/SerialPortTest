@@ -160,6 +160,7 @@ public class XjlSerialPortHelper {
         mStartDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .onErrorResumeNext(throwable -> { return Observable.empty(); })
                 .doOnComplete(() -> {
                     if (mRecCount > recCount) {//收到新报文
                         if (mOnSendInstructionListener != null) {
@@ -167,9 +168,7 @@ public class XjlSerialPortHelper {
                         }
                     }
                 })
-                .subscribe(aLong -> sendData(mKey), throwable -> {
-                    throw new IOException();
-                });
+                .subscribe(aLong -> sendData(mKey));
 //        mStartDisposable = Observable.create(e -> {
 //            sendData(mKey);
 //            e.onComplete();
@@ -207,6 +206,7 @@ public class XjlSerialPortHelper {
         mHotDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .onErrorResumeNext(throwable -> { return Observable.empty(); })
                 .doOnComplete(() -> {
                     if (mWashStatusEvent != null) {
                         if (!mWashStatusEvent.isSetting()) {//不是设置模式
@@ -230,9 +230,7 @@ public class XjlSerialPortHelper {
                         }
                     }
                 })
-                .subscribe(aLong -> sendData(mKey), throwable -> {
-                    throw new IOException();
-                });
+                .subscribe(aLong -> sendData(mKey));
 //        mHotDisposable = Observable.create(e -> {
 //            sendData(mKey);
 //            e.onComplete();
@@ -299,6 +297,7 @@ public class XjlSerialPortHelper {
                 .doOnNext(aLong -> sendData(mKey))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .onErrorResumeNext(throwable -> { return Observable.empty(); })
                 .doOnComplete(() -> {
                     if (mWashStatusEvent != null) {//不是设置模式
                         if (!mWashStatusEvent.isSetting()) {
@@ -322,9 +321,7 @@ public class XjlSerialPortHelper {
                         }
                     }
                 })
-                .subscribe(aLong -> sendData(mKey), throwable -> {
-                    throw new IOException();
-                });
+                .subscribe(aLong -> sendData(mKey));
 //        mWarmDisposable = Observable.create(e -> {
 //            sendData(mKey);
 //            e.onComplete();
@@ -388,6 +385,7 @@ public class XjlSerialPortHelper {
         mColdDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .onErrorResumeNext(throwable -> { return Observable.empty(); })
                 .doOnComplete(() -> {
                     if (mWashStatusEvent != null) {//不是设置模式，
                         if (!mWashStatusEvent.isSetting()) {
@@ -411,9 +409,7 @@ public class XjlSerialPortHelper {
                         }
                     }
                 })
-                .subscribe(aLong -> sendData(mKey), throwable -> {
-                    throw new IOException();
-                });
+                .subscribe(aLong -> sendData(mKey));
 
 //        mColdDisposable = Observable.create(e -> {
 //            sendData(mKey);
@@ -483,6 +479,7 @@ public class XjlSerialPortHelper {
         mDelicatesDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .onErrorResumeNext(throwable -> { return Observable.empty(); })
                 .doOnComplete(() -> {
                     if (mWashStatusEvent != null) {//不是设置模式，
                         if (!mWashStatusEvent.isSetting()) {
@@ -506,9 +503,7 @@ public class XjlSerialPortHelper {
                         }
                     }
                 })
-                .subscribe(aLong -> sendData(mKey), throwable -> {
-                    throw new IOException();
-                });
+                .subscribe(aLong -> sendData(mKey));
 
 //        mDelicatesDisposable = Observable.create(e -> {
 //            sendData(mKey);
@@ -574,6 +569,7 @@ public class XjlSerialPortHelper {
         mSuperDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .onErrorResumeNext(throwable -> { return Observable.empty(); })
                 .doOnComplete(() -> {
 //                    if (mWashStatusEvent != null) {
 //                        if (mCount == 0) {
@@ -600,9 +596,7 @@ public class XjlSerialPortHelper {
 //                        mCount++;
 //                    }
                 })
-                .subscribe(aLong -> sendData(mKey), throwable -> {
-                    throw new IOException();
-                });
+                .subscribe(aLong -> sendData(mKey));
 
 //        mSuperDisposable = Observable.create(e -> {
 //            sendData(mKey);
@@ -648,9 +642,9 @@ public class XjlSerialPortHelper {
         mKey = KEY_SETTING;
         ++seq;
         mSettingDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
-                .doOnNext(aLong -> sendData(mKey))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .onErrorResumeNext(throwable -> { return Observable.empty(); })
                 .doOnComplete(() -> {
                     if (mWashStatusEvent.isSetting() && ("0").equals(mWashStatusEvent.getText())) {
                         Log.e(TAG, "setting mode success");
@@ -664,7 +658,7 @@ public class XjlSerialPortHelper {
                         }
                     }
                 })
-                .subscribe();
+                .subscribe(aLong -> sendData(mKey));
 
 //        mSettingDisposable = Observable.create(e -> {
 //            sendData(mKey);
@@ -832,8 +826,10 @@ public class XjlSerialPortHelper {
 //            SystemClock.sleep(50);
 //        }
         sendStartOrStop();
-        mKill = Observable.intervalRange(0, 240, 0, 1, TimeUnit.SECONDS).subscribeOn(Schedulers.io())
+        mKill = Observable.intervalRange(0, 240, 0, 1, TimeUnit.SECONDS)
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .onErrorResumeNext(throwable -> { return Observable.empty(); })
                 .doOnNext(aLong -> {
                     Log.e(TAG, "doOnNext--->" + aLong);
                     if (mWashStatusEvent != null) {
