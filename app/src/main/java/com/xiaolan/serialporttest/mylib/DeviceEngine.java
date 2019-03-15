@@ -14,7 +14,7 @@ import java.io.IOException;
  */
 public class DeviceEngine {
 
-    private static DeviceEngineIService DEVICE_ENGINE_I_SERVICE;
+    private DeviceEngineIService DEVICE_ENGINE_I_SERVICE;
 
     private DeviceEngine() {
     }
