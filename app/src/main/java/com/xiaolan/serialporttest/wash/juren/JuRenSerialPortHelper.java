@@ -54,7 +54,7 @@ public class JuRenSerialPortHelper {
     private CRC16 mCrc16;
     private static final int SHOW_LENGTH = 30;
     private byte[] mPreMsg = new byte[SHOW_LENGTH];
-    private int seq = -1;
+    private int seq;
     private int mKey;
     private long mRecCount = 0;//接收到的报文次数
     private int mSendCount = 0;//发送的某个报文次数
@@ -94,7 +94,7 @@ public class JuRenSerialPortHelper {
     private CurrentStatusListener mCurrentStatusListener;
     private JuRenWashStatus mJuRenWashStatus;
     private Map<Byte, String> mTextMap;
-    private final long mPeriod = 400;
+    private final long mPeriod = 200;
 
     public JuRenSerialPortHelper() {
         this("/dev/ttyS3", 9600);
@@ -126,7 +126,7 @@ public class JuRenSerialPortHelper {
                         }
                         len = mBufferedInputStream.read(buffer);
                         if (len != -1) {
-//                            Log.e("buffer", "len:" + len + "值：" + MyFunc.ByteArrToHex(buffer));
+                            Log.e("buffer", "len:" + len + "值：" + MyFunc.ByteArrToHex(buffer));
                             if (len >= 23) {
                                 //读巨人洗衣机上报报文
                                 JuRenWashRead(buffer, len);
@@ -166,13 +166,6 @@ public class JuRenSerialPortHelper {
                     }
                 } catch (Throwable t) {
                     t.printStackTrace();
-//                    Observable.just(1).observeOn(AndroidSchedulers.mainThread())
-//                            .doOnComplete(() -> {
-//                                if (mSerialPortOnlineListener != null) {
-//                                    mSerialPortOnlineListener.onSerialPortReadDataFail(t.getMessage());
-//                                }
-//                            })
-//                            .subscribe();
                     Log.e(TAG, "run: 数据读取异常：" + t.toString());
                     break;
                 }
@@ -213,6 +206,7 @@ public class JuRenSerialPortHelper {
                         } else {
                             mPreOnlineTime = System.currentTimeMillis();
                         }
+
                         if (his.isEmpty() || !Objects.deepEquals(msg, his.get(his.size() - 1))) {
                             Log.e(TAG, "接收：" + MyFunc.ByteArrToHex(msg));
                             //根据上报的报文，分析设备状态
@@ -228,22 +222,24 @@ public class JuRenSerialPortHelper {
                         }
                         enqueueState(msg);
                         if (his.size() > HIS_SIZE) dequeueState();
-                        Log.e("light", "isRunning:-->" + isRunning());
-                        Log.e("light", "light1灯的值：-->" + light1 + ",light1.isOn-->" + isOn(light1) + ",light1.isOff-->" + isOff(light1) + ",light1.isFlash-->" + isFlash(light1));
-                        Log.e("light", "light2灯的值：-->" + light2 + ",light2.isOn-->" + isOn(light2) + ",light2.isOff-->" + isOff(light2) + ",light2.isFlash-->" + isFlash(light2));
-                        Log.e("light", "light3灯的值：-->" + light3 + ",light3.isOn-->" + isOn(light3) + ",light3.isOff-->" + isOff(light3) + ",light3.isFlash-->" + isFlash(light3));
-                        Log.e("light", "light4灯的值：-->" + light4 + ",light4.isOn-->" + isOn(light4) + ",light4.isOff-->" + isOff(light4) + ",light4.isFlash-->" + isFlash(light4));
-                        Log.e("light", "light5灯的值：-->" + light5 + ",light5.isOn-->" + isOn(light5) + ",light5.isOff-->" + isOff(light5) + ",light5.isFlash-->" + isFlash(light5));
-                        Log.e("light", "lightst灯的值：-->" + lightst + ",lightst.isOn-->" + isOn(lightst) + ",lightst.isOff-->" + isOff(lightst) + ",lightst.isFlash-->" + isFlash(lightst));
-                        Log.e("light", "lights1灯的值：-->" + lights1 + ",lights1.isOn-->" + isOn(lights1) + ",lights1.isOff-->" + isOff(lights1) + ",lights1.isFlash-->" + isFlash(lights1));
-                        Log.e("light", "lights2灯的值：-->" + lights2 + ",lights2.isOn-->" + isOn(lights2) + ",lights2.isOff-->" + isOff(lights2) + ",lights2.isFlash-->" + isFlash(lights2));
-                        Log.e("light", "lights3灯的值：-->" + lights3 + ",lights3.isOn-->" + isOn(lights3) + ",lights3.isOff-->" + isOff(lights3) + ",lights3.isFlash-->" + isFlash(lights3));
-                        Log.e("light", "lightlk灯的值：-->" + lightlk + ",lightlk.isOn-->" + isOn(lightlk) + ",lightlk.isOff-->" + isOff(lightlk) + ",lightlk.isFlash-->" + isFlash(lightlk));
-                        Log.e("light", "lighttxt的值：-->" + lighttxt + ",lighttxt.isOn-->" + isOn(lighttxt) + ",lighttxt.isOff-->" + isOff(lighttxt) + ",lighttxt.isFlash-->" + isFlash(lighttxt));
-                        Log.e("light", "text:" + text);
+//                        Log.e("light", "isRunning:-->" + isRunning());
+//                        Log.e("light", "light1灯的值：-->" + light1 + ",light1.isOn-->" + isOn(light1) + ",light1.isOff-->" + isOff(light1) + ",light1.isFlash-->" + isFlash(light1));
+//                        Log.e("light", "light2灯的值：-->" + light2 + ",light2.isOn-->" + isOn(light2) + ",light2.isOff-->" + isOff(light2) + ",light2.isFlash-->" + isFlash(light2));
+//                        Log.e("light", "light3灯的值：-->" + light3 + ",light3.isOn-->" + isOn(light3) + ",light3.isOff-->" + isOff(light3) + ",light3.isFlash-->" + isFlash(light3));
+//                        Log.e("light", "light4灯的值：-->" + light4 + ",light4.isOn-->" + isOn(light4) + ",light4.isOff-->" + isOff(light4) + ",light4.isFlash-->" + isFlash(light4));
+//                        Log.e("light", "light5灯的值：-->" + light5 + ",light5.isOn-->" + isOn(light5) + ",light5.isOff-->" + isOff(light5) + ",light5.isFlash-->" + isFlash(light5));
+//                        Log.e("light", "lightst灯的值：-->" + lightst + ",lightst.isOn-->" + isOn(lightst) + ",lightst.isOff-->" + isOff(lightst) + ",lightst.isFlash-->" + isFlash(lightst));
+//                        Log.e("light", "lights1灯的值：-->" + lights1 + ",lights1.isOn-->" + isOn(lights1) + ",lights1.isOff-->" + isOff(lights1) + ",lights1.isFlash-->" + isFlash(lights1));
+//                        Log.e("light", "lights2灯的值：-->" + lights2 + ",lights2.isOn-->" + isOn(lights2) + ",lights2.isOff-->" + isOff(lights2) + ",lights2.isFlash-->" + isFlash(lights2));
+//                        Log.e("light", "lights3灯的值：-->" + lights3 + ",lights3.isOn-->" + isOn(lights3) + ",lights3.isOff-->" + isOff(lights3) + ",lights3.isFlash-->" + isFlash(lights3));
+//                        Log.e("light", "lightlk灯的值：-->" + lightlk + ",lightlk.isOn-->" + isOn(lightlk) + ",lightlk.isOff-->" + isOff(lightlk) + ",lightlk.isFlash-->" + isFlash(lightlk));
+//                        Log.e("light", "lighttxt的值：-->" + lighttxt + ",lighttxt.isOn-->" + isOn(lighttxt) + ",lighttxt.isOff-->" + isOff(lighttxt) + ",lighttxt.isFlash-->" + isFlash(lighttxt));
+//                        Log.e("light", "text:" + text);
                     } else {
                         //Log.e(TAG, "false" + Arrays.toString(ArrayUtils.subarray(buffer, 0, off02 + 1)));
                     }
+                } else {
+//                    Log.e(TAG, "JuRenWashRead: 串口掉线");
                 }
             }
         }
@@ -329,7 +325,14 @@ public class JuRenSerialPortHelper {
                         }
                     }
                 })
-                .subscribe(aLong -> sendData(mKey));
+                .subscribe(aLong -> {
+//                    sendData(mKey);
+                    if (aLong <= 7) {
+                        sendData(mKey);
+                    } else {
+                        sendEmptyData(mKey);
+                    }
+                });
 //        long recCount = mRecCount;
 //        mStartDisposable = Observable.create(e -> {
 //            sendData(mKey);
@@ -369,29 +372,15 @@ public class JuRenSerialPortHelper {
                     return Observable.empty();
                 })
                 .doOnComplete(() -> {
-//                    if (mWashStatusEvent != null) {
-//                        if (!mWashStatusEvent.isSetting()) {//不是设置模式
-//                            if (mWashStatusEvent.getIsWashing() == 0x30 && mWashStatusEvent.getWashMode() == 0x02) {//未开始洗衣 && 洗衣模式为热水
-//                                if (mOnSendInstructionListener != null) {
-//                                    mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                }
-//                            }
-//                        } else {//设置模式
-//                            if (mWashStatusEvent.getIsWashing() == 0x30) {//未开始洗衣
-//                                if (mRecCount > recCount) {//收到新报文
-//                                    if (mOnSendInstructionListener != null) {
-//                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                    }
-//                                }
-//                            } else {
-//                                if (mOnSendInstructionListener != null) {
-//                                    mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                }
-//                            }
-//                        }
-//                    }
                 })
-                .subscribe(aLong -> sendData(mKey));
+                .subscribe(aLong -> {
+//                    sendData(mKey);
+                    if (aLong <= 7) {
+                        sendData(mKey);
+                    } else {
+                        sendEmptyData(mKey);
+                    }
+                });
 //        long recCount = mRecCount;
 //        mHotDisposable = Observable.create(e -> {
 //            sendData(mKey);
@@ -409,36 +398,21 @@ public class JuRenSerialPortHelper {
         ++seq;
         long recCount = mRecCount;
         mWarmDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
-                .doOnNext(aLong -> sendData(mKey))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .onErrorResumeNext(throwable -> {
                     return Observable.empty();
                 })
                 .doOnComplete(() -> {
-//                    if (mWashStatusEvent != null) {//不是设置模式
-//                        if (!mWashStatusEvent.isSetting()) {
-//                            if (mWashStatusEvent.getIsWashing() == 0x30 && mWashStatusEvent.getWashMode() == 0x03) {//未开始洗衣 && 洗衣模式为热水
-//                                if (mOnSendInstructionListener != null) {
-//                                    mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                }
-//                            }
-//                        } else {//设置模式
-//                            if (mWashStatusEvent.getIsWashing() == 0x30) {//未开始洗衣
-//                                if (mRecCount > recCount) {//收到新报文
-//                                    if (mOnSendInstructionListener != null) {
-//                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                    }
-//                                }
-//                            } else {
-//                                if (mOnSendInstructionListener != null) {
-//                                    mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                }
-//                            }
-//                        }
-//                    }
                 })
-                .subscribe(aLong -> sendData(mKey));
+                .subscribe(aLong -> {
+//                    sendData(mKey);
+                    if (aLong <= 7) {
+                        sendData(mKey);
+                    } else {
+                        sendEmptyData(mKey);
+                    }
+                });
 
 //        long recCount = mRecCount;
 //        mWarmDisposable = Observable.create(e -> {
@@ -461,29 +435,15 @@ public class JuRenSerialPortHelper {
                     return Observable.empty();
                 })
                 .doOnComplete(() -> {
-//                    if (mWashStatusEvent != null) {//不是设置模式，
-//                        if (!mWashStatusEvent.isSetting()) {
-//                            if (mWashStatusEvent.getIsWashing() == 0x30 && mWashStatusEvent.getWashMode() == 0x04) {//未开始洗衣 && 洗衣模式为热水
-//                                if (mOnSendInstructionListener != null) {
-//                                    mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                }
-//                            }
-//                        } else {//设置模式
-//                            if (mWashStatusEvent.getIsWashing() == 0x30) {//未开始洗衣
-//                                if (mRecCount > recCount) {//收到新报文
-//                                    if (mOnSendInstructionListener != null) {
-//                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                    }
-//                                }
-//                            } else {
-//                                if (mOnSendInstructionListener != null) {
-//                                    mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                }
-//                            }
-//                        }
-//                    }
                 })
-                .subscribe(aLong -> sendData(mKey));
+                .subscribe(aLong -> {
+//                    sendData(mKey);
+                    if (aLong <= 7) {
+                        sendData(mKey);
+                    } else {
+                        sendEmptyData(mKey);
+                    }
+                });
 //        long recCount = mRecCount;
 //        mColdDisposable = Observable.create(e -> {
 //            sendData(mKey);
@@ -507,29 +467,15 @@ public class JuRenSerialPortHelper {
                     return Observable.empty();
                 })
                 .doOnComplete(() -> {
-//                    if (mWashStatusEvent != null) {//不是设置模式，
-//                        if (!mWashStatusEvent.isSetting()) {
-//                            if (mWashStatusEvent.getIsWashing() == 0x30 && mWashStatusEvent.getWashMode() == 0x05) {//未开始洗衣 && 洗衣模式为热水
-//                                if (mOnSendInstructionListener != null) {
-//                                    mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                }
-//                            }
-//                        } else {//设置模式
-//                            if (mWashStatusEvent.getIsWashing() == 0x30) {//未开始洗衣
-//                                if (mRecCount > recCount) {//收到新报文
-//                                    if (mOnSendInstructionListener != null) {
-//                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                    }
-//                                }
-//                            } else {
-//                                if (mOnSendInstructionListener != null) {
-//                                    mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                }
-//                            }
-//                        }
-//                    }
                 })
-                .subscribe(aLong -> sendData(mKey));
+                .subscribe(aLong -> {
+//                    sendData(mKey);
+                    if (aLong <= 7) {
+                        sendData(mKey);
+                    } else {
+                        sendEmptyData(mKey);
+                    }
+                });
 //        long recCount = mRecCount;
 //        mDelicatesDisposable = Observable.create(e -> {
 //            sendData(mKey);
@@ -552,32 +498,14 @@ public class JuRenSerialPortHelper {
                     return Observable.empty();
                 })
                 .doOnComplete(() -> {
-//                    if (mWashStatusEvent != null) {
-//                        if (mCount == 0) {
-//                            mPreIsSupper = mWashStatusEvent.getLightSupper();
-//                        } else {
-//                            if (mPreIsSupper == 1) {
-//                                if (mWashStatusEvent.getLightSupper() == 0) {
-//                                    mPreIsSupper = mWashStatusEvent.getLightSupper();
-//                                    mCount = 0;
-//                                    if (mOnSendInstructionListener != null) {
-//                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                    }
-//                                }
-//                            } else if (mPreIsSupper == 0) {
-//                                if (mWashStatusEvent.getLightSupper() == 1) {
-//                                    mPreIsSupper = mWashStatusEvent.getLightSupper();
-//                                    mCount = 0;
-//                                    if (mOnSendInstructionListener != null) {
-//                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                    }
-//                                }
-//                            }
-//                        }
-//                        mCount++;
-//                    }
                 })
-                .subscribe(aLong -> sendData(mKey));
+                .subscribe(aLong -> {
+                    if (aLong == 0) {
+                        sendData(mKey);
+                    } else {
+                        sendEmptyData(mKey);
+                    }
+                });
 //        mSuperDisposable = Observable.create(e -> {
 //            sendData(mKey);
 //            e.onComplete();
@@ -611,7 +539,13 @@ public class JuRenSerialPortHelper {
 //                        }
 //                    }
                 })
-                .subscribe(aLong -> sendData(mKey));
+                .subscribe(aLong -> {
+                    if (aLong <= 7) {
+                        sendData(mKey);
+                    } else {
+                        sendEmptyData(mKey);
+                    }
+                });
 //        mSettingDisposable = Observable.create(e -> {
 //            sendData(mKey);
 //            e.onComplete();
@@ -683,7 +617,7 @@ public class JuRenSerialPortHelper {
         }
 
         mKey = DeviceAction.JuRen.ACTION_COLORS;
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 2; i++) {
             ++seq;
             for (int j = 0; j < killIntervalCount; j++) {
                 sendData(mKey);
@@ -813,13 +747,39 @@ public class JuRenSerialPortHelper {
     }
 
     private void sendData(int key) throws IOException {
-        byte[] msg = {0x02, 0x06, (byte) (key & 0xff), (byte) (seq & 0xff), (byte) 0x80, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03};
+        byte[] msg = {0x02, 0x06, (byte) (key), (byte) (seq), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03};
         short crc16_a = mCrc16.getCrc(msg, 0, msg.length - 3);
         msg[msg.length - 2] = (byte) (crc16_a >> 8);
         msg[msg.length - 3] = (byte) (crc16_a & 0xff);
-        mBufferedOutputStream.write(msg);
-        mBufferedOutputStream.flush();
-        Log.e(TAG, "发送：" + MyFunc.ByteArrToHex(msg));
+        if (mBufferedOutputStream != null) {
+            mBufferedOutputStream.write(msg);
+            mBufferedOutputStream.flush();
+        }
+        Log.e("send", "发送：" + MyFunc.ByteArrToHex(msg));
+    }
+
+//    private void sendData(int key) throws IOException {
+//        byte[] msg = {0x02, 0x06, (byte) (key & 0xff), (byte) (seq & 0xff), (byte) 0x80, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03};
+//        short crc16_a = mCrc16.getCrc(msg, 0, msg.length - 3);
+//        msg[msg.length - 2] = (byte) (crc16_a >> 8);
+//        msg[msg.length - 3] = (byte) (crc16_a & 0xff);
+//        if (mBufferedOutputStream != null) {
+//            mBufferedOutputStream.write(msg);
+//            mBufferedOutputStream.flush();
+//        }
+//        Log.e("send", "发送：" + MyFunc.ByteArrToHex(msg));
+//    }
+
+    private void sendEmptyData(int key) throws IOException {
+        byte[] msg = {0x02, 0x06, 0x00, (byte) (seq), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03};
+        short crc16_a = mCrc16.getCrc(msg, 0, msg.length - 3);
+        msg[msg.length - 2] = (byte) (crc16_a >> 8);
+        msg[msg.length - 3] = (byte) (crc16_a & 0xff);
+        if (mBufferedOutputStream != null) {
+            mBufferedOutputStream.write(msg);
+            mBufferedOutputStream.flush();
+        }
+        Log.e("send", "发送：" + MyFunc.ByteArrToHex(msg));
     }
 
     public boolean isOpen() {
@@ -883,6 +843,7 @@ public class JuRenSerialPortHelper {
 
     void juRenClose() throws IOException {
         _isOpen = false;
+        dispose(mKey);
         if (mReadThread != null)
             mReadThread.interrupt();
         if (mSerialPort != null) {
