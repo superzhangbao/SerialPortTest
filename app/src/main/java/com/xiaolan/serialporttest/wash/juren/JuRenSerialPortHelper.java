@@ -35,6 +35,13 @@ import io.reactivex.schedulers.Schedulers;
 
 /**
  * 巨人洗衣机串口操作工具类
+ * 指示灯示意图：
+ * lights1  lights2  lights3                     light1
+ * light2
+ * light3
+ * lock                         light4
+ * light5
+ * start
  */
 public class JuRenSerialPortHelper {
     private static final String TAG = "JuRenSerialPortHelper";
@@ -183,73 +190,71 @@ public class JuRenSerialPortHelper {
 //                Log.e(TAG, "false" + Arrays.toString(ArrayUtils.subarray(buffer, 0, off02)));
         } else if (buffer[off02 + size - 1] != 0x03) {//有0x02，但末尾不是0x03
 //                Log.e(TAG, "false" + Arrays.toString(ArrayUtils.subarray(buffer, 0, off02 + 1)));
-        } else {
-            if (buffer.length > off02 + 2) {
-                if (buffer[off02 + 1] == 0x06) {//找到开头02 06的数据
-                    // crc校验
-                    short crc16_a = mCrc16.getCrc(buffer, off02, size - 3);
-                    short crc16_msg = (short) (buffer[off02 + 20] << 8 | (buffer[off02 + 21] & 0xff));
-                    if (crc16_a == crc16_msg) {
-                        byte[] msg = ArrayUtils.subarray(buffer, off02, off02 + size);
-                        //判断串口是否掉线
-                        if (!isOnline) {
-                            isOnline = true;
-                            hasOnline = true;
-                            mPreOnlineTime = System.currentTimeMillis();
-                            Observable.just(1).observeOn(AndroidSchedulers.mainThread())
-                                    .doOnComplete(() -> {
-                                        if (mSerialPortOnlineListener != null) {
-                                            mSerialPortOnlineListener.onSerialPortOnline(msg);
-                                            Log.e(TAG, "串口上线");
-                                        }
-                                    }).subscribe();
-                        } else {
-                            mPreOnlineTime = System.currentTimeMillis();
-                        }
-
-                        if (his.isEmpty() || !Objects.deepEquals(msg, his.get(his.size() - 1))) {
-                            Log.e(TAG, "接收：" + MyFunc.ByteArrToHex(msg));
-                            //根据上报的报文，分析设备状态
-                            mWashStatusEvent = mJuRenWashStatus.analyseStatus(msg);
-                            mRecCount++;
-                            Observable.just(1).observeOn(AndroidSchedulers.mainThread())
-                                    .doOnNext(integer -> {
-                                        if (mCurrentStatusListener != null) {
-                                            mCurrentStatusListener.currentStatus(mWashStatusEvent);
-                                        }
-                                    })
-                                    .subscribe();
-                        }
-                        enqueueState(msg);
-                        if (his.size() > HIS_SIZE) dequeueState();
-//                        Log.e("light", "isRunning:-->" + isRunning());
-//                        Log.e("light", "light1灯的值：-->" + light1 + ",light1.isOn-->" + isOn(light1) + ",light1.isOff-->" + isOff(light1) + ",light1.isFlash-->" + isFlash(light1));
-//                        Log.e("light", "light2灯的值：-->" + light2 + ",light2.isOn-->" + isOn(light2) + ",light2.isOff-->" + isOff(light2) + ",light2.isFlash-->" + isFlash(light2));
-//                        Log.e("light", "light3灯的值：-->" + light3 + ",light3.isOn-->" + isOn(light3) + ",light3.isOff-->" + isOff(light3) + ",light3.isFlash-->" + isFlash(light3));
-//                        Log.e("light", "light4灯的值：-->" + light4 + ",light4.isOn-->" + isOn(light4) + ",light4.isOff-->" + isOff(light4) + ",light4.isFlash-->" + isFlash(light4));
-//                        Log.e("light", "light5灯的值：-->" + light5 + ",light5.isOn-->" + isOn(light5) + ",light5.isOff-->" + isOff(light5) + ",light5.isFlash-->" + isFlash(light5));
-//                        Log.e("light", "lightst灯的值：-->" + lightst + ",lightst.isOn-->" + isOn(lightst) + ",lightst.isOff-->" + isOff(lightst) + ",lightst.isFlash-->" + isFlash(lightst));
-//                        Log.e("light", "lights1灯的值：-->" + lights1 + ",lights1.isOn-->" + isOn(lights1) + ",lights1.isOff-->" + isOff(lights1) + ",lights1.isFlash-->" + isFlash(lights1));
-//                        Log.e("light", "lights2灯的值：-->" + lights2 + ",lights2.isOn-->" + isOn(lights2) + ",lights2.isOff-->" + isOff(lights2) + ",lights2.isFlash-->" + isFlash(lights2));
-//                        Log.e("light", "lights3灯的值：-->" + lights3 + ",lights3.isOn-->" + isOn(lights3) + ",lights3.isOff-->" + isOff(lights3) + ",lights3.isFlash-->" + isFlash(lights3));
-//                        Log.e("light", "lightlk灯的值：-->" + lightlk + ",lightlk.isOn-->" + isOn(lightlk) + ",lightlk.isOff-->" + isOff(lightlk) + ",lightlk.isFlash-->" + isFlash(lightlk));
-//                        Log.e("light", "lighttxt的值：-->" + lighttxt + ",lighttxt.isOn-->" + isOn(lighttxt) + ",lighttxt.isOff-->" + isOff(lighttxt) + ",lighttxt.isFlash-->" + isFlash(lighttxt));
-//                        Log.e("light", "text:" + text);
-                    } else {
-                        //Log.e(TAG, "false" + Arrays.toString(ArrayUtils.subarray(buffer, 0, off02 + 1)));
-                    }
+        } else if (buffer.length > off02 + 2 && buffer[off02 + 1] == 0x06) {
+            //找到开头02 06的数据
+            // crc校验
+            short crc16_a = mCrc16.getCrc(buffer, off02, size - 3);
+            short crc16_msg = (short) (buffer[off02 + 20] << 8 | (buffer[off02 + 21] & 0xff));
+            if (crc16_a == crc16_msg) {
+                byte[] msg = ArrayUtils.subarray(buffer, off02, off02 + size);
+                //判断串口是否掉线
+                if (!isOnline) {
+                    isOnline = true;
+                    hasOnline = true;
+                    mPreOnlineTime = System.currentTimeMillis();
+                    Observable.just(1).observeOn(AndroidSchedulers.mainThread())
+                            .doOnComplete(() -> {
+                                if (mSerialPortOnlineListener != null) {
+                                    mSerialPortOnlineListener.onSerialPortOnline(msg);
+                                    Log.e(TAG, "串口上线");
+                                }
+                            }).subscribe();
                 } else {
-//                    Log.e(TAG, "JuRenWashRead: 串口掉线");
+                    mPreOnlineTime = System.currentTimeMillis();
                 }
+
+                if (his.isEmpty() || !Objects.deepEquals(msg, his.get(his.size() - 1))) {
+                    Log.e(TAG, "接收：" + MyFunc.ByteArrToHex(msg));
+                    //根据上报的报文，分析设备状态
+                    mWashStatusEvent = mJuRenWashStatus.analyseStatus(msg);
+                    mRecCount++;
+                    Observable.just(1).observeOn(AndroidSchedulers.mainThread())
+                            .doOnNext(integer -> {
+                                if (mCurrentStatusListener != null) {
+                                    mCurrentStatusListener.currentStatus(mWashStatusEvent);
+                                }
+                            })
+                            .subscribe();
+                }
+                enqueueState(msg);
+                if (his.size() > HIS_SIZE) dequeueState();
+                Log.e("light", "isRunning:-->" + isRunning());
+                Log.e("light", "light1灯的值：-->" + light1 + ",light1.isOn-->" + isOn(light1) + ",light1.isOff-->" + isOff(light1) + ",light1.isFlash-->" + isFlash(light1));
+                Log.e("light", "light2灯的值：-->" + light2 + ",light2.isOn-->" + isOn(light2) + ",light2.isOff-->" + isOff(light2) + ",light2.isFlash-->" + isFlash(light2));
+                Log.e("light", "light3灯的值：-->" + light3 + ",light3.isOn-->" + isOn(light3) + ",light3.isOff-->" + isOff(light3) + ",light3.isFlash-->" + isFlash(light3));
+                Log.e("light", "light4灯的值：-->" + light4 + ",light4.isOn-->" + isOn(light4) + ",light4.isOff-->" + isOff(light4) + ",light4.isFlash-->" + isFlash(light4));
+                Log.e("light", "light5灯的值：-->" + light5 + ",light5.isOn-->" + isOn(light5) + ",light5.isOff-->" + isOff(light5) + ",light5.isFlash-->" + isFlash(light5));
+                Log.e("light", "lightst灯的值：-->" + lightst + ",lightst.isOn-->" + isOn(lightst) + ",lightst.isOff-->" + isOff(lightst) + ",lightst.isFlash-->" + isFlash(lightst));
+                Log.e("light", "lights1灯的值：-->" + lights1 + ",lights1.isOn-->" + isOn(lights1) + ",lights1.isOff-->" + isOff(lights1) + ",lights1.isFlash-->" + isFlash(lights1));
+                Log.e("light", "lights2灯的值：-->" + lights2 + ",lights2.isOn-->" + isOn(lights2) + ",lights2.isOff-->" + isOff(lights2) + ",lights2.isFlash-->" + isFlash(lights2));
+                Log.e("light", "lights3灯的值：-->" + lights3 + ",lights3.isOn-->" + isOn(lights3) + ",lights3.isOff-->" + isOff(lights3) + ",lights3.isFlash-->" + isFlash(lights3));
+                Log.e("light", "lightlk灯的值：-->" + lightlk + ",lightlk.isOn-->" + isOn(lightlk) + ",lightlk.isOff-->" + isOff(lightlk) + ",lightlk.isFlash-->" + isFlash(lightlk));
+                Log.e("light", "lighttxt的值：-->" + lighttxt + ",lighttxt.isOn-->" + isOn(lighttxt) + ",lighttxt.isOff-->" + isOff(lighttxt) + ",lighttxt.isFlash-->" + isFlash(lighttxt));
+                Log.e("light", "text:" + text);
+            } else {
+                //Log.e(TAG, "false" + Arrays.toString(ArrayUtils.subarray(buffer, 0, off02 + 1)));
             }
+        } else {
+//                    Log.e(TAG, "JuRenWashRead: 串口掉线");
         }
+
     }
 
     private void enqueueState(byte[] msg) {
         his.add(msg);
-
-        int l1 = msg[5];
-        int l2 = msg[10];
+        int l1 = msg[5];//指示灯对应关系----0x0C 0000(light5) 1(light4)1(light3)00
+        int l2 = msg[10];//指示灯对应关系----0x5F 01(light2)0(light1)1(lock) 1(lights3)1(lights2)1(lights1)1(start)
+        //==0x01 亮 ==0x00 灭
         light1 += (l2 & 0x20) >> 5;
         light2 += (l2 & 0x40) >> 6;
         light3 += (l1 & 0x04) >> 2;
@@ -326,11 +331,10 @@ public class JuRenSerialPortHelper {
                     }
                 })
                 .subscribe(aLong -> {
-//                    sendData(mKey);
                     if (aLong <= 7) {
                         sendData(mKey);
                     } else {
-                        sendEmptyData(mKey);
+                        sendEmptyData();
                     }
                 });
 //        long recCount = mRecCount;
@@ -374,11 +378,10 @@ public class JuRenSerialPortHelper {
                 .doOnComplete(() -> {
                 })
                 .subscribe(aLong -> {
-//                    sendData(mKey);
                     if (aLong <= 7) {
                         sendData(mKey);
                     } else {
-                        sendEmptyData(mKey);
+                        sendEmptyData();
                     }
                 });
 //        long recCount = mRecCount;
@@ -406,11 +409,10 @@ public class JuRenSerialPortHelper {
                 .doOnComplete(() -> {
                 })
                 .subscribe(aLong -> {
-//                    sendData(mKey);
                     if (aLong <= 7) {
                         sendData(mKey);
                     } else {
-                        sendEmptyData(mKey);
+                        sendEmptyData();
                     }
                 });
 
@@ -437,11 +439,10 @@ public class JuRenSerialPortHelper {
                 .doOnComplete(() -> {
                 })
                 .subscribe(aLong -> {
-//                    sendData(mKey);
                     if (aLong <= 7) {
                         sendData(mKey);
                     } else {
-                        sendEmptyData(mKey);
+                        sendEmptyData();
                     }
                 });
 //        long recCount = mRecCount;
@@ -469,11 +470,10 @@ public class JuRenSerialPortHelper {
                 .doOnComplete(() -> {
                 })
                 .subscribe(aLong -> {
-//                    sendData(mKey);
                     if (aLong <= 7) {
                         sendData(mKey);
                     } else {
-                        sendEmptyData(mKey);
+                        sendEmptyData();
                     }
                 });
 //        long recCount = mRecCount;
@@ -503,7 +503,7 @@ public class JuRenSerialPortHelper {
                     if (aLong == 0) {
                         sendData(mKey);
                     } else {
-                        sendEmptyData(mKey);
+                        sendEmptyData();
                     }
                 });
 //        mSuperDisposable = Observable.create(e -> {
@@ -543,7 +543,7 @@ public class JuRenSerialPortHelper {
                     if (aLong <= 7) {
                         sendData(mKey);
                     } else {
-                        sendEmptyData(mKey);
+                        sendEmptyData();
                     }
                 });
 //        mSettingDisposable = Observable.create(e -> {
@@ -567,7 +567,6 @@ public class JuRenSerialPortHelper {
     }
 
     private void kill() throws IOException {
-
         int killIntervalCount = 16;
         dispose(mKey);
         mKey = DeviceAction.JuRen.ACTION_SETTING;
@@ -770,7 +769,7 @@ public class JuRenSerialPortHelper {
 //        Log.e("send", "发送：" + MyFunc.ByteArrToHex(msg));
 //    }
 
-    private void sendEmptyData(int key) throws IOException {
+    private void sendEmptyData() throws IOException {
         byte[] msg = {0x02, 0x06, 0x00, (byte) (seq), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03};
         short crc16_a = mCrc16.getCrc(msg, 0, msg.length - 3);
         msg[msg.length - 2] = (byte) (crc16_a >> 8);
