@@ -165,6 +165,10 @@ class XjlWashActivity : AppCompatActivity(), View.OnClickListener, OnSendInstruc
                 checkIsOpen()
                 DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_KILL)
             }
+            R.id.btn_reset->{
+                checkIsOpen()
+                DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_RESET)
+            }
             R.id.btn_finsh -> {
                 val open = DeviceEngine.getInstance().isOpen
                 if (open) {

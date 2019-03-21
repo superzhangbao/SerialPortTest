@@ -1,4 +1,4 @@
-package com.xiaolan.serialporttest.wash.jurenpro;
+package com.xiaolan.serialporttest.wash.jurenplus;
 
 import android.util.Log;
 
@@ -10,8 +10,8 @@ import java.util.Map;
 /**
  * 洗衣机状态管理类
  */
-public class JuRenProWashStatus {
-    private static final String TAG = "JuRenProWashStatus";
+public class JuRenPlusWashStatus {
+    private static final String TAG = "JuRenPlusWashStatus";
     private int mWashMode;
     private int mLights1;
     private int mLights2;
@@ -28,7 +28,7 @@ public class JuRenProWashStatus {
 
     private WashStatusEvent mWashStatusEvent;
 
-    public JuRenProWashStatus() {
+    public JuRenPlusWashStatus() {
         if (mLogmsg == null) {
             mLogmsg = new StringBuilder();
         }

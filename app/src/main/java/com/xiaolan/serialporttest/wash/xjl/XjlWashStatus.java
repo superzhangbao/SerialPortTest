@@ -10,7 +10,7 @@ import java.util.Map;
 public class XjlWashStatus {
 
     private static final String TAG = "XjlWashStatus";
-private int mWashMode = 0;
+    private int mWashMode = 0;
     private int mLightSupper = 0;   // 加强
     private int lightst = 0;    // 开始
     private int mLights1 = 0;    // 第1步
@@ -27,10 +27,14 @@ private int mWashMode = 0;
     private boolean mIsSetting = false;
     private int mIsWashing = 0;
     private StringBuilder mLogmsg;
+    private WashStatusEvent mWashStatusEvent;
 
     public XjlWashStatus() {
         if (mLogmsg == null) {
             mLogmsg = new StringBuilder();
+        }
+        if (mWashStatusEvent == null) {
+            mWashStatusEvent = new WashStatusEvent();
         }
     }
 
@@ -63,13 +67,13 @@ private int mWashMode = 0;
                 mText = textTable.get(msg[7]) + textTable.get(msg[8]) + textTable.get(msg[12]) + textTable.get(msg[13]);
             }
             mText2 = "" + msg[11] + msg[10];
-            if (mText2.length()>1 && mText2.startsWith("0")) {
-                mText2 = mText2.substring(1,mText2.length());
+            if (mText2.length() > 1 && mText2.startsWith("0")) {
+                mText2 = mText2.substring(1, mText2.length());
             }
             mIsSetting = mIsWashing == 0x10;
-            Log.e(TAG,"----------------------------start--------------------------------------");
+            Log.e(TAG, "----------------------------start--------------------------------------");
             Log.e(TAG, "lights1:" + mLights1 + "--" + "lights2:" + mLights2 + "--" + "lights3:" + mLights3 + "--" + "lightsupper:" + mLightSupper + "--" + "lightlock:" + mLightlock + "--"
-                    + "mIsWashing:" + mIsWashing + "--" + "viewStep:" + mViewStep + "--" + "err:" + mErr + "--" + "msgInt:" + mMsgInt + "--" + "text:" + mText+ "--" + "text2:" + mText2);
+                    + "mIsWashing:" + mIsWashing + "--" + "viewStep:" + mViewStep + "--" + "err:" + mErr + "--" + "msgInt:" + mMsgInt + "--" + "text:" + mText + "--" + "text2:" + mText2);
             if (mLogmsg != null && mLogmsg.length() > 0) {
                 mLogmsg.delete(0, mLogmsg.length());
                 mLogmsg.append("当前模式：----->");
@@ -101,7 +105,7 @@ private int mWashMode = 0;
                             break;
                     }
                     //屏显
-                    Log.e(TAG, "屏显：text1:" + mText+"----text2:"+mText2);
+                    Log.e(TAG, "屏显：text1:" + mText + "----text2:" + mText2);
                 } else {//不是错误状态
                     Log.e(TAG, "错误状态：" + "否");
                     mLogmsg.append("错误状态：" + "否").append("\r\n");
@@ -169,14 +173,30 @@ private int mWashMode = 0;
                         mLogmsg.append("门锁状态：" + "未锁").append("\r\n");
                     }
                     //屏显
-                    Log.e(TAG, "屏显：text1:" + mText+"----text2:"+mText2);
+                    Log.e(TAG, "屏显：text1:" + mText + "----text2:" + mText2);
                     mLogmsg.append("屏显：").append(mText).append("----text2:").append(mText2).append("\r\n");
                 }
             }
-            Log.e(TAG,"-----------------------------end---------------------------------------");
+            Log.e(TAG, "-----------------------------end---------------------------------------");
         }
-        return new WashStatusEvent(mIsSetting,mWashMode,mLights1,mLights2,mLights3,mLightSupper,mLightlock,mIsWashing,mViewStep,mErr,mMsgInt,mText,mText2,mLogmsg);
-    }
+        if (mWashStatusEvent != null) {
+            mWashStatusEvent.setSetting(mIsSetting);
+            mWashStatusEvent.setWashMode(mWashMode);
+            mWashStatusEvent.setLights1(mLights1);
+            mWashStatusEvent.setLights2(mLights2);
+            mWashStatusEvent.setLights3(mLights3);
+            mWashStatusEvent.setLightSupper(mLightSupper);
+            mWashStatusEvent.setLightlock(mLightlock);
+            mWashStatusEvent.setIsWashing(mIsWashing);
+            mWashStatusEvent.setViewStep(mViewStep);
+            mWashStatusEvent.setErr(mErr);
+            mWashStatusEvent.setMsgInt(mMsgInt);
+            mWashStatusEvent.setText(mText);
+            mWashStatusEvent.setLogmsg(mLogmsg);
+        }else {
+            mWashStatusEvent = new WashStatusEvent(mIsSetting, mWashMode, mLights1, mLights2, mLights3, mLightSupper, mLightlock, mIsWashing, mViewStep, mErr, mMsgInt, mText,"", mLogmsg);
+        }
+        return mWashStatusEvent;    }
 
     /**
      * 判断是否处于错误状态

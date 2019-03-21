@@ -165,7 +165,8 @@ public class JuRenWashActivity extends AppCompatActivity implements OnSendInstru
     }
 
     @OnClick({R.id.btn_finsh, R.id.btn_open_port, R.id.btn_clear, R.id.btn_whites, R.id.btn_colors,
-            R.id.btn_delicates, R.id.btn_perm_press, R.id.btn_super, R.id.btn_start, R.id.btn_setting, R.id.btn_kill})
+            R.id.btn_delicates, R.id.btn_perm_press, R.id.btn_super, R.id.btn_start, R.id.btn_setting,
+            R.id.btn_kill,R.id.btn_fuwei})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_finsh:
@@ -246,6 +247,13 @@ public class JuRenWashActivity extends AppCompatActivity implements OnSendInstru
             case R.id.btn_kill:
                 try {
                     DeviceEngine.getInstance().push(DeviceAction.JuRen.ACTION_KILL);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
+            case R.id.btn_fuwei:
+                try {
+                    DeviceEngine.getInstance().push(DeviceAction.JuRen.ACTION_RESET);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

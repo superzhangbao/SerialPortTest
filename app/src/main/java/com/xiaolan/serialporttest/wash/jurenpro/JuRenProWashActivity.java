@@ -25,6 +25,7 @@ import com.xiaolan.serialporttest.mylib.listener.OnSendInstructionListener;
 import com.xiaolan.serialporttest.mylib.listener.SerialPortOnlineListener;
 import com.xiaolan.serialporttest.mylib.utils.MyFunc;
 import com.xiaolan.serialporttest.util1.KeybordUtils;
+import com.xiaolan.serialporttest.util1.ToastUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -97,12 +98,9 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
         mButtons.add(mBtnSoft);
 
         mRgRev.setOnCheckedChangeListener(this);
-//        mMyHandler = new MyHandler();
-//        mDispQueueThread = new DispQueueThread();
-//        mDispQueueThread.start();
+
         mDispQueueThread2 = new DispQueueThread2();
         mDispQueueThread2.start();
-//        mPortFinder = new SerialPortFinder();
         //设置发送指令监听
         DeviceEngine.getInstance().setOnSendInstructionListener(this);
         //设置上报状态监听
@@ -113,9 +111,9 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @SuppressLint("SetTextI18n")
-    @OnClick({R.id.btn_finsh,  R.id.btn_open_port, R.id.btn_clear, R.id.btn_hot,
+    @OnClick({R.id.btn_finsh, R.id.btn_open_port, R.id.btn_clear, R.id.btn_hot,
             R.id.btn_warm, R.id.btn_cold, R.id.btn_soft, R.id.btn_super, R.id.btn_start_stop,
-            R.id.btn_kill, R.id.btn_setting})
+            R.id.btn_kill, R.id.btn_setting,R.id.btn_reset})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_finsh:
@@ -237,6 +235,15 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
                     e.printStackTrace();
                 }
                 break;
+            case R.id.btn_reset:
+                checkIsOpen();
+                setBackgroundColor(R.id.btn_kill);
+                try {
+                    DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_RESET);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
         }
     }
 
@@ -299,27 +306,35 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
         switch (key) {
             case 1:
                 Log.e(TAG, "开始指令成功");
+                ToastUtil.show("开始指令成功");
                 break;
             case 2:
                 Log.e(TAG, "热水指令成功");
+                ToastUtil.show("热水指令成功");
                 break;
             case 3:
                 Log.e(TAG, "温水指令成功");
+                ToastUtil.show("温水指令成功");
                 break;
             case 4:
                 Log.e(TAG, "冷水指令成功");
+                ToastUtil.show("冷水指令成功");
                 break;
             case 5:
                 Log.e(TAG, "精致衣物指令成功");
+                ToastUtil.show("精致衣物指令成功");
                 break;
             case 6:
                 Log.e(TAG, "加强洗指令成功");
+                ToastUtil.show("加强洗指令成功");
                 break;
             case 8:
                 Log.e(TAG, "设置指令成功");
+                ToastUtil.show("设置指令成功");
                 break;
             case 10:
                 Log.e(TAG, "kill指令成功");
+                ToastUtil.show("kill指令成功");
                 break;
         }
         mDispQueueThread2.AddQueue(washStatusEvent);//线程定时刷新显示
@@ -358,7 +373,8 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
     @Override
     public void currentStatus(WashStatusEvent washStatusEvent) {
         if (washStatusEvent != null)
-        Log.e(TAG, "屏显：" + washStatusEvent.getText());
+        Log.e(TAG, "屏显：" + washStatusEvent.getLogmsg().toString());
+        mDispQueueThread2.AddQueue(washStatusEvent);
     }
 
     @Override

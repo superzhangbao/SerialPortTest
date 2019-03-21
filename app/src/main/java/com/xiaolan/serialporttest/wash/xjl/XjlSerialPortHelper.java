@@ -3,6 +3,7 @@ package com.xiaolan.serialporttest.wash.xjl;
 import android.os.SystemClock;
 import android.util.Log;
 
+import com.xiaolan.serialporttest.mylib.DeviceAction;
 import com.xiaolan.serialporttest.mylib.event.WashStatusEvent;
 import com.xiaolan.serialporttest.mylib.listener.CurrentStatusListener;
 import com.xiaolan.serialporttest.mylib.listener.OnSendInstructionListener;
@@ -58,15 +59,15 @@ public class XjlSerialPortHelper {
     private XjlWashStatus mXjlWashStatus;
     private WashStatusEvent mWashStatusEvent;
     private long mRecCount = 0;//接收到的报文次数
-    private static final int KEY_RESTORATION = 0;//复位
-    private static final int KEY_START = 1;//开始
-    private static final int KEY_HOT = 2;//热水
-    private static final int KEY_WARM = 3;//温水
-    private static final int KEY_COLD = 4;//冷水
-    private static final int KEY_DELICATES = 5;//精致衣物
-    private static final int KEY_SUPER = 7;//加强洗
-    private static final int KEY_SETTING = 11;//setting
-    private static final int KEY_KILL = 10;//kill
+//    private static final int KEY_RESTORATION = 0;//复位
+//    private static final int KEY_START = 1;//开始
+//    private static final int KEY_HOT = 2;//热水
+//    private static final int KEY_WARM = 3;//温水
+//    private static final int KEY_COLD = 4;//冷水
+//    private static final int KEY_DELICATES = 5;//精致衣物
+//    private static final int KEY_SUPER = 7;//加强洗
+//    private static final int KEY_SETTING = 11;//setting
+//    private static final int KEY_KILL = 10;//kill
     private boolean isKilling = false;
     private Disposable mHotDisposable;
     private Disposable mStartDisposable;
@@ -77,6 +78,7 @@ public class XjlSerialPortHelper {
     private Disposable mSettingDisposable;
     private Disposable mKill;
     private final int mPeriod = 400;//每次指令的循环时间(毫秒)
+    private Disposable mResetDisposable;
 
     public XjlSerialPortHelper() {
         this("/dev/ttyS3", 9600);
@@ -154,7 +156,7 @@ public class XjlSerialPortHelper {
      */
     public synchronized void sendStartOrStop() {
         dispose(mKey);
-        mKey = KEY_START;
+        mKey = DeviceAction.Xjl.ACTION_START;
         ++seq;
         long recCount = mRecCount;
         mStartDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
@@ -200,7 +202,7 @@ public class XjlSerialPortHelper {
      */
     public synchronized void sendHot() {
         dispose(mKey);
-        mKey = KEY_HOT;
+        mKey = DeviceAction.Xjl.ACTION_MODE1;
         ++seq;
         long recCount = mRecCount;
         mHotDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
@@ -290,7 +292,7 @@ public class XjlSerialPortHelper {
      */
     public synchronized void sendWarm() {
         dispose(mKey);
-        mKey = KEY_WARM;
+        mKey = DeviceAction.Xjl.ACTION_MODE2;
         ++seq;
         long recCount = mRecCount;
         mWarmDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
@@ -379,7 +381,7 @@ public class XjlSerialPortHelper {
      */
     public synchronized void sendCold() {
         dispose(mKey);
-        mKey = KEY_COLD;
+        mKey = DeviceAction.Xjl.ACTION_MODE3;
         ++seq;
         long recCount = mRecCount;
         mColdDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
@@ -473,7 +475,7 @@ public class XjlSerialPortHelper {
      */
     public synchronized void sendDelicates() {
         dispose(mKey);
-        mKey = KEY_DELICATES;
+        mKey = DeviceAction.Xjl.ACTION_MODE4;
         ++seq;
         long recCount = mRecCount;
         mDelicatesDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
@@ -564,7 +566,7 @@ public class XjlSerialPortHelper {
      */
     public synchronized void sendSuper() {
         dispose(mKey);
-        mKey = KEY_SUPER;
+        mKey = DeviceAction.Xjl.ACTION_SUPER;
         ++seq;
         mSuperDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.io())
@@ -639,7 +641,7 @@ public class XjlSerialPortHelper {
      */
     public synchronized void sendSetting() {
         dispose(mKey);
-        mKey = KEY_SETTING;
+        mKey = DeviceAction.Xjl.ACTION_SETTING;
         ++seq;
         mSettingDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.io())
@@ -701,7 +703,7 @@ public class XjlSerialPortHelper {
         isKilling = true;
         int killIntervalCount = 16;
         dispose(mKey);
-        mKey = KEY_SETTING;
+        mKey = DeviceAction.Xjl.ACTION_SETTING;
         ++seq;
         for (int i = 0; i < killIntervalCount; i++) {
             sendData(mKey);
@@ -716,7 +718,7 @@ public class XjlSerialPortHelper {
             }
         }
 
-        mKey = KEY_WARM;
+        mKey = DeviceAction.Xjl.ACTION_MODE2;
         for (int i = 0; i < 3; i++) {
             ++seq;
             for (int j = 0; j < killIntervalCount; j++) {
@@ -732,7 +734,7 @@ public class XjlSerialPortHelper {
                 }
             }
         }
-        mKey = KEY_START;
+        mKey = DeviceAction.Xjl.ACTION_START;
         ++seq;
         for (int i = 0; i < killIntervalCount; i++) {
             sendData(mKey);
@@ -747,7 +749,7 @@ public class XjlSerialPortHelper {
             }
         }
 
-        mKey = KEY_WARM;
+        mKey = DeviceAction.Xjl.ACTION_MODE2;
         for (int i = 0; i < 4; i++) {
             ++seq;
             for (int j = 0; j < killIntervalCount; j++) {
@@ -789,7 +791,7 @@ public class XjlSerialPortHelper {
                 Log.e(TAG, "kill step4->" + i + "error");
             }
         }
-        mKey = KEY_START;
+        mKey = DeviceAction.Xjl.ACTION_START;
         ++seq;
         for (int i = 0; i < killIntervalCount; i++) {
             sendData(mKey);
@@ -803,7 +805,7 @@ public class XjlSerialPortHelper {
                 break;
             }
         }
-        mKey = KEY_WARM;
+        mKey = DeviceAction.Xjl.ACTION_MODE2;
         for (int i = 0; i < 17; i++) {
             ++seq;
             for (int j = 0; j < killIntervalCount; j++) {
@@ -835,7 +837,7 @@ public class XjlSerialPortHelper {
                     if (mWashStatusEvent != null) {
                         if (!mWashStatusEvent.isSetting() && mWashStatusEvent.getText().equals("PU5H")) {
                             if (mOnSendInstructionListener != null) {
-                                mOnSendInstructionListener.sendInstructionSuccess(KEY_KILL, mWashStatusEvent);
+                                mOnSendInstructionListener.sendInstructionSuccess(DeviceAction.Xjl.ACTION_KILL, mWashStatusEvent);
                             }
                             Log.e(TAG, "kill success");
                             if (mKill != null && !mKill.isDisposed()) {
@@ -844,7 +846,7 @@ public class XjlSerialPortHelper {
                         } else {
                             if (aLong == 239) {
                                 if (mOnSendInstructionListener != null) {
-                                    mOnSendInstructionListener.sendInstructionFail(KEY_KILL, "kill error");
+                                    mOnSendInstructionListener.sendInstructionFail(DeviceAction.Xjl.ACTION_KILL, "kill error");
                                 }
                                 Log.e(TAG, "kill error");
                                 if (mKill != null && !mKill.isDisposed()) {
@@ -861,41 +863,76 @@ public class XjlSerialPortHelper {
                 .subscribe();
     }
 
+    /**
+     * 发送复位指令
+     */
+    public void sendReset() {
+        dispose(mKey);
+        mKey = DeviceAction.Xjl.ACTION_RESET;
+        ++seq;
+        mResetDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .onErrorResumeNext(throwable -> {
+                    return Observable.empty();
+                })
+                .doOnComplete(() -> {
+                    if (mWashStatusEvent.isSetting() && ("0").equals(mWashStatusEvent.getText())) {
+                        Log.e(TAG, "setting mode success");
+                        if (mOnSendInstructionListener != null) {
+                            mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+                        }
+                    } else {
+                        Log.e(TAG, "setting mode error");
+                        if (mOnSendInstructionListener != null) {
+                            mOnSendInstructionListener.sendInstructionFail(mKey, "setting mode error");
+                        }
+                    }
+                })
+                .subscribe(aLong -> sendData(mKey));
+
+    }
+
     private void dispose(int key) {
         switch (key) {
-            case KEY_START:
+            case DeviceAction.Xjl.ACTION_START:
                 if (mStartDisposable != null && !mStartDisposable.isDisposed()) {
                     mStartDisposable.dispose();
                 }
                 break;
-            case KEY_HOT:
+            case DeviceAction.Xjl.ACTION_MODE1:
                 if (mHotDisposable != null && !mHotDisposable.isDisposed()) {
                     mHotDisposable.dispose();
                 }
                 break;
-            case KEY_WARM:
+            case DeviceAction.Xjl.ACTION_MODE2:
                 if (mWarmDisposable != null && !mWarmDisposable.isDisposed()) {
                     mWarmDisposable.dispose();
                 }
                 break;
-            case KEY_COLD:
+            case DeviceAction.Xjl.ACTION_MODE3:
                 if (mColdDisposable != null && !mColdDisposable.isDisposed()) {
                     mColdDisposable.dispose();
                 }
                 break;
-            case KEY_DELICATES:
+            case DeviceAction.Xjl.ACTION_MODE4:
                 if (mDelicatesDisposable != null && !mDelicatesDisposable.isDisposed()) {
                     mDelicatesDisposable.dispose();
                 }
                 break;
-            case KEY_SUPER:
+            case DeviceAction.Xjl.ACTION_SUPER:
                 if (mSuperDisposable != null && !mSuperDisposable.isDisposed()) {
                     mSuperDisposable.dispose();
                 }
                 break;
-            case KEY_SETTING:
+            case DeviceAction.Xjl.ACTION_SETTING:
                 if (mSettingDisposable != null && !mSettingDisposable.isDisposed()) {
                     mSettingDisposable.dispose();
+                }
+                break;
+            case DeviceAction.Xjl.ACTION_RESET:
+                if (mResetDisposable!= null && !mResetDisposable.isDisposed()) {
+                    mResetDisposable.dispose();
                 }
                 break;
         }
@@ -1024,8 +1061,8 @@ public class XjlSerialPortHelper {
                                     })
                                     .subscribe();
                         }
-                    } else {
-                        //Log.e(TAG, "false" + Arrays.toString(ArrayUtils.subarray(buffer, 0, off02 + 1)));
+                    } else if (buffer[off02 + 1] == 0x15){//需要复位
+                        sendReset();
                     }
                 }
             }
@@ -1049,36 +1086,36 @@ public class XjlSerialPortHelper {
             mBufferedOutputStream.write(msg);
             mBufferedOutputStream.flush();
         }
-        Log.e("send", MyFunc.ByteArrToHex(msg));
+//        Log.e("send", MyFunc.ByteArrToHex(msg));
 //            try {
 //                Thread.sleep(50);
 //            } catch (InterruptedException ignored) {
 //            }
 //        }
 
-        switch (key) {
-            case KEY_START:
-                Log.e(TAG, "sendData: =====================================KEY_START");
-                break;
-            case KEY_HOT:
-                Log.e(TAG, "sendData: =====================================KEY_HOT");
-                break;
-            case KEY_WARM:
-                Log.e(TAG, "sendData: =====================================KEY_WARM");
-                break;
-            case KEY_COLD:
-                Log.e(TAG, "sendData: =====================================KEY_COLD");
-                break;
-            case KEY_DELICATES:
-                Log.e(TAG, "sendData: =====================================KEY_DELICATES");
-                break;
-            case KEY_SUPER:
-                Log.e(TAG, "sendData: =====================================KEY_SUPER");
-                break;
-            case KEY_SETTING:
-                Log.e(TAG, "sendData: =====================================KEY_SETTING");
-                break;
-        }
+//        switch (key) {
+//            case KEY_START:
+//                Log.e(TAG, "sendData: =====================================KEY_START");
+//                break;
+//            case KEY_HOT:
+//                Log.e(TAG, "sendData: =====================================KEY_HOT");
+//                break;
+//            case KEY_WARM:
+//                Log.e(TAG, "sendData: =====================================KEY_WARM");
+//                break;
+//            case KEY_COLD:
+//                Log.e(TAG, "sendData: =====================================KEY_COLD");
+//                break;
+//            case KEY_DELICATES:
+//                Log.e(TAG, "sendData: =====================================KEY_DELICATES");
+//                break;
+//            case KEY_SUPER:
+//                Log.e(TAG, "sendData: =====================================KEY_SUPER");
+//                break;
+//            case KEY_SETTING:
+//                Log.e(TAG, "sendData: =====================================KEY_SETTING");
+//                break;
+//        }
     }
 
     public boolean isOpen() {

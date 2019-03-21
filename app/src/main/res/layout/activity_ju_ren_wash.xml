@@ -79,6 +79,12 @@
             android:layout_height="match_parent"
             android:text="kill"
             android:id="@+id/btn_kill"/>
+        <Button
+            android:layout_width="0dp"
+            android:layout_weight="1.5"
+            android:layout_height="match_parent"
+            android:text="复位"
+            android:id="@+id/btn_fuwei"/>
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"

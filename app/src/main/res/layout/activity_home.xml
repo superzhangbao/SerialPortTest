@@ -16,6 +16,11 @@
         android:layout_height="wrap_content"
         android:text="巨人Pro洗衣机"/>
     <Button
+        android:id="@+id/btn_juren_plus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="巨人+洗衣机"/>
+    <Button
         android:id="@+id/btn_juren"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -25,9 +30,4 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="小精灵洗衣机"/>
-    <Button
-        android:id="@+id/btn_water"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="接水"/>
 </LinearLayout>

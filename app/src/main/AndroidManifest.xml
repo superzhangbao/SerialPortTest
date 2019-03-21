@@ -34,7 +34,8 @@
             android:name=".wash.juren.JuRenWashActivity"
             android:windowSoftInputMode="adjustUnspecified|stateHidden" />
         <activity android:name=".wash.xjl.XjlWashActivity" />
-        <activity android:name=".WaterActivity"></activity>
+        <activity android:name=".WaterActivity" />
+        <activity android:name=".wash.jurenplus.JuRenPlusWashActivity"></activity>
     </application>
 
 </manifest>
