@@ -2,6 +2,17 @@ package com.xiaolan.serialporttest.mylib;
 
 public class DeviceAction {
 
+    public static class Dryer {
+        public final static int ACTION_RESET = 0;      //复位
+        public final static int ACTION_START = 16;      //开始
+        public final static int ACTION_HIGH = 1;        //热水
+        public final static int ACTION_MED = 2;       //温水
+        public final static int ACTION_LOW = 4;       //冷水
+        public final static int ACTION_NOHEAT = 8;  //精致衣物
+        public final static int ACTION_SETTING = 5;    //设置
+        public final static int ACTION_KILL = 100;     //kill
+    }
+
     public static class JuRenPro {
         public final static int ACTION_RESET = 0;      //复位
         public final static int ACTION_START = 1;      //开始

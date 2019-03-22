@@ -1,5 +1,6 @@
 package com.xiaolan.serialporttest.mylib;
 
+import com.xiaolan.serialporttest.dryer.DryerManager;
 import com.xiaolan.serialporttest.mylib.listener.CurrentStatusListener;
 import com.xiaolan.serialporttest.mylib.listener.OnSendInstructionListener;
 import com.xiaolan.serialporttest.mylib.listener.SerialPortOnlineListener;
@@ -31,6 +32,9 @@ public class DeviceEngine {
 
     public void selectDevice(int model) {
         switch (model) {
+            case -1:
+                DEVICE_ENGINE_ISERVICE = DryerManager.getInstance();
+                break;
             case 0:
                 DEVICE_ENGINE_ISERVICE =  JuRenProWashManager.getInstance();
                 break;

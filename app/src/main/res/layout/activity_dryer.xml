@@ -10,7 +10,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="巨人+"
+            android:text="烘干机"
             android:textSize="22sp"
             android:textColor="@color/colorAccent"
             android:layout_marginLeft="20dp"
@@ -26,58 +26,12 @@
             style="@style/Base.TextAppearance.AppCompat.Widget.Button"/>
 
     </RelativeLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:visibility="gone">
-
-        <Button
-            android:id="@+id/btn_set_port"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="串口"
-            android:textAllCaps="false" />
-
-        <Button
-            android:id="@+id/btn_set_baud"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="波特率"
-            android:textAllCaps="false" />
-
-        <Button
-            android:id="@+id/btn_set_data"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="数据位"
-            android:textAllCaps="false" />
-
-        <Button
-            android:id="@+id/btn_set_stop"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="停止位"
-            android:textAllCaps="false" />
-
-        <Button
-            android:id="@+id/btn_set_verify"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="校验位"
-            android:textAllCaps="false" />
-    </LinearLayout>
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="100dp">
         <LinearLayout
-            android:id="@+id/ll_wash"
+            android:id="@+id/ll_dryer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="horizontal"
@@ -86,38 +40,38 @@
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="match_parent"
-                android:text="热水"
-                android:id="@+id/btn_hot"/>
+                android:text="HIGH"
+                android:id="@+id/btn_high"/>
             <Button
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="match_parent"
-                android:text="温水"
-                android:id="@+id/btn_warm"/>
+                android:text="MED"
+                android:id="@+id/btn_med"/>
             <Button
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="match_parent"
-                android:text="冷水"
-                android:id="@+id/btn_cold"/>
+                android:text="LOW"
+                android:id="@+id/btn_low"/>
             <Button
                 android:layout_width="0dp"
                 android:layout_weight="1.5"
                 android:layout_height="match_parent"
-                android:text="精致衣物"
-                android:id="@+id/btn_soft"/>
-            <Button
-                android:layout_width="0dp"
-                android:layout_weight="1.5"
-                android:layout_height="match_parent"
-                android:text="加强洗"
-                android:id="@+id/btn_super"/>
+                android:text="NOHEAT"
+                android:id="@+id/btn_no_heat"/>
+            <!--<Button-->
+                <!--android:layout_width="0dp"-->
+                <!--android:layout_weight="1.5"-->
+                <!--android:layout_height="match_parent"-->
+                <!--android:text="加强洗"-->
+                <!--android:id="@+id/btn_super"/>-->
             <Button
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="match_parent"
                 android:text="开始"
-                android:id="@+id/btn_start_stop"/>
+                android:id="@+id/btn_start"/>
             <Button
                 android:layout_width="0dp"
                 android:layout_weight="1"
@@ -172,13 +126,14 @@
                 android:id="@+id/cb_hex_rev"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Hex接收" />
+                android:text="Hex接收"
+                android:checked="true"/>
 
-            <RadioButton
-                android:id="@+id/cb_text_rev"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Text接收" />
+            <!--<RadioButton-->
+                <!--android:id="@+id/cb_text_rev"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:text="Text接收" />-->
         </RadioGroup>
     </LinearLayout>
     <EditText

@@ -29,7 +29,6 @@ import android_serialport_api.SerialPort;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
 /**
@@ -969,7 +968,7 @@ public class JuRenProSerialPortHelper {
                         } else {
                             Log.e(TAG, "kill step4->" + i + "error");
                         }
-                    } else if (i == 3) {
+                    } else {
                         if (("h1LL").equals(mWashStatusEvent.getText())) {
                             Log.e(TAG, "kill step4->" + i + "success");
                             break;

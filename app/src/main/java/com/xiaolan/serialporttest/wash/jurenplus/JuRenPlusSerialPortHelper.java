@@ -74,12 +74,12 @@ public class JuRenPlusSerialPortHelper {
     private Disposable mSuperDisposable;
     private Disposable mStartDisposable;
     private Disposable mSettingDisposable;
+    private Disposable mResetDisposable;
     private boolean isOnline = false;
     private boolean hasOnline = false;
     private long mPreOnlineTime = 0;
     private long readThreadStartTime = 0;
     private long mPeriod = 100;//发送单条指令的时间间隔，单位ms
-    private Disposable mResetDisposable;
 
 
     public JuRenPlusSerialPortHelper() {
