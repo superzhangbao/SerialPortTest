@@ -38,16 +38,13 @@ public class DryerSerialPortHelper implements DeviceEngineDryerService {
     private ReadThread mReadThread;
     private String sPort = "/dev/ttyS3";//默认串口号
     private int iBaudRate = 9600;//波特率
-    private String mDataBits = "8";//数据位
-    private String mStopBits = "1";//停止位
-    private String mParityBits = "N";//校验位
     private boolean _isOpen = false;
     private BufferedInputStream mBufferedInputStream;
     private BufferedOutputStream mBufferedOutputStream;
-    private static final int SHOW_LENGTH = 30;
-    private byte[] mPreMsg = new byte[SHOW_LENGTH];
+    //    private static final int SHOW_LENGTH = 30;
+//    private byte[] mPreMsg = new byte[SHOW_LENGTH];
     private int seq = 1;
-    private int mKey;
+    //    private int mKey;
     private boolean isOnline = false;
     private boolean hasOnline = false;
     private long mPreOnlineTime = 0;
@@ -55,14 +52,6 @@ public class DryerSerialPortHelper implements DeviceEngineDryerService {
     private OnSendInstructionListener mOnSendInstructionListener;
     private SerialPortOnlineListener mSerialPortOnlineListener;
     private CurrentStatusListener mCurrentStatusListener;
-    private Disposable mKill;
-    private Disposable mHightDisposable;
-    private Disposable mMedDisposable;
-    private Disposable mLowDisposable;
-    private Disposable mNoHeatDisposable;
-    private Disposable mStartDisposable;
-    private Disposable mSettingDisposable;
-    private Disposable mResetDisposable;
 
     private int lamp_1;
     private int lamp_2;
@@ -107,6 +96,7 @@ public class DryerSerialPortHelper implements DeviceEngineDryerService {
         this.sPort = sPort;
         this.iBaudRate = iBaudRate;
         mText = LightMsg.getText();
+        showStr = new StringBuilder();
     }
 
     private class ReadThread extends Thread {
@@ -774,7 +764,7 @@ public class DryerSerialPortHelper implements DeviceEngineDryerService {
 
     @Override
     public void open() throws IOException {
-        mSerialPort = new SerialPort(new File(sPort), iBaudRate, 0, mDataBits, mStopBits, mParityBits);
+        mSerialPort = new SerialPort(new File(sPort), iBaudRate, 0, "8",  "1", "N");
         mOutputStream = mSerialPort.getOutputStream();
         mInputStream = mSerialPort.getInputStream();
 
@@ -787,17 +777,17 @@ public class DryerSerialPortHelper implements DeviceEngineDryerService {
     }
 
     @Override
-    public void setOnSendInstructionListener(OnSendInstructionListener onSendInstructionListener) {
+    public void setOnSendInstructionListener(@NonNull OnSendInstructionListener onSendInstructionListener) {
         mOnSendInstructionListener = onSendInstructionListener;
     }
 
     @Override
-    public void setOnCurrentStatusListener(CurrentStatusListener currentStatusListener) {
+    public void setOnCurrentStatusListener(@NonNull CurrentStatusListener currentStatusListener) {
         mCurrentStatusListener = currentStatusListener;
     }
 
     @Override
-    public void setOnSerialPortOnlineListener(SerialPortOnlineListener onSerialPortOnlineListener) {
+    public void setOnSerialPortOnlineListener(@NonNull SerialPortOnlineListener onSerialPortOnlineListener) {
         mSerialPortOnlineListener = onSerialPortOnlineListener;
     }
 
@@ -833,49 +823,18 @@ public class DryerSerialPortHelper implements DeviceEngineDryerService {
         isOnline = false;
         hasOnline = false;
         readThreadStartTime = 0;
-        dispose(mKey);
+        dispose();
     }
 
-    private void dispose(int key) {
-        switch (key) {
-            case DeviceAction.Dryer.ACTION_START:
-                if (mStartDisposable != null && !mStartDisposable.isDisposed()) {
-                    mStartDisposable.dispose();
-                }
-                break;
-            case DeviceAction.Dryer.ACTION_HIGH:
-                if (mHightDisposable != null && !mHightDisposable.isDisposed()) {
-                    mHightDisposable.dispose();
-                }
-                break;
-            case DeviceAction.Dryer.ACTION_MED:
-                if (mMedDisposable != null && !mMedDisposable.isDisposed()) {
-                    mMedDisposable.dispose();
-                }
-                break;
-            case DeviceAction.Dryer.ACTION_LOW:
-                if (mLowDisposable != null && !mLowDisposable.isDisposed()) {
-                    mLowDisposable.dispose();
-                }
-                break;
-            case DeviceAction.Dryer.ACTION_NOHEAT:
-                if (mNoHeatDisposable != null && !mNoHeatDisposable.isDisposed()) {
-                    mNoHeatDisposable.dispose();
-                }
-                break;
-            case DeviceAction.Dryer.ACTION_SETTING:
-                if (mSettingDisposable != null && !mSettingDisposable.isDisposed()) {
-                    mSettingDisposable.dispose();
-                }
-                break;
-            case DeviceAction.Dryer.ACTION_RESET:
-                if (mResetDisposable != null && !mResetDisposable.isDisposed()) {
-                    mResetDisposable.dispose();
-                }
-                break;
+    private void dispose() {
+        if (mKillDisposable != null && !mKillDisposable.isDisposed()) {
+            mKillDisposable.dispose();
         }
-        if (mKill != null && !mKill.isDisposed()) {
-            mKill.dispose();
+        if (mInitSetDisposable != null && !mInitSetDisposable.isDisposed()) {
+            mInitSetDisposable.dispose();
+        }
+        if (mPushDisposable != null && !mPushDisposable.isDisposed()) {
+            mPushDisposable.dispose();
         }
     }
 }
