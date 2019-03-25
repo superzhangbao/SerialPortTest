@@ -72,10 +72,6 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
     @BindView(R.id.btn_setting)
     Button mBtnSetting;
 
-    //    private MyHandler mMyHandler;
-//    private DispQueueThread mDispQueueThread;
-//    private SerialPortFinder mPortFinder;
-//    private int sendType = 0;
     private int revType = 0;
     private ArrayList<Button> mButtons = new ArrayList<>();
     private int mSelectMode = -1;
@@ -150,7 +146,6 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
             case R.id.btn_clear:
                 //清空数据接收区
                 mEditTextRecDisp.setText("");
-//                count = 0;
                 break;
             case R.id.btn_hot:
                 checkIsOpen();
@@ -371,13 +366,6 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
     }
 
     @Override
-    public void currentStatus(WashStatusEvent washStatusEvent) {
-        if (washStatusEvent != null)
-        Log.e(TAG, "屏显：" + washStatusEvent.getLogmsg().toString());
-        mDispQueueThread2.AddQueue(washStatusEvent);
-    }
-
-    @Override
     public void onSerialPortOnline(byte[] bytes) {
         String s = MyFunc.ByteArrToHex(bytes);
         Log.e(TAG, "串口上线:" + s);
@@ -388,6 +376,15 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
     public void onSerialPortOffline(String msg) {
         Log.e(TAG, msg);
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void currentStatus(Object washStatusEvent) {
+        if (washStatusEvent instanceof WashStatusEvent) {
+            WashStatusEvent washStatus = (WashStatusEvent) washStatusEvent;
+            Log.e(TAG, "屏显：" + washStatus.getLogmsg().toString());
+            mDispQueueThread2.AddQueue(washStatus);
+        }
     }
 
     //----------------------------------------------------刷新显示线程

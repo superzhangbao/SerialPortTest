@@ -21,5 +21,4 @@ public interface DeviceEngineIService {
 
     void push(int action) throws IOException;
 
-    void pull();
 }

@@ -83,9 +83,4 @@ public class XjlWashManager implements DeviceEngineIService {
                 break;
         }
     }
-
-    @Override
-    public void pull() {
-
-    }
 }

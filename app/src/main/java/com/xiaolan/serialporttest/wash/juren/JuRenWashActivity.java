@@ -157,8 +157,9 @@ public class JuRenWashActivity extends AppCompatActivity implements OnSendInstru
     }
 
     @Override
-    public void currentStatus(WashStatusEvent washStatusEvent) {
-        if (washStatusEvent != null) {
+    public void currentStatus(Object statusEvent) {
+        if (statusEvent instanceof WashStatusEvent) {
+            WashStatusEvent washStatusEvent = (WashStatusEvent) statusEvent;
             Log.e(TAG, "屏显：" + washStatusEvent.getText());
             mDispQueueThread2.AddQueue(washStatusEvent);//线程定时刷新显示
         }

@@ -91,11 +91,6 @@ public class JuRenProWashManager implements DeviceEngineIService {
                 break;
         }
     }
-
-    @Override
-    public void pull() {
-
-    }
 }
 
 

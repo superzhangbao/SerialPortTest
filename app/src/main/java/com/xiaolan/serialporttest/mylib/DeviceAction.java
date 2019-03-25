@@ -11,6 +11,7 @@ public class DeviceAction {
         public final static int ACTION_NOHEAT = 8;  //精致衣物
         public final static int ACTION_SETTING = 5;    //设置
         public final static int ACTION_KILL = 100;     //kill
+        public final static int ACTION_INIT = 101;     //初始化
     }
 
     public static class JuRenPro {

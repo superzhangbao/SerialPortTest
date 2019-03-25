@@ -1,13 +1,14 @@
 package com.xiaolan.serialporttest.dryer;
 
-import com.xiaolan.serialporttest.mylib.DeviceEngineIService;
+import android.support.annotation.NonNull;
+
 import com.xiaolan.serialporttest.mylib.listener.CurrentStatusListener;
 import com.xiaolan.serialporttest.mylib.listener.OnSendInstructionListener;
 import com.xiaolan.serialporttest.mylib.listener.SerialPortOnlineListener;
 
 import java.io.IOException;
 
-public class DryerManager implements DeviceEngineIService {
+public class DryerManager implements DeviceEngineDryerService {
 
     private DryerSerialPortHelper mDryerSerialPortHelper;
 
@@ -31,37 +32,32 @@ public class DryerManager implements DeviceEngineIService {
     }
 
     @Override
-    public void setOnSendInstructionListener(OnSendInstructionListener onSendInstructionListener) {
-
+    public void setOnSendInstructionListener(@NonNull OnSendInstructionListener onSendInstructionListener) {
+        mDryerSerialPortHelper.setOnSendInstructionListener(onSendInstructionListener);
     }
 
     @Override
-    public void setOnCurrentStatusListener(CurrentStatusListener currentStatusListener) {
-
+    public void setOnCurrentStatusListener(@NonNull CurrentStatusListener currentStatusListener) {
+        mDryerSerialPortHelper.setOnCurrentStatusListener(currentStatusListener);
     }
 
     @Override
-    public void setOnSerialPortOnlineListener(SerialPortOnlineListener onSerialPortOnlineListener) {
-
+    public void setOnSerialPortOnlineListener(@NonNull SerialPortOnlineListener onSerialPortOnlineListener) {
+        mDryerSerialPortHelper.setOnSerialPortOnlineListener(onSerialPortOnlineListener);
     }
 
     @Override
     public boolean isOpen() {
-        return false;
+        return mDryerSerialPortHelper.isOpen();
     }
 
     @Override
     public void close() throws IOException {
-
+        mDryerSerialPortHelper.close();
     }
 
     @Override
-    public void push(int action) throws IOException {
-
-    }
-
-    @Override
-    public void pull() {
-
+    public void push(int action,int coin) {
+        mDryerSerialPortHelper.push(action,coin);
     }
 }

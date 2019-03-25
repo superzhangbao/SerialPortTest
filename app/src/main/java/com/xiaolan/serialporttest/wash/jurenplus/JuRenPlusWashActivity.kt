@@ -1,7 +1,7 @@
 package com.xiaolan.serialporttest.wash.jurenplus
 
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
 import android.widget.Button
@@ -26,7 +26,7 @@ import java.util.*
 class JuRenPlusWashActivity : AppCompatActivity(), RadioGroup.OnCheckedChangeListener, OnSendInstructionListener, CurrentStatusListener, SerialPortOnlineListener, View.OnClickListener {
 
     companion object {
-        final val TAG: String = "JuRenPlusWashActivity"
+        const val TAG: String = "JuRenPlusWashActivity"
     }
 
     private var revType = 0
@@ -80,19 +80,19 @@ class JuRenPlusWashActivity : AppCompatActivity(), RadioGroup.OnCheckedChangeLis
             }
             R.id.btn_open_port -> {
                 //打开/关闭串口
-                if (btn_open_port.getText() == "打开串口") {
+                if (btn_open_port.text == "打开串口") {
                     try {
                         DeviceEngine.getInstance().open()
-                        btn_open_port.setText("关闭串口")
+                        btn_open_port.text = "关闭串口"
                     } catch (e: Exception) {
                         e.printStackTrace()
-                        btn_open_port.setText("打开串口")
+                        btn_open_port.text = "打开串口"
                     }
 
                 } else {
                     try {
                         DeviceEngine.getInstance().close()
-                        btn_open_port.setText("打开串口")
+                        btn_open_port.text = "打开串口"
                     } catch (e: IOException) {
                         e.printStackTrace()
                     }
@@ -152,9 +152,9 @@ class JuRenPlusWashActivity : AppCompatActivity(), RadioGroup.OnCheckedChangeLis
         ToastUtil.show(msg)
     }
 
-    override fun currentStatus(washStatusEvent: WashStatusEvent?) {
-        if (washStatusEvent != null) {
-            mWashStatusEvent = washStatusEvent
+    override fun currentStatus(washStatusEvent: Any?) {
+        if(washStatusEvent is WashStatusEvent) {
+            mWashStatusEvent =  washStatusEvent
             Log.e(TAG, "屏显：" + washStatusEvent.logmsg.toString())
             mDispQueueThread?.AddQueue(washStatusEvent)
         }
@@ -243,7 +243,7 @@ class JuRenPlusWashActivity : AppCompatActivity(), RadioGroup.OnCheckedChangeLis
         if (!DeviceEngine.getInstance().isOpen) {
             try {
                 DeviceEngine.getInstance().open()
-                btn_open_port.setText("关闭串口")
+                btn_open_port.text = "关闭串口"
             } catch (e: IOException) {
                 e.printStackTrace()
             }
@@ -252,9 +252,9 @@ class JuRenPlusWashActivity : AppCompatActivity(), RadioGroup.OnCheckedChangeLis
     }
 
     override fun onCheckedChanged(group: RadioGroup, checkedId: Int) {
-        if (checkedId == cb_hex_rev.getId()) {
+        if (checkedId == cb_hex_rev.id) {
             revType = 0
-        } else if (checkedId == cb_text_rev.getId()) {
+        } else if (checkedId == cb_text_rev.id) {
             revType = 1
         }
     }

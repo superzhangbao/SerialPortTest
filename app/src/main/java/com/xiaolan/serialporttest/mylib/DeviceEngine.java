@@ -1,5 +1,6 @@
 package com.xiaolan.serialporttest.mylib;
 
+import com.xiaolan.serialporttest.dryer.DeviceEngineDryerService;
 import com.xiaolan.serialporttest.dryer.DryerManager;
 import com.xiaolan.serialporttest.mylib.listener.CurrentStatusListener;
 import com.xiaolan.serialporttest.mylib.listener.OnSendInstructionListener;
@@ -16,7 +17,9 @@ import java.io.IOException;
  */
 public class DeviceEngine {
 
-    private DeviceEngineIService DEVICE_ENGINE_ISERVICE;
+    private static DeviceEngineIService DEVICE_ENGINE_ISERVICE = null;
+
+    private static DeviceEngineDryerService DEVICE_ENGINE_DRYERSERVICE = null;
 
     private DeviceEngine() {
     }
@@ -33,16 +36,16 @@ public class DeviceEngine {
     public void selectDevice(int model) {
         switch (model) {
             case -1:
-                DEVICE_ENGINE_ISERVICE = DryerManager.getInstance();
+                DEVICE_ENGINE_DRYERSERVICE = DryerManager.getInstance();
                 break;
             case 0:
-                DEVICE_ENGINE_ISERVICE =  JuRenProWashManager.getInstance();
+                DEVICE_ENGINE_ISERVICE = JuRenProWashManager.getInstance();
                 break;
             case 1:
-                DEVICE_ENGINE_ISERVICE =  JuRenWashManager.getInstance();
+                DEVICE_ENGINE_ISERVICE = JuRenWashManager.getInstance();
                 break;
             case 2:
-                DEVICE_ENGINE_ISERVICE =  XjlWashManager.getInstance();
+                DEVICE_ENGINE_ISERVICE = XjlWashManager.getInstance();
                 break;
             case 3:
                 DEVICE_ENGINE_ISERVICE = JuRenPlusWashManager.getInstance();
@@ -55,7 +58,11 @@ public class DeviceEngine {
      */
     public void open() throws IOException {
         checkMode();
-        DEVICE_ENGINE_ISERVICE.open();
+        if (DEVICE_ENGINE_ISERVICE != null) {
+            DEVICE_ENGINE_ISERVICE.open();
+        } else if (DEVICE_ENGINE_DRYERSERVICE != null) {
+            DEVICE_ENGINE_DRYERSERVICE.open();
+        }
     }
 
     /**
@@ -63,41 +70,67 @@ public class DeviceEngine {
      */
     public void close() throws IOException {
         checkMode();
-        DEVICE_ENGINE_ISERVICE.close();
+        if (DEVICE_ENGINE_ISERVICE != null) {
+            DEVICE_ENGINE_ISERVICE.close();
+        } else if (DEVICE_ENGINE_DRYERSERVICE != null) {
+            DEVICE_ENGINE_DRYERSERVICE.close();
+        }
     }
 
     public synchronized void push(int action) throws IOException {
         checkMode();
-        DEVICE_ENGINE_ISERVICE.push(action);
+        if (DEVICE_ENGINE_ISERVICE!= null) {
+            DEVICE_ENGINE_ISERVICE.push(action);
+        }
     }
 
-    public void pull() {
+    public synchronized void push(int action, int coin) throws IOException {
         checkMode();
-        DEVICE_ENGINE_ISERVICE.pull();
+        if (DEVICE_ENGINE_DRYERSERVICE!= null) {
+            DEVICE_ENGINE_DRYERSERVICE.push(action, coin);
+        }
     }
 
     public void setOnSendInstructionListener(OnSendInstructionListener onSendInstructionListener) {
         checkMode();
-        DEVICE_ENGINE_ISERVICE.setOnSendInstructionListener(onSendInstructionListener);
+        if (DEVICE_ENGINE_ISERVICE != null) {
+            DEVICE_ENGINE_ISERVICE.setOnSendInstructionListener(onSendInstructionListener);
+        } else if (DEVICE_ENGINE_DRYERSERVICE != null) {
+            DEVICE_ENGINE_DRYERSERVICE.setOnSendInstructionListener(onSendInstructionListener);
+        }
     }
 
     public void setOnCurrentStatusListener(CurrentStatusListener onCurrentStatusListener) {
         checkMode();
-        DEVICE_ENGINE_ISERVICE.setOnCurrentStatusListener(onCurrentStatusListener);
+        if (DEVICE_ENGINE_ISERVICE != null) {
+            DEVICE_ENGINE_ISERVICE.setOnCurrentStatusListener(onCurrentStatusListener);
+        } else if (DEVICE_ENGINE_DRYERSERVICE != null) {
+            DEVICE_ENGINE_DRYERSERVICE.setOnCurrentStatusListener(onCurrentStatusListener);
+        }
     }
 
     public void setOnSerialPortOnlineListener(SerialPortOnlineListener onSerialPortOnlineListener) {
         checkMode();
-        DEVICE_ENGINE_ISERVICE.setOnSerialPortOnlineListener(onSerialPortOnlineListener);
+        if (DEVICE_ENGINE_ISERVICE != null) {
+            DEVICE_ENGINE_ISERVICE.setOnSerialPortOnlineListener(onSerialPortOnlineListener);
+        } else if (DEVICE_ENGINE_DRYERSERVICE != null) {
+            DEVICE_ENGINE_DRYERSERVICE.setOnSerialPortOnlineListener(onSerialPortOnlineListener);
+        }
     }
 
     public boolean isOpen() {
         checkMode();
-        return DEVICE_ENGINE_ISERVICE.isOpen();
+        if (DEVICE_ENGINE_ISERVICE != null) {
+            return DEVICE_ENGINE_ISERVICE.isOpen();
+        } else if (DEVICE_ENGINE_DRYERSERVICE != null) {
+           return DEVICE_ENGINE_DRYERSERVICE.isOpen();
+        }else {
+            return false;
+        }
     }
 
     private void checkMode() {
-        if (DEVICE_ENGINE_ISERVICE == null) {
+        if (DEVICE_ENGINE_ISERVICE == null && DEVICE_ENGINE_DRYERSERVICE == null) {
             throw new RuntimeException("please call function selectDevice() first");
         }
     }

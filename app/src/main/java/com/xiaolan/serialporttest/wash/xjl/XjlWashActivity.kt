@@ -19,7 +19,6 @@ import java.io.IOException
 import java.util.*
 
 class XjlWashActivity : AppCompatActivity(), View.OnClickListener, OnSendInstructionListener, CurrentStatusListener, SerialPortOnlineListener {
-
     companion object {
         private const val TAG = "XjlWashActivity"
     }
@@ -69,9 +68,10 @@ class XjlWashActivity : AppCompatActivity(), View.OnClickListener, OnSendInstruc
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
     }
 
-    override fun currentStatus(washStatusEvent: WashStatusEvent?) {
-        if (washStatusEvent != null)
+    override fun currentStatus(washStatusEvent: Any?) {
+        if (washStatusEvent is WashStatusEvent) {
             Log.e(TAG, "屏显：${washStatusEvent.text}")
+        }
     }
 
     override fun sendInstructionSuccess(key: Int, washStatusEvent: WashStatusEvent?) {
