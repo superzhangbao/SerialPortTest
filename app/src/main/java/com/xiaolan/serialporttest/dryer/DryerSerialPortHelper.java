@@ -6,7 +6,6 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.xiaolan.serialporttest.mylib.DeviceAction;
-import com.xiaolan.serialporttest.mylib.DeviceEngineIService;
 import com.xiaolan.serialporttest.mylib.listener.CurrentStatusListener;
 import com.xiaolan.serialporttest.mylib.listener.OnSendInstructionListener;
 import com.xiaolan.serialporttest.mylib.listener.SerialPortOnlineListener;
@@ -30,7 +29,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
-public class DryerSerialPortHelper implements DeviceEngineIService {
+public class DryerSerialPortHelper implements DeviceEngineDryerService {
     private static final String TAG = "DryerSerialPortHelper";
     private static final long MAX_CLICK = 100;
     private SerialPort mSerialPort;
