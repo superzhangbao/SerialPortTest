@@ -18,6 +18,9 @@ import com.xiaolan.serialporttest.util1.ToastUtil
 import kotlinx.android.synthetic.main.activity_dryer.*
 import java.io.IOException
 
+/**
+ * 烘干机测试Activity
+ */
 class DryerActivity : AppCompatActivity(), CurrentStatusListener, OnSendInstructionListener, SerialPortOnlineListener, View.OnClickListener {
 
     companion object {
