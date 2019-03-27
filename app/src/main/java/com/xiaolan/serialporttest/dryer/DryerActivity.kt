@@ -42,6 +42,8 @@ class DryerActivity : AppCompatActivity(), CurrentStatusListener, OnSendInstruct
         btn_kill.setOnClickListener(this)
         btn_clear.setOnClickListener(this)
         btn_finsh.setOnClickListener(this)
+        btn_init.setOnClickListener(this)
+        btn_noheat_start.setOnClickListener(this)
         DeviceEngine.getInstance().setOnCurrentStatusListener(this)
         DeviceEngine.getInstance().setOnSendInstructionListener(this)
         DeviceEngine.getInstance().setOnSerialPortOnlineListener(this)
@@ -72,25 +74,39 @@ class DryerActivity : AppCompatActivity(), CurrentStatusListener, OnSendInstruct
             }
             R.id.btn_high->{
                 checkIsOpen()
-                DeviceEngine.getInstance().push(DeviceAction.Dryer.ACTION_HIGH,8)
+                DeviceEngine.getInstance().push(DeviceAction.Dryer.ACTION_HIGH,0)
             }
             R.id.btn_med->{
                 checkIsOpen()
-                DeviceEngine.getInstance().push(DeviceAction.Dryer.ACTION_MED,8)
+                DeviceEngine.getInstance().push(DeviceAction.Dryer.ACTION_MED,0)
             }
             R.id.btn_low->{
                 checkIsOpen()
-                DeviceEngine.getInstance().push(DeviceAction.Dryer.ACTION_LOW,8)
+                DeviceEngine.getInstance().push(DeviceAction.Dryer.ACTION_LOW,0)
             }
             R.id.btn_no_heat->{
                 checkIsOpen()
-                DeviceEngine.getInstance().push(DeviceAction.Dryer.ACTION_NOHEAT,8)
+                DeviceEngine.getInstance().push(DeviceAction.Dryer.ACTION_NOHEAT,0)
             }
-            R.id.btn_start->{}
-            R.id.btn_setting->{ }
+            R.id.btn_start->{
+                checkIsOpen()
+                DeviceEngine.getInstance().push(DeviceAction.Dryer.ACTION_START,0)
+            }
+            R.id.btn_setting->{
+                checkIsOpen()
+                DeviceEngine.getInstance().push(DeviceAction.Dryer.ACTION_SETTING,0);
+            }
             R.id.btn_kill->{
                 checkIsOpen()
                 DeviceEngine.getInstance().push(DeviceAction.Dryer.ACTION_KILL,0)
+            }
+            R.id.btn_init->{
+                checkIsOpen()
+                DeviceEngine.getInstance().push(DeviceAction.Dryer.ACTION_INIT,0)
+            }
+            R.id.btn_noheat_start->{
+                checkIsOpen()
+                DeviceEngine.getInstance().push(DeviceAction.Dryer.ACTION_NOHEAT,1);
             }
             R.id.btn_clear->{
                 editTextRecDisp.setText("")
@@ -118,6 +134,10 @@ class DryerActivity : AppCompatActivity(), CurrentStatusListener, OnSendInstruct
                 ToastUtil.show("Kill Success!!!")
                 Log.e(TAG,"Kill Success!!!")
             }
+            DeviceAction.Dryer.ACTION_INIT->{
+                ToastUtil.show("Init Success!!!")
+                Log.e(TAG,"Init Success!!!")
+            }
         }
     }
 
@@ -126,22 +146,25 @@ class DryerActivity : AppCompatActivity(), CurrentStatusListener, OnSendInstruct
     }
 
     override fun currentStatus(statusEvent: Any?) {
-        if (statusEvent is Int) {
-            when (statusEvent) {
+        if (statusEvent is DryerStatus) {
+            when (statusEvent.status) {
                 STATE_FREE -> {
-                    Log.e(TAG, "STATE_FREE")
+                    Log.e(TAG, "STATE_FREE  "+statusEvent.text)
                 }
                 STATE_END -> {
-                    Log.e(TAG, "STATE_END")
+                    Log.e(TAG, "STATE_END   "+statusEvent.text)
                 }
                 STATE_OPEN -> {
-                    Log.e(TAG, "STATE_OPEN")
+                    Log.e(TAG, "STATE_OPEN   "+statusEvent.text)
                 }
-                STATE_RUN -> {
-                    Log.e(TAG, "STATE_RUN")
+                STATE_RUN_DRY -> {
+                    Log.e(TAG, "STATE_RUN_DRY   "+statusEvent.text)
+                }
+                STATE_RUN_COOLING -> {
+                    Log.e(TAG, "STATE_RUN_COOLING   "+statusEvent.text)
                 }
                 STATE_UNKNOWN -> {
-                    Log.e(TAG, "STATE_UNKNOWN")
+                    Log.e(TAG, "STATE_UNKNOWN   "+statusEvent.text)
                 }
             }
         }

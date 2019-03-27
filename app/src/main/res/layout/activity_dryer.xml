@@ -88,8 +88,14 @@
                 android:layout_width="0dp"
                 android:layout_weight="2"
                 android:layout_height="match_parent"
-                android:text="复位"
-                android:id="@+id/btn_reset"/>
+                android:text="初始化"
+                android:id="@+id/btn_init"/>
+            <Button
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:layout_height="match_parent"
+                android:text="NoHeat开始"
+                android:id="@+id/btn_noheat_start"/>
 
         </LinearLayout>
     </FrameLayout>
