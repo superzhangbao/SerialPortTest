@@ -156,7 +156,7 @@ public class JuRenProSerialPortHelper {
                         }
                         len = mBufferedInputStream.read(buffer);
                         if (len != -1) {
-                            Log.e("buffer", "len:" + len + "值：" + MyFunc.ByteArrToHex(buffer));
+//                            Log.e("buffer", "len:" + len + "值：" + MyFunc.ByteArrToHex(buffer));
                             if (len >= 30) {
                                 //读巨人洗衣机上报报文
                                 JuRenPlusWashRead(buffer, len);
@@ -1198,7 +1198,7 @@ public class JuRenProSerialPortHelper {
         dispose(mKey);
         mKey = DeviceAction.JuRenPro.ACTION_SETTING;
         ++seq;
-        int killIntervalCount = 16;
+        int killIntervalCount = 50;
         for (int i = 0; i < killIntervalCount; i++) {
             sendData1(mKey,INSTRUCTION_MODE);
             SystemClock.sleep(50);
@@ -1208,7 +1208,15 @@ public class JuRenProSerialPortHelper {
             }
             if (i == killIntervalCount - 1) {
                 Log.e(TAG, "selfCleaning step1 error");
-                break;
+                Observable.just(1)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnNext(integer -> {
+                            if (mOnSendInstructionListener != null) {
+                                mOnSendInstructionListener.sendInstructionFail(DeviceAction.JuRenPro.ACTION_SELF_CLEANING, "selfCleaning step1 error");
+                            }
+                        })
+                        .subscribe();
+                return;
             }
         }
 
@@ -1224,7 +1232,15 @@ public class JuRenProSerialPortHelper {
                 }
                 if (j == killIntervalCount - 1) {
                     Log.e(TAG, "selfCleaning step2->" + i + "error");
-                    break;
+                    Observable.just(1)
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .doOnNext(integer -> {
+                                if (mOnSendInstructionListener != null) {
+                                    mOnSendInstructionListener.sendInstructionFail(DeviceAction.JuRenPro.ACTION_SELF_CLEANING, "selfCleaning step2->\" + i + \"error");
+                                }
+                            })
+                            .subscribe();
+                    return;
                 }
             }
         }
@@ -1240,7 +1256,15 @@ public class JuRenProSerialPortHelper {
             }
             if (i == killIntervalCount - 1) {
                 Log.e(TAG, "selfCleaning step3 error");
-                break;
+                Observable.just(1)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnNext(integer -> {
+                            if (mOnSendInstructionListener != null) {
+                                mOnSendInstructionListener.sendInstructionFail(DeviceAction.JuRenPro.ACTION_SELF_CLEANING, "selfCleaning step3 error");
+                            }
+                        })
+                        .subscribe();
+                return;
             }
         }
 
@@ -1250,15 +1274,53 @@ public class JuRenProSerialPortHelper {
             sendData1(mKey,INSTRUCTION_MODE);
             SystemClock.sleep(50);
             if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("tcL").equals(mWashStatusEvent.getText())) {
-                Log.e(TAG, "selfCleaning step3 success");
+                Log.e(TAG, "selfCleaning step4 success");
                 break;
             }
             if (i == killIntervalCount - 1) {
-                Log.e(TAG, "selfCleaning step3 error");
-                break;
+                Log.e(TAG, "selfCleaning step4 error");
+                Observable.just(1)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnNext(integer -> {
+                            if (mOnSendInstructionListener != null) {
+                                mOnSendInstructionListener.sendInstructionFail(DeviceAction.JuRenPro.ACTION_SELF_CLEANING, "selfCleaning step4 error");
+                            }
+                        })
+                        .subscribe();
+                return;
             }
         }
-        sendStartOrStop();
+
+        mKey = DeviceAction.JuRenPro.ACTION_START;
+        ++seq;
+        for (int i = 0; i < killIntervalCount; i++) {
+            sendData1(mKey,INSTRUCTION_MODE);
+            SystemClock.sleep(50);
+            if (mWashStatusEvent != null && (mWashStatusEvent.getViewStep() == 1 || mWashStatusEvent.getViewStep() == 6) &&mWashStatusEvent.getWashMode() == 0x08) {
+                Log.e(TAG, "selfCleaning success");
+                Observable.just(1)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnNext(integer -> {
+                            if (mOnSendInstructionListener != null) {
+                                mOnSendInstructionListener.sendInstructionSuccess(DeviceAction.JuRenPro.ACTION_SELF_CLEANING, mWashStatusEvent);
+                            }
+                        })
+                        .subscribe();
+                break;
+            }
+            if (i == killIntervalCount - 1) {
+                Log.e(TAG, "selfCleaning error");
+                Observable.just(1)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnNext(integer -> {
+                            if (mOnSendInstructionListener != null) {
+                                mOnSendInstructionListener.sendInstructionFail(DeviceAction.JuRenPro.ACTION_SELF_CLEANING, "selfCleaning error");
+                            }
+                        })
+                        .subscribe();
+                return;
+            }
+        }
     }
 
     /**

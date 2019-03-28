@@ -62,8 +62,8 @@ public class DeviceAction {
         public final static int ACTION_MODE2 = 3;      //colors
         public final static int ACTION_MODE3 = 4;      //delicates
         public final static int ACTION_MODE4 = 5;      //perm.press
-        public final static int ACTION_SUPER = 6;      //加强
-        public final static int ACTION_SETTING = 13;   //设置
+        public final static int ACTION_SUPER = 7;      //加强
+        public final static int ACTION_SETTING = 11;   //设置
         public final static int ACTION_KILL = 100;     //kill
         public final static int ACTION_SELF_CLEANING = 200;//selfCleaning
     }

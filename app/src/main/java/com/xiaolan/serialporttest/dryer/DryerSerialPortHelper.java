@@ -69,7 +69,7 @@ public class DryerSerialPortHelper implements DeviceEngineDryerService {
     public static final int STATE_OPEN = 3;
     /*烘干机 结束状态*/
     public static final int STATE_END = 4;
-
+    /*烘干机 设置状态*/
     public static final int STATE_SETTING = 5;
     /*烘干机 未知状态*/
     public static final int STATE_UNKNOWN = 6;

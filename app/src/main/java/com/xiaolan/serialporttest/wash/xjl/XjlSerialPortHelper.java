@@ -27,6 +27,7 @@ import android_serialport_api.SerialPort;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
 public class XjlSerialPortHelper {
@@ -59,15 +60,6 @@ public class XjlSerialPortHelper {
     private XjlWashStatus mXjlWashStatus;
     private WashStatusEvent mWashStatusEvent;
     private long mRecCount = 0;//接收到的报文次数
-//    private static final int KEY_RESTORATION = 0;//复位
-//    private static final int KEY_START = 1;//开始
-//    private static final int KEY_HOT = 2;//热水
-//    private static final int KEY_WARM = 3;//温水
-//    private static final int KEY_COLD = 4;//冷水
-//    private static final int KEY_DELICATES = 5;//精致衣物
-//    private static final int KEY_SUPER = 7;//加强洗
-//    private static final int KEY_SETTING = 11;//setting
-//    private static final int KEY_KILL = 10;//kill
     private boolean isKilling = false;
     private Disposable mHotDisposable;
     private Disposable mStartDisposable;
@@ -159,18 +151,27 @@ public class XjlSerialPortHelper {
         mKey = DeviceAction.Xjl.ACTION_START;
         ++seq;
         long recCount = mRecCount;
+        final boolean[] isOk = {false};
         mStartDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.io())
+                .doOnNext(aLong -> {
+                    sendData(mKey);
+                })
                 .observeOn(AndroidSchedulers.mainThread())
-                .onErrorResumeNext(throwable -> { return Observable.empty(); })
-                .doOnComplete(() -> {
-                    if (mRecCount > recCount) {//收到新报文
-                        if (mOnSendInstructionListener != null) {
-                            mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+                .onErrorResumeNext(throwable -> {
+                    return Observable.empty();
+                })
+                .doAfterNext(aLong -> {
+                    if (!isOk[0]) {
+                        if (mRecCount > recCount) {//收到新报文
+                            isOk[0] = true;
+                            if (mOnSendInstructionListener != null) {
+                                mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+                            }
                         }
                     }
                 })
-                .subscribe(aLong -> sendData(mKey));
+                .subscribe();
 //        mStartDisposable = Observable.create(e -> {
 //            sendData(mKey);
 //            e.onComplete();
@@ -208,7 +209,9 @@ public class XjlSerialPortHelper {
         mHotDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .onErrorResumeNext(throwable -> { return Observable.empty(); })
+                .onErrorResumeNext(throwable -> {
+                    return Observable.empty();
+                })
                 .doOnComplete(() -> {
                     if (mWashStatusEvent != null) {
                         if (!mWashStatusEvent.isSetting()) {//不是设置模式
@@ -299,7 +302,9 @@ public class XjlSerialPortHelper {
                 .doOnNext(aLong -> sendData(mKey))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .onErrorResumeNext(throwable -> { return Observable.empty(); })
+                .onErrorResumeNext(throwable -> {
+                    return Observable.empty();
+                })
                 .doOnComplete(() -> {
                     if (mWashStatusEvent != null) {//不是设置模式
                         if (!mWashStatusEvent.isSetting()) {
@@ -387,7 +392,9 @@ public class XjlSerialPortHelper {
         mColdDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .onErrorResumeNext(throwable -> { return Observable.empty(); })
+                .onErrorResumeNext(throwable -> {
+                    return Observable.empty();
+                })
                 .doOnComplete(() -> {
                     if (mWashStatusEvent != null) {//不是设置模式，
                         if (!mWashStatusEvent.isSetting()) {
@@ -481,7 +488,9 @@ public class XjlSerialPortHelper {
         mDelicatesDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .onErrorResumeNext(throwable -> { return Observable.empty(); })
+                .onErrorResumeNext(throwable -> {
+                    return Observable.empty();
+                })
                 .doOnComplete(() -> {
                     if (mWashStatusEvent != null) {//不是设置模式，
                         if (!mWashStatusEvent.isSetting()) {
@@ -571,7 +580,9 @@ public class XjlSerialPortHelper {
         mSuperDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .onErrorResumeNext(throwable -> { return Observable.empty(); })
+                .onErrorResumeNext(throwable -> {
+                    return Observable.empty();
+                })
                 .doOnComplete(() -> {
 //                    if (mWashStatusEvent != null) {
 //                        if (mCount == 0) {
@@ -646,7 +657,9 @@ public class XjlSerialPortHelper {
         mSettingDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .onErrorResumeNext(throwable -> { return Observable.empty(); })
+                .onErrorResumeNext(throwable -> {
+                    return Observable.empty();
+                })
                 .doOnComplete(() -> {
                     if (mWashStatusEvent.isSetting() && ("0").equals(mWashStatusEvent.getText())) {
                         Log.e(TAG, "setting mode success");
@@ -701,10 +714,11 @@ public class XjlSerialPortHelper {
 
     private synchronized void kill() throws IOException {
         isKilling = true;
-        int killIntervalCount = 16;
         dispose(mKey);
         mKey = DeviceAction.Xjl.ACTION_SETTING;
         ++seq;
+        //组合指令每条发送的上限次数
+        int killIntervalCount = 50;
         for (int i = 0; i < killIntervalCount; i++) {
             sendData(mKey);
             SystemClock.sleep(50);
@@ -714,7 +728,15 @@ public class XjlSerialPortHelper {
             }
             if (i == killIntervalCount - 1) {
                 Log.e(TAG, "kill step1 error");
-                break;
+                Observable.just(1)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnNext(integer -> {
+                            if (mOnSendInstructionListener != null) {
+                                mOnSendInstructionListener.sendInstructionFail(DeviceAction.Xjl.ACTION_KILL, "kill step1 error");
+                            }
+                        })
+                        .subscribe();
+                return;
             }
         }
 
@@ -730,10 +752,19 @@ public class XjlSerialPortHelper {
                 }
                 if (j == killIntervalCount - 1) {
                     Log.e(TAG, "kill step2->" + i + "error");
-                    break;
+                    Observable.just(1)
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .doOnNext(integer -> {
+                                if (mOnSendInstructionListener != null) {
+                                    mOnSendInstructionListener.sendInstructionFail(DeviceAction.Xjl.ACTION_KILL, "kill step2->\" + i + \"error");
+                                }
+                            })
+                            .subscribe();
+                    return;
                 }
             }
         }
+
         mKey = DeviceAction.Xjl.ACTION_START;
         ++seq;
         for (int i = 0; i < killIntervalCount; i++) {
@@ -745,7 +776,15 @@ public class XjlSerialPortHelper {
             }
             if (i == killIntervalCount - 1) {
                 Log.e(TAG, "kill step3 error");
-                break;
+                Observable.just(1)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnNext(integer -> {
+                            if (mOnSendInstructionListener != null) {
+                                mOnSendInstructionListener.sendInstructionFail(DeviceAction.Xjl.ACTION_KILL, "kill step3 error");
+                            }
+                        })
+                        .subscribe();
+                return;
             }
         }
 
@@ -755,42 +794,81 @@ public class XjlSerialPortHelper {
             for (int j = 0; j < killIntervalCount; j++) {
                 sendData(mKey);
                 SystemClock.sleep(50);
-            }
-            if (mWashStatusEvent != null && mWashStatusEvent.isSetting()) {
-                switch (i) {
-                    case 0:
-                        if (("tcL").equals(mWashStatusEvent.getText())) {
-                            Log.e(TAG, "kill step4->" + i + "success");
-                        } else {
-                            Log.e(TAG, "kill step4->" + i + "error");
-                        }
+                if (i == 0) {
+                    if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("tcL").equals(mWashStatusEvent.getText())) {
+                        Log.e(TAG, "kill step4->1 success");
                         break;
-                    case 1:
-                        if (("PA55").equals(mWashStatusEvent.getText())) {
-                            Log.e(TAG, "kill step4->" + i + "success");
-                        } else {
-                            Log.e(TAG, "kill step4->" + i + "error");
-                        }
-                        break;
-                    case 2:
-                        if (("dUCt").equals(mWashStatusEvent.getText())) {
-                            Log.e(TAG, "kill step4->" + i + "success");
-                        } else {
-                            Log.e(TAG, "kill step4->" + i + "error");
-                        }
-                        break;
-                    case 3:
-                        if (("h1LL").equals(mWashStatusEvent.getText())) {
-                            Log.e(TAG, "kill step4->" + i + "success");
-                        } else {
-                            Log.e(TAG, "kill step4->" + i + "error");
-                        }
-                        break;
+                    }
+                    if (j == killIntervalCount - 1) {
+                        Log.e(TAG, "kill step4->1 error");
+                        Observable.just(1)
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .doOnNext(integer -> {
+                                    if (mOnSendInstructionListener != null) {
+                                        mOnSendInstructionListener.sendInstructionFail(DeviceAction.Xjl.ACTION_KILL, "kill step4->1 error");
+                                    }
+                                })
+                                .subscribe();
+                        return;
+                    }
                 }
-            } else {
-                Log.e(TAG, "kill step4->" + i + "error");
+                if (i == 1) {
+                    if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("PA55").equals(mWashStatusEvent.getText())) {
+                        Log.e(TAG, "kill step4->2 success");
+                        break;
+                    }
+                    if (j == killIntervalCount - 1) {
+                        Log.e(TAG, "kill step4->2 error");
+                        Observable.just(1)
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .doOnNext(integer -> {
+                                    if (mOnSendInstructionListener != null) {
+                                        mOnSendInstructionListener.sendInstructionFail(DeviceAction.Xjl.ACTION_KILL, "kill step4->2 error");
+                                    }
+                                })
+                                .subscribe();
+                        return;
+                    }
+                }
+                if (i == 2) {
+                    if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("dUCt").equals(mWashStatusEvent.getText())) {
+                        Log.e(TAG, "kill step4->3 success");
+                        break;
+                    }
+                    if (j == killIntervalCount - 1) {
+                        Log.e(TAG, "kill step4->3 error");
+                        Observable.just(1)
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .doOnNext(integer -> {
+                                    if (mOnSendInstructionListener != null) {
+                                        mOnSendInstructionListener.sendInstructionFail(DeviceAction.Xjl.ACTION_KILL, "kill step4->3 error");
+                                    }
+                                })
+                                .subscribe();
+                        return;
+                    }
+                }
+                if (i == 3) {
+                    if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("h1LL").equals(mWashStatusEvent.getText())) {
+                        Log.e(TAG, "kill step4->4 success");
+                        break;
+                    }
+                    if (j == killIntervalCount - 1) {
+                        Log.e(TAG, "kill step4->4 error");
+                        Observable.just(1)
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .doOnNext(integer -> {
+                                    if (mOnSendInstructionListener != null) {
+                                        mOnSendInstructionListener.sendInstructionFail(DeviceAction.Xjl.ACTION_KILL, "kill step4->4 error");
+                                    }
+                                })
+                                .subscribe();
+                        return;
+                    }
+                }
             }
         }
+
         mKey = DeviceAction.Xjl.ACTION_START;
         ++seq;
         for (int i = 0; i < killIntervalCount; i++) {
@@ -802,11 +880,20 @@ public class XjlSerialPortHelper {
             }
             if (i == killIntervalCount - 1) {
                 Log.e(TAG, "kill step5 error");
-                break;
+                Observable.just(1)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnNext(integer -> {
+                            if (mOnSendInstructionListener != null) {
+                                mOnSendInstructionListener.sendInstructionFail(DeviceAction.Xjl.ACTION_KILL, "kill step5 error");
+                            }
+                        })
+                        .subscribe();
+                return;
             }
         }
+
         mKey = DeviceAction.Xjl.ACTION_MODE2;
-        for (int i = 0; i < 17; i++) {
+        for (int i = 0; i < 17; ++i) {
             ++seq;
             for (int j = 0; j < killIntervalCount; j++) {
                 sendData(mKey);
@@ -817,21 +904,57 @@ public class XjlSerialPortHelper {
                 }
                 if (j == killIntervalCount - 1) {
                     Log.e(TAG, "kill step6_+" + i + "+ error");
-                    break;
+                    Observable.just(1)
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .doOnNext(integer -> {
+                                if (mOnSendInstructionListener != null) {
+                                    mOnSendInstructionListener.sendInstructionFail(DeviceAction.Xjl.ACTION_KILL, "kill step6_+\" + i + \"+ error");
+                                }
+                            })
+                            .subscribe();
+                    return;
                 }
             }
         }
-//        mKey = KEY_START;
-//        ++seq;
-//        for (int i = 0; i < mKillIntervalCount; i++) {
-//            sendData(mKey);
-//            SystemClock.sleep(50);
-//        }
-        sendStartOrStop();
+
+//        sendStartOrStop();
+        mKey = DeviceAction.Xjl.ACTION_START;
+        ++seq;
+        long recCount = mRecCount;
+        for (int i = 0; i < killIntervalCount; i++) {
+            sendData(mKey);
+            SystemClock.sleep(50);
+            if (mRecCount > recCount) {//收到新报文
+                Observable.just(1)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnNext(integer -> {
+                            if (mOnSendInstructionListener != null) {
+                                mOnSendInstructionListener.sendInstructionSuccess(DeviceAction.Xjl.ACTION_KILL, mWashStatusEvent);
+                            }
+                        })
+                        .subscribe();
+                break;
+            }
+            if (i == killIntervalCount - 1) {
+                Log.e(TAG, "kill step7 error");
+                Observable.just(1)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnNext(integer -> {
+                            if (mOnSendInstructionListener != null) {
+                                mOnSendInstructionListener.sendInstructionFail(DeviceAction.Xjl.ACTION_KILL, "kill step7 error");
+                            }
+                        })
+                        .subscribe();
+                return;
+            }
+        }
+
         mKill = Observable.intervalRange(0, 240, 0, 1, TimeUnit.SECONDS)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .onErrorResumeNext(throwable -> { return Observable.empty(); })
+                .onErrorResumeNext(throwable -> {
+                    return Observable.empty();
+                })
                 .doOnNext(aLong -> {
                     Log.e(TAG, "doOnNext--->" + aLong);
                     if (mWashStatusEvent != null) {
@@ -839,16 +962,16 @@ public class XjlSerialPortHelper {
                             if (mOnSendInstructionListener != null) {
                                 mOnSendInstructionListener.sendInstructionSuccess(DeviceAction.Xjl.ACTION_KILL, mWashStatusEvent);
                             }
-                            Log.e(TAG, "kill success");
+                            Log.e(TAG, "kill do success");
                             if (mKill != null && !mKill.isDisposed()) {
                                 mKill.dispose();
                             }
                         } else {
                             if (aLong == 239) {
                                 if (mOnSendInstructionListener != null) {
-                                    mOnSendInstructionListener.sendInstructionFail(DeviceAction.Xjl.ACTION_KILL, "kill error");
+                                    mOnSendInstructionListener.sendInstructionFail(DeviceAction.Xjl.ACTION_KILL, "kill do error");
                                 }
-                                Log.e(TAG, "kill error");
+                                Log.e(TAG, "kill do error");
                                 if (mKill != null && !mKill.isDisposed()) {
                                     mKill.dispose();
                                 }
@@ -872,24 +995,29 @@ public class XjlSerialPortHelper {
         ++seq;
         mResetDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.io())
+                .doOnNext(aLong -> sendData(mKey))
                 .observeOn(AndroidSchedulers.mainThread())
                 .onErrorResumeNext(throwable -> {
                     return Observable.empty();
                 })
-                .doOnComplete(() -> {
-                    if (mWashStatusEvent.isSetting() && ("0").equals(mWashStatusEvent.getText())) {
-                        Log.e(TAG, "setting mode success");
+                .doAfterNext(aLong -> {
+                    if (isOnline) {
                         if (mOnSendInstructionListener != null) {
-                            mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+                            mOnSendInstructionListener.sendInstructionSuccess(DeviceAction.Xjl.ACTION_RESET, mWashStatusEvent);
                         }
-                    } else {
-                        Log.e(TAG, "setting mode error");
+                        if (mResetDisposable != null && !mResetDisposable.isDisposed()) {
+                            mResetDisposable.dispose();
+                        }
+                    } else if (aLong == 50) {
                         if (mOnSendInstructionListener != null) {
-                            mOnSendInstructionListener.sendInstructionFail(mKey, "setting mode error");
+                            mOnSendInstructionListener.sendInstructionFail(DeviceAction.Xjl.ACTION_RESET, "sendReset fail");
+                        }
+                        if (mResetDisposable != null && !mResetDisposable.isDisposed()) {
+                            mResetDisposable.dispose();
                         }
                     }
                 })
-                .subscribe(aLong -> sendData(mKey));
+                .subscribe();
     }
 
     /**
@@ -907,7 +1035,7 @@ public class XjlSerialPortHelper {
         dispose(mKey);
         mKey = DeviceAction.Xjl.ACTION_SETTING;
         ++seq;
-        int killIntervalCount = 16;
+        int killIntervalCount = 50;
         for (int i = 0; i < killIntervalCount; i++) {
             sendData(mKey);
             SystemClock.sleep(50);
@@ -917,7 +1045,15 @@ public class XjlSerialPortHelper {
             }
             if (i == killIntervalCount - 1) {
                 Log.e(TAG, "selfCleaning step1 error");
-                break;
+                Observable.just(1)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnNext(integer -> {
+                            if (mOnSendInstructionListener != null) {
+                                mOnSendInstructionListener.sendInstructionFail(DeviceAction.Xjl.ACTION_SELF_CLEANING, "selfCleaning step1 error");
+                            }
+                        })
+                        .subscribe();
+                return;
             }
         }
 
@@ -933,7 +1069,15 @@ public class XjlSerialPortHelper {
                 }
                 if (j == killIntervalCount - 1) {
                     Log.e(TAG, "selfCleaning step2->" + i + "error");
-                    break;
+                    Observable.just(1)
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .doOnNext(integer -> {
+                                if (mOnSendInstructionListener != null) {
+                                    mOnSendInstructionListener.sendInstructionFail(DeviceAction.Xjl.ACTION_SELF_CLEANING, "selfCleaning step2->\" + i + \"error");
+                                }
+                            })
+                            .subscribe();
+                    return;
                 }
             }
         }
@@ -949,7 +1093,15 @@ public class XjlSerialPortHelper {
             }
             if (i == killIntervalCount - 1) {
                 Log.e(TAG, "selfCleaning step3 error");
-                break;
+                Observable.just(1)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnNext(integer -> {
+                            if (mOnSendInstructionListener != null) {
+                                mOnSendInstructionListener.sendInstructionFail(DeviceAction.Xjl.ACTION_SELF_CLEANING, "selfCleaning step3 error");
+                            }
+                        })
+                        .subscribe();
+                return;
             }
         }
 
@@ -959,15 +1111,99 @@ public class XjlSerialPortHelper {
             sendData(mKey);
             SystemClock.sleep(50);
             if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("tcL").equals(mWashStatusEvent.getText())) {
-                Log.e(TAG, "selfCleaning step3 success");
+                Log.e(TAG, "selfCleaning step4 success");
                 break;
             }
             if (i == killIntervalCount - 1) {
-                Log.e(TAG, "selfCleaning step3 error");
-                break;
+                Log.e(TAG, "selfCleaning step4 error");
+                Observable.just(1)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnNext(integer -> {
+                            if (mOnSendInstructionListener != null) {
+                                mOnSendInstructionListener.sendInstructionFail(DeviceAction.Xjl.ACTION_SELF_CLEANING, "selfCleaning step4 error");
+                            }
+                        })
+                        .subscribe();
+                return;
             }
         }
-        sendStartOrStop();
+
+        mKey = DeviceAction.Xjl.ACTION_START;
+        ++seq;
+        for (int i = 0; i < killIntervalCount; i++) {
+            sendData(mKey);
+            SystemClock.sleep(50);
+            if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("0").equals(mWashStatusEvent.getText())) {
+                Log.e(TAG, "selfCleaning step5 success");
+                break;
+            }
+            if (i == killIntervalCount - 1) {
+                Log.e(TAG, "selfCleaning step5 error");
+                Observable.just(1)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnNext(integer -> {
+                            if (mOnSendInstructionListener != null) {
+                                mOnSendInstructionListener.sendInstructionFail(DeviceAction.Xjl.ACTION_SELF_CLEANING, "selfCleaning step5 error");
+                            }
+                        })
+                        .subscribe();
+                return;
+            }
+        }
+
+        mKey = DeviceAction.Xjl.ACTION_MODE2;
+        ++seq;
+        for (int i = 0; i < killIntervalCount; i++) {
+            sendData(mKey);
+            SystemClock.sleep(50);
+            if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("1").equals(mWashStatusEvent.getText())) {
+                Log.e(TAG, "selfCleaning step6 success");
+                break;
+            }
+            if (i == killIntervalCount - 1) {
+                Log.e(TAG, "selfCleaning step6 error");
+                Observable.just(1)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnNext(integer -> {
+                            if (mOnSendInstructionListener != null) {
+                                mOnSendInstructionListener.sendInstructionFail(DeviceAction.Xjl.ACTION_SELF_CLEANING, "selfCleaning step6 error");
+                            }
+                        })
+                        .subscribe();
+                return;
+            }
+        }
+
+        mKey = DeviceAction.Xjl.ACTION_START;
+        ++seq;
+        for (int i = 0; i < killIntervalCount; i++) {
+            sendData(mKey);
+            SystemClock.sleep(50);
+            if (mWashStatusEvent != null && (mWashStatusEvent.getViewStep() == 1 || mWashStatusEvent.getViewStep() == 6) && mWashStatusEvent.getWashMode() == 0x08) {
+                Log.e(TAG, "selfCleaning success");
+                Observable.just(1)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnNext(integer -> {
+                            if (mOnSendInstructionListener != null) {
+                                mOnSendInstructionListener.sendInstructionSuccess(DeviceAction.Xjl.ACTION_SELF_CLEANING, mWashStatusEvent);
+                            }
+                        })
+                        .subscribe();
+                break;
+            }
+            if (i == killIntervalCount - 1) {
+                Log.e(TAG, "selfCleaning error");
+                Observable.just(1)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnNext(integer -> {
+                            if (mOnSendInstructionListener != null) {
+                                mOnSendInstructionListener.sendInstructionFail(DeviceAction.Xjl.ACTION_SELF_CLEANING, "selfCleaning error");
+                            }
+                        })
+                        .subscribe();
+                return;
+            }
+        }
     }
 
     private void dispose(int key) {
@@ -1008,7 +1244,7 @@ public class XjlSerialPortHelper {
                 }
                 break;
             case DeviceAction.Xjl.ACTION_RESET:
-                if (mResetDisposable!= null && !mResetDisposable.isDisposed()) {
+                if (mResetDisposable != null && !mResetDisposable.isDisposed()) {
                     mResetDisposable.dispose();
                 }
                 break;
@@ -1138,7 +1374,7 @@ public class XjlSerialPortHelper {
                                     })
                                     .subscribe();
                         }
-                    } else if (buffer[off02 + 1] == 0x15){//需要复位
+                    } else if (buffer[off02 + 1] == 0x15) {//需要复位
                         sendReset();
                     }
                 }

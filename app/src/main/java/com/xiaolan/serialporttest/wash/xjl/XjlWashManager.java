@@ -81,6 +81,9 @@ public class XjlWashManager implements DeviceEngineIService {
             case DeviceAction.Xjl.ACTION_KILL:
                 mXjlSerialPortHelper.sendKill();
                 break;
+            case DeviceAction.Xjl.ACTION_RESET:
+                mXjlSerialPortHelper.sendReset();
+                break;
             case DeviceAction.Xjl.ACTION_SELF_CLEANING:
                 mXjlSerialPortHelper.sendSelfCleaning();
                 break;

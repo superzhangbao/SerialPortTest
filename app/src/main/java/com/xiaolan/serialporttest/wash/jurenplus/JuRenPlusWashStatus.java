@@ -127,6 +127,10 @@ public class JuRenPlusWashStatus {
                             Log.e(TAG, "洗衣模式：" + "精致衣物");
                             mLogmsg.append("洗衣模式：" + "精致衣物").append("\r\n");
                             break;
+                        case 0x08:
+                            Log.e(TAG, "洗衣模式：" + "桶自洁");
+                            mLogmsg.append("洗衣模式：" + "桶自洁").append("\r\n");
+                            break;
                     }
                     //是否是加强洗
                     if (mLightSupper == 1) {
