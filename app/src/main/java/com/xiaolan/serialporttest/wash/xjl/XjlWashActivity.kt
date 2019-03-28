@@ -45,6 +45,7 @@ class XjlWashActivity : AppCompatActivity(), View.OnClickListener, OnSendInstruc
         btn_start_stop.setOnClickListener(this)
         btn_kill.setOnClickListener(this)
         btn_clear.setOnClickListener(this)
+        btn_self_cleaning.setOnClickListener(this)
 
         mDispQueueThread2 = DispQueueThread2()
         mDispQueueThread2?.start()
@@ -159,15 +160,19 @@ class XjlWashActivity : AppCompatActivity(), View.OnClickListener, OnSendInstruc
             }
             R.id.btn_setting -> {
                 checkIsOpen()
-                DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_SETTING)
+                DeviceEngine.getInstance().push(DeviceAction.Xjl.ACTION_SETTING)
             }
             R.id.btn_kill -> {
                 checkIsOpen()
-                DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_KILL)
+                DeviceEngine.getInstance().push(DeviceAction.Xjl.ACTION_KILL)
             }
             R.id.btn_reset->{
                 checkIsOpen()
-                DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_RESET)
+                DeviceEngine.getInstance().push(DeviceAction.Xjl.ACTION_RESET)
+            }
+            R.id.btn_self_cleaning->{
+                checkIsOpen()
+                DeviceEngine.getInstance().push(DeviceAction.Xjl.ACTION_SELF_CLEANING)
             }
             R.id.btn_finsh -> {
                 val open = DeviceEngine.getInstance().isOpen

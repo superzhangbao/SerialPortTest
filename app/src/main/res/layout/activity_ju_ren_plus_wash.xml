@@ -102,13 +102,13 @@
                 android:id="@+id/btn_cold"/>
             <Button
                 android:layout_width="0dp"
-                android:layout_weight="1.5"
+                android:layout_weight="1"
                 android:layout_height="match_parent"
                 android:text="精致衣物"
                 android:id="@+id/btn_soft"/>
             <Button
                 android:layout_width="0dp"
-                android:layout_weight="1.5"
+                android:layout_weight="1"
                 android:layout_height="match_parent"
                 android:text="加强洗"
                 android:id="@+id/btn_super"/>
@@ -126,17 +126,22 @@
                 android:id="@+id/btn_setting"/>
             <Button
                 android:layout_width="0dp"
-                android:layout_weight="2"
+                android:layout_weight="1.5"
                 android:layout_height="match_parent"
                 android:text="强制停止"
                 android:id="@+id/btn_kill"/>
             <Button
                 android:layout_width="0dp"
-                android:layout_weight="2"
+                android:layout_weight="1"
                 android:layout_height="match_parent"
                 android:text="复位"
                 android:id="@+id/btn_reset"/>
-
+            <Button
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:text="自洁"
+                android:id="@+id/btn_self_cleaning"/>
         </LinearLayout>
     </FrameLayout>
 

@@ -57,29 +57,32 @@ public class XjlWashManager implements DeviceEngineIService {
     @Override
     public void push(int action) {
         switch (action) {
-            case DeviceAction.JuRenPro.ACTION_START:
+            case DeviceAction.Xjl.ACTION_START:
                 mXjlSerialPortHelper.sendStartOrStop();
                 break;
-            case DeviceAction.JuRenPro.ACTION_HOT:
+            case DeviceAction.Xjl.ACTION_MODE1:
                 mXjlSerialPortHelper.sendHot();
                 break;
-            case DeviceAction.JuRenPro.ACTION_WARM:
+            case DeviceAction.Xjl.ACTION_MODE2:
                 mXjlSerialPortHelper.sendWarm();
                 break;
-            case DeviceAction.JuRenPro.ACTION_COLD:
+            case DeviceAction.Xjl.ACTION_MODE3:
                 mXjlSerialPortHelper.sendCold();
                 break;
-            case DeviceAction.JuRenPro.ACTION_DELICATES:
+            case DeviceAction.Xjl.ACTION_MODE4:
                 mXjlSerialPortHelper.sendDelicates();
                 break;
-            case DeviceAction.JuRenPro.ACTION_SUPER:
+            case DeviceAction.Xjl.ACTION_SUPER:
                 mXjlSerialPortHelper.sendSuper();
                 break;
-            case DeviceAction.JuRenPro.ACTION_SETTING:
+            case DeviceAction.Xjl.ACTION_SETTING:
                 mXjlSerialPortHelper.sendSetting();
                 break;
-            case DeviceAction.JuRenPro.ACTION_KILL:
+            case DeviceAction.Xjl.ACTION_KILL:
                 mXjlSerialPortHelper.sendKill();
+                break;
+            case DeviceAction.Xjl.ACTION_SELF_CLEANING:
+                mXjlSerialPortHelper.sendSelfCleaning();
                 break;
         }
     }

@@ -89,6 +89,9 @@ public class JuRenProWashManager implements DeviceEngineIService {
             case DeviceAction.JuRenPro.ACTION_RESET:
                 mJuRenProSerialPortHelper.sendReset();
                 break;
+            case DeviceAction.JuRenPro.ACTION_SELF_CLEANING:
+                mJuRenProSerialPortHelper.sendSelfCleaning();
+                break;
         }
     }
 }

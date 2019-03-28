@@ -25,6 +25,7 @@ public class DeviceAction {
         public final static int ACTION_SETTING = 8;    //设置
         public final static int ACTION_CLEAN = 11;     //
         public final static int ACTION_KILL = 100;     //kill
+        public final static int ACTION_SELF_CLEANING = 200;//selfCleaning
     }
 
     public static class JuRenPlus {
@@ -38,6 +39,7 @@ public class DeviceAction {
         public final static int ACTION_SETTING = 8;    //设置
         public final static int ACTION_CLEAN = 11;     //
         public final static int ACTION_KILL = 100;     //kill
+        public final static int ACTION_SELF_CLEANING = 200;//selfCleaning
     }
 
     public static class JuRen {
@@ -50,6 +52,7 @@ public class DeviceAction {
         public final static int ACTION_SUPER = 6;        //加强
         public final static int ACTION_SETTING = 13;     //设置
         public final static int ACTION_KILL = 100;       //kill
+        public final static int ACTION_SELF_CLEANING = 200;//selfCleaning
     }
 
     public static class Xjl {
@@ -62,5 +65,6 @@ public class DeviceAction {
         public final static int ACTION_SUPER = 6;      //加强
         public final static int ACTION_SETTING = 13;   //设置
         public final static int ACTION_KILL = 100;     //kill
+        public final static int ACTION_SELF_CLEANING = 200;//selfCleaning
     }
 }

@@ -57,6 +57,7 @@ class JuRenPlusWashActivity : AppCompatActivity(), RadioGroup.OnCheckedChangeLis
         btn_kill.setOnClickListener(this)
         btn_setting.setOnClickListener(this)
         btn_reset.setOnClickListener(this)
+        btn_self_cleaning.setOnClickListener(this)
         rg_rev.setOnCheckedChangeListener(this)
 
         mDispQueueThread = DispQueueThread()
@@ -137,6 +138,10 @@ class JuRenPlusWashActivity : AppCompatActivity(), RadioGroup.OnCheckedChangeLis
             R.id.btn_reset -> {
                 checkIsOpen()
                 DeviceEngine.getInstance().push(DeviceAction.JuRenPlus.ACTION_RESET)
+            }
+            R.id.btn_self_cleaning->{
+                checkIsOpen()
+                DeviceEngine.getInstance().push(DeviceAction.JuRenPlus.ACTION_SELF_CLEANING)
             }
         }
     }

@@ -1184,6 +1184,84 @@ public class JuRenProSerialPortHelper {
     }
 
     /**
+     * 发送桶自洁指令
+     */
+    public void sendSelfCleaning() {
+        Observable.create(e -> {
+            selfCleaning();
+            e.onComplete();
+        }).subscribeOn(Schedulers.io())
+                .subscribe();
+    }
+
+    private synchronized void selfCleaning() throws IOException {
+        dispose(mKey);
+        mKey = DeviceAction.JuRenPro.ACTION_SETTING;
+        ++seq;
+        int killIntervalCount = 16;
+        for (int i = 0; i < killIntervalCount; i++) {
+            sendData1(mKey,INSTRUCTION_MODE);
+            SystemClock.sleep(50);
+            if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("0").equals(mWashStatusEvent.getText())) {
+                Log.e(TAG, "selfCleaning step1 success");
+                break;
+            }
+            if (i == killIntervalCount - 1) {
+                Log.e(TAG, "selfCleaning step1 error");
+                break;
+            }
+        }
+
+        mKey = DeviceAction.JuRenPro.ACTION_WARM;
+        for (int i = 0; i < 3; i++) {
+            ++seq;
+            for (int j = 0; j < killIntervalCount; j++) {
+                sendData1(mKey,INSTRUCTION_MODE);
+                SystemClock.sleep(50);
+                if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && (i + 1 + "").equals(mWashStatusEvent.getText())) {
+                    Log.e(TAG, "selfCleaning step2->" + i + "success");
+                    break;
+                }
+                if (j == killIntervalCount - 1) {
+                    Log.e(TAG, "selfCleaning step2->" + i + "error");
+                    break;
+                }
+            }
+        }
+
+        mKey = DeviceAction.JuRenPro.ACTION_START;
+        ++seq;
+        for (int i = 0; i < killIntervalCount; i++) {
+            sendData1(mKey,INSTRUCTION_MODE);
+            SystemClock.sleep(50);
+            if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("LgC1").equals(mWashStatusEvent.getText())) {
+                Log.e(TAG, "selfCleaning step3 success");
+                break;
+            }
+            if (i == killIntervalCount - 1) {
+                Log.e(TAG, "selfCleaning step3 error");
+                break;
+            }
+        }
+
+        mKey = DeviceAction.JuRenPro.ACTION_WARM;
+        ++seq;
+        for (int i = 0; i < killIntervalCount; i++) {
+            sendData1(mKey,INSTRUCTION_MODE);
+            SystemClock.sleep(50);
+            if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("tcL").equals(mWashStatusEvent.getText())) {
+                Log.e(TAG, "selfCleaning step3 success");
+                break;
+            }
+            if (i == killIntervalCount - 1) {
+                Log.e(TAG, "selfCleaning step3 error");
+                break;
+            }
+        }
+        sendStartOrStop();
+    }
+
+    /**
      * 设置音量到HIGH
      */
 //    public void sendVomHigh() {

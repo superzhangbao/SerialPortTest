@@ -109,7 +109,7 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
     @SuppressLint("SetTextI18n")
     @OnClick({R.id.btn_finsh, R.id.btn_open_port, R.id.btn_clear, R.id.btn_hot,
             R.id.btn_warm, R.id.btn_cold, R.id.btn_soft, R.id.btn_super, R.id.btn_start_stop,
-            R.id.btn_kill, R.id.btn_setting,R.id.btn_reset})
+            R.id.btn_kill, R.id.btn_setting,R.id.btn_reset,R.id.btn_self_cleaning})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_finsh:
@@ -232,9 +232,17 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
                 break;
             case R.id.btn_reset:
                 checkIsOpen();
-                setBackgroundColor(R.id.btn_kill);
+                setBackgroundColor(R.id.btn_reset);
                 try {
                     DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_RESET);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
+            case R.id.btn_self_cleaning:
+                checkIsOpen();
+                try {
+                    DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_SELF_CLEANING);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
