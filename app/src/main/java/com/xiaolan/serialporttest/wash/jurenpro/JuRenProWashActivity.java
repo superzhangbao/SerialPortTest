@@ -130,6 +130,7 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
                     try {
                         DeviceEngine.getInstance().open();
                         mBtnOpenPort.setText("关闭串口");
+
                     } catch (Exception e) {
                         e.printStackTrace();
                         mBtnOpenPort.setText("打开串口");
