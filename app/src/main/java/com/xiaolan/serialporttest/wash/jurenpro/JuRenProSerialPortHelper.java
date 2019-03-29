@@ -82,6 +82,7 @@ public class JuRenProSerialPortHelper {
     private AtomicBoolean isSuccess;//指令是否发送成功
     private byte[] msg;
     private WriteLogUtil mWriteLogUtil;
+    private boolean mWriteLog;//是否记录日志
 
 
     public JuRenProSerialPortHelper() {
@@ -109,9 +110,12 @@ public class JuRenProSerialPortHelper {
         mReadThread.start();
         readThreadStartTime = System.currentTimeMillis();
         _isOpen = true;
+        mWriteLog = true;
     }
 
     public void close() throws IOException {
+        mWriteLog = false;
+        mWriteLogUtil.writeLogClose();
         _isOpen = false;
         if (mReadThread != null)
             mReadThread.interrupt();
@@ -176,7 +180,9 @@ public class JuRenProSerialPortHelper {
                                 //掉线
                                 mPreOnlineTime = now;
                                 isOnline = false;
-                                mWriteLogUtil.writeLog("串口掉线");
+                                if (mWriteLog) {
+                                    mWriteLogUtil.writeLog("串口掉线");
+                                }
                                 Observable.just(1).observeOn(AndroidSchedulers.mainThread())
                                         .doOnNext(integer -> {
                                             if (mSerialPortOnlineListener != null) {
@@ -189,7 +195,9 @@ public class JuRenProSerialPortHelper {
                             if (!isOnline) {
                                 long current = System.currentTimeMillis();
                                 if (current - readThreadStartTime > 5000) {
-                                    mWriteLogUtil.writeLog("串口未连接");
+                                    if (mWriteLog) {
+                                        mWriteLogUtil.writeLog("串口未连接");
+                                    }
                                     //5秒未读到数据
                                     Observable.just(1).observeOn(AndroidSchedulers.mainThread())
                                             .doOnNext(integer -> {
@@ -238,7 +246,9 @@ public class JuRenProSerialPortHelper {
                             isOnline = true;
                             hasOnline = true;
                             mPreOnlineTime = System.currentTimeMillis();
-                            mWriteLogUtil.writeLog("串口上线");
+                            if (mWriteLog) {
+                                mWriteLogUtil.writeLog("串口上线");
+                            }
                             Observable.just(1).observeOn(AndroidSchedulers.mainThread())
                                     .doOnNext(integer -> {
                                         if (mSerialPortOnlineListener != null) {
@@ -256,7 +266,9 @@ public class JuRenProSerialPortHelper {
                             mPreMsg = subarray;
                             //根据上报的报文，分析设备状态
                             mWashStatusEvent = mJuRenProWashStatus.analyseStatus(subarray);
-                            mWriteLogUtil.writeLog(mWashStatusEvent.toString());
+                            if (mWriteLog) {
+                                mWriteLogUtil.writeLog(mWashStatusEvent.toString());
+                            }
                             mRecCount++;
                             Observable.just(1)
                                     .observeOn(AndroidSchedulers.mainThread())
@@ -1057,6 +1069,14 @@ public class JuRenProSerialPortHelper {
 
     public boolean isOpen() {
         return _isOpen;
+    }
+
+    public void openWriteLog() {
+        mWriteLog = true;
+    }
+
+    public void closeWriteLog() {
+        mWriteLog = false;
     }
 
     public void setOnSendInstructionListener(OnSendInstructionListener onSendInstructionListener) {
