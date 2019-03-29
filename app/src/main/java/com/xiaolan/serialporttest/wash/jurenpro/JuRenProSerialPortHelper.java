@@ -55,7 +55,6 @@ public class JuRenProSerialPortHelper {
     private int seq;
     private int mKey;
     private boolean isKilling = false;//强制停止
-    private static final int INSTRUCTION_MODE = 0;//指令类型1：巨人+的指令   0：巨人Pro的指令
     private int mCount = 0;
     private int mPreIsSupper;
     private JuRenProWashStatus mJuRenProWashStatus;
@@ -79,6 +78,8 @@ public class JuRenProSerialPortHelper {
     private long readThreadStartTime = 0;
     private long mPeriod = 100;//发送单条指令的时间间隔，单位ms
     private Disposable mResetDisposable;
+    private AtomicBoolean isSuccess;//指令是否发送成功
+    private byte[] msg;
 
 
     public JuRenProSerialPortHelper() {
@@ -88,6 +89,8 @@ public class JuRenProSerialPortHelper {
     public JuRenProSerialPortHelper(String sPort, int iBaudRate) {
         this.sPort = sPort;
         this.iBaudRate = iBaudRate;
+        isSuccess = new AtomicBoolean(false);
+        msg = new byte[]{0x02, 0x06, 0, (byte) (seq & 0xff), (byte) 0x80, 0x20, 0, 1, 0, 0, 3};
     }
 
     public void juRenProOpen() throws SecurityException, IOException, InvalidParameterException {
@@ -171,7 +174,7 @@ public class JuRenProSerialPortHelper {
                                 mPreOnlineTime = now;
                                 isOnline = false;
                                 Observable.just(1).observeOn(AndroidSchedulers.mainThread())
-                                        .doOnComplete(() -> {
+                                        .doOnNext(integer -> {
                                             if (mSerialPortOnlineListener != null) {
                                                 mSerialPortOnlineListener.onSerialPortOffline("串口掉线");
                                             }
@@ -184,7 +187,7 @@ public class JuRenProSerialPortHelper {
                                 if (current - readThreadStartTime > 5000) {
                                     //5秒未读到数据
                                     Observable.just(1).observeOn(AndroidSchedulers.mainThread())
-                                            .doOnComplete(() -> {
+                                            .doOnNext(integer -> {
                                                 if (mSerialPortOnlineListener != null) {
                                                     mSerialPortOnlineListener.onSerialPortOffline("串口未连接");
                                                 }
@@ -231,7 +234,7 @@ public class JuRenProSerialPortHelper {
                             hasOnline = true;
                             mPreOnlineTime = System.currentTimeMillis();
                             Observable.just(1).observeOn(AndroidSchedulers.mainThread())
-                                    .doOnComplete(() -> {
+                                    .doOnNext(integer -> {
                                         if (mSerialPortOnlineListener != null) {
                                             mSerialPortOnlineListener.onSerialPortOnline(subarray);
                                             Log.e(TAG, "串口上线");
@@ -247,12 +250,14 @@ public class JuRenProSerialPortHelper {
                             //根据上报的报文，分析设备状态
                             mWashStatusEvent = mJuRenProWashStatus.analyseStatus(subarray);
                             mRecCount++;
-                            Observable.just(1).observeOn(AndroidSchedulers.mainThread())
-                                    .subscribe(integer -> {
+                            Observable.just(1)
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .doOnNext(integer -> {
                                         if (mCurrentStatusListener != null) {
                                             mCurrentStatusListener.currentStatus(mWashStatusEvent);
                                         }
-                                    });
+                                    })
+                                    .subscribe();
                         }
                     }
                 }
@@ -271,21 +276,19 @@ public class JuRenProSerialPortHelper {
         mKey = DeviceAction.JuRenPro.ACTION_HOT;
         ++seq;
         long recCount = mRecCount;
-        AtomicBoolean isSuccess = new AtomicBoolean(false);
+        isSuccess.set(false);
         mHotDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.io())
+                .doOnNext(aLong -> sendData(mKey))
                 .observeOn(AndroidSchedulers.mainThread())
-                .onErrorResumeNext(throwable -> {
-                    return Observable.empty();
-                })
-                .doOnNext(aLong -> {
+                .doAfterNext(aLong -> {
                     if (!isSuccess.get()) {
                         if (mWashStatusEvent != null) {
                             if (!mWashStatusEvent.isSetting()) {//不是设置模式
                                 if (mWashStatusEvent.getIsWashing() == 0x30 && mWashStatusEvent.getWashMode() == 0x02) {//未开始洗衣 && 洗衣模式为热水
                                     isSuccess.set(true);
                                     if (mOnSendInstructionListener != null) {
-                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+                                        mOnSendInstructionListener.sendInstructionSuccess(DeviceAction.JuRenPro.ACTION_HOT, mWashStatusEvent);
                                     }
                                 } else {
                                     //TODO
@@ -295,7 +298,7 @@ public class JuRenProSerialPortHelper {
                                     if (mRecCount > recCount) {//收到新报文
                                         isSuccess.set(true);
                                         if (mOnSendInstructionListener != null) {
-                                            mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+                                            mOnSendInstructionListener.sendInstructionSuccess(DeviceAction.JuRenPro.ACTION_HOT, mWashStatusEvent);
                                         }
                                     } else {
                                         //TODO
@@ -303,70 +306,17 @@ public class JuRenProSerialPortHelper {
                                 } else {
                                     isSuccess.set(true);
                                     if (mOnSendInstructionListener != null) {
-                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+                                        mOnSendInstructionListener.sendInstructionSuccess(DeviceAction.JuRenPro.ACTION_HOT, mWashStatusEvent);
                                     }
                                 }
                             }
                         }
                     }
                 })
-                .subscribe(aLong -> {
-                    sendData1(mKey, INSTRUCTION_MODE);
-                });
-//        mKey = KEY_HOT;
-//        long recCount = mRecCount;
-//        mHotDisposable = Observable.create(e -> {
-//            sendData(mKey, INSTRUCTION_MODE);
-//            e.onComplete();
-//        }).subscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .doOnComplete(() -> {
-//                    if (mWashStatusEvent != null) {
-//                        if (!mWashStatusEvent.isSetting()) {//不是设置模式
-//                            if (mWashStatusEvent.getIsWashing() == 0x30 && mWashStatusEvent.getWashMode() == 0x02) {//未开始洗衣 && 洗衣模式为热水
-//                                if (mOnSendInstructionListener != null) {
-//                                    mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                }
-//                                dispose(mKey);
-//                            } else {
-//                                if (mSendCount <= 3) {
-//                                    mSendCount++;
-//                                    sendHot();
-//                                } else {//连续发3轮没收到新报文则判定指令发送失败
-//                                    if (mOnSendInstructionListener != null) {
-//                                        mOnSendInstructionListener.sendInstructionFail(mKey, "send hot error");
-//                                    }
-//                                    dispose(mKey);
-//                                }
-//                            }
-//                        } else {//设置模式
-//                            if (mWashStatusEvent.getIsWashing() == 0x30) {//未开始洗衣
-//                                if (mRecCount > recCount) {//收到新报文
-//                                    if (mOnSendInstructionListener != null) {
-//                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                    }
-//                                    dispose(mKey);
-//                                } else {
-//                                    if (mSendCount <= 3) {
-//                                        mSendCount++;
-//                                        sendHot();
-//                                    } else {//连续发3轮没收到新报文则判定指令发送失败
-//                                        if (mOnSendInstructionListener != null) {
-//                                            mOnSendInstructionListener.sendInstructionFail(mKey, "send hot error");
-//                                        }
-//                                        dispose(mKey);
-//                                    }
-//                                }
-//                            } else {
-//                                if (mOnSendInstructionListener != null) {
-//                                    mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                }
-//                                dispose(mKey);
-//                            }
-//                        }
-//                    }
-//                })
-//                .subscribe();
+                .onErrorResumeNext(throwable -> {
+                    return Observable.empty();
+                })
+                .subscribe();
     }
 
     /*
@@ -377,21 +327,19 @@ public class JuRenProSerialPortHelper {
         mKey = DeviceAction.JuRenPro.ACTION_WARM;
         ++seq;
         long recCount = mRecCount;
-        AtomicBoolean isSuccess = new AtomicBoolean(false);
+        isSuccess.set(false);
         mWarmDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.io())
+                .doOnNext(aLong -> sendData(mKey))
                 .observeOn(AndroidSchedulers.mainThread())
-                .onErrorResumeNext(throwable -> {
-                    return Observable.empty();
-                })
-                .doOnNext(aLong -> {
+                .doAfterNext(aLong -> {
                     if (!isSuccess.get()) {
                         if (mWashStatusEvent != null) {//不是设置模式
                             if (!mWashStatusEvent.isSetting()) {
                                 if (mWashStatusEvent.getIsWashing() == 0x30 && mWashStatusEvent.getWashMode() == 0x03) {//未开始洗衣 && 洗衣模式为热水
                                     isSuccess.set(true);
                                     if (mOnSendInstructionListener != null) {
-                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+                                        mOnSendInstructionListener.sendInstructionSuccess(DeviceAction.JuRenPro.ACTION_WARM, mWashStatusEvent);
                                     }
                                 } else {
                                     //TODO
@@ -401,7 +349,7 @@ public class JuRenProSerialPortHelper {
                                     if (mRecCount > recCount) {//收到新报文
                                         isSuccess.set(true);
                                         if (mOnSendInstructionListener != null) {
-                                            mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+                                            mOnSendInstructionListener.sendInstructionSuccess(DeviceAction.JuRenPro.ACTION_WARM, mWashStatusEvent);
                                         }
                                     } else {
                                         //todo
@@ -409,68 +357,17 @@ public class JuRenProSerialPortHelper {
                                 } else {
                                     isSuccess.set(true);
                                     if (mOnSendInstructionListener != null) {
-                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+                                        mOnSendInstructionListener.sendInstructionSuccess(DeviceAction.JuRenPro.ACTION_WARM, mWashStatusEvent);
                                     }
                                 }
                             }
                         }
                     }
                 })
-                .subscribe(aLong -> {
-                    sendData1(mKey, INSTRUCTION_MODE);
-                });
-//        mKey = KEY_WARM;
-//        long recCount = mRecCount;
-//        mWarmDisposable = Observable.create(e -> {
-//            sendData(mKey, INSTRUCTION_MODE);
-//            e.onComplete();
-//        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-//                .doOnComplete(() -> {
-//                    if (mWashStatusEvent != null) {//不是设置模式
-//                        if (!mWashStatusEvent.isSetting()) {
-//                            if (mWashStatusEvent.getIsWashing() == 0x30 && mWashStatusEvent.getWashMode() == 0x03) {//未开始洗衣 && 洗衣模式为热水
-//                                if (mOnSendInstructionListener != null) {
-//                                    mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                }
-//                                dispose(mKey);
-//                            } else {
-//                                if (mSendCount <= 3) {
-//                                    mSendCount++;
-//                                    sendWarm();
-//                                } else {//连续发3轮没收到新报文则判定指令发送失败
-//                                    if (mOnSendInstructionListener != null) {
-//                                        mOnSendInstructionListener.sendInstructionFail(mKey, "send warm error");
-//                                    }
-//                                    dispose(mKey);
-//                                }
-//                            }
-//                        } else {//设置模式
-//                            if (mWashStatusEvent.getIsWashing() == 0x30) {//未开始洗衣
-//                                if (mRecCount > recCount) {//收到新报文
-//                                    if (mOnSendInstructionListener != null) {
-//                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                    }
-//                                    dispose(mKey);
-//                                } else {
-//                                    if (mSendCount <= 3) {
-//                                        mSendCount++;
-//                                        sendWarm();
-//                                    } else {//连续发3轮没收到新报文则判定指令发送失败
-//                                        if (mOnSendInstructionListener != null) {
-//                                            mOnSendInstructionListener.sendInstructionFail(mKey, "send warm error");
-//                                        }
-//                                        dispose(mKey);
-//                                    }
-//                                }
-//                            } else {
-//                                if (mOnSendInstructionListener != null) {
-//                                    mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                }
-//                                dispose(mKey);
-//                            }
-//                        }
-//                    }
-//                }).subscribe();
+                .onErrorResumeNext(throwable -> {
+                    return Observable.empty();
+                })
+                .subscribe();
     }
 
     /*
@@ -481,21 +378,19 @@ public class JuRenProSerialPortHelper {
         mKey = DeviceAction.JuRenPro.ACTION_COLD;
         ++seq;
         long recCount = mRecCount;
-        AtomicBoolean isSuccess = new AtomicBoolean(false);
+        isSuccess.set(false);
         mColdDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.io())
+                .doOnNext(aLong -> sendData(mKey))
                 .observeOn(AndroidSchedulers.mainThread())
-                .onErrorResumeNext(throwable -> {
-                    return Observable.empty();
-                })
-                .doOnNext(aLong -> {
+                .doAfterNext(aLong -> {
                     if (!isSuccess.get()) {
                         if (mWashStatusEvent != null) {//不是设置模式，
                             if (!mWashStatusEvent.isSetting()) {
                                 if (mWashStatusEvent.getIsWashing() == 0x30 && mWashStatusEvent.getWashMode() == 0x04) {//未开始洗衣 && 洗衣模式为热水
                                     isSuccess.set(true);
                                     if (mOnSendInstructionListener != null) {
-                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+                                        mOnSendInstructionListener.sendInstructionSuccess(DeviceAction.JuRenPro.ACTION_COLD, mWashStatusEvent);
                                     }
                                 } else {
                                     //todo
@@ -505,7 +400,7 @@ public class JuRenProSerialPortHelper {
                                     if (mRecCount > recCount) {//收到新报文
                                         isSuccess.set(true);
                                         if (mOnSendInstructionListener != null) {
-                                            mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+                                            mOnSendInstructionListener.sendInstructionSuccess(DeviceAction.JuRenPro.ACTION_COLD, mWashStatusEvent);
                                         }
                                     } else {
                                         //todo
@@ -513,70 +408,17 @@ public class JuRenProSerialPortHelper {
                                 } else {
                                     isSuccess.set(true);
                                     if (mOnSendInstructionListener != null) {
-                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+                                        mOnSendInstructionListener.sendInstructionSuccess(DeviceAction.JuRenPro.ACTION_COLD, mWashStatusEvent);
                                     }
                                 }
                             }
                         }
                     }
                 })
-                .subscribe(aLong -> {
-                    sendData1(mKey, INSTRUCTION_MODE);
-                });
-//        mKey = KEY_COLD;
-//        long recCount = mRecCount;
-//        mColdDisposable = Observable.create(e -> {
-//            sendData(mKey, INSTRUCTION_MODE);
-//            e.onComplete();
-//        }).subscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .doOnComplete(() -> {
-//                    if (mWashStatusEvent != null) {//不是设置模式，
-//                        if (!mWashStatusEvent.isSetting()) {
-//                            if (mWashStatusEvent.getIsWashing() == 0x30 && mWashStatusEvent.getWashMode() == 0x04) {//未开始洗衣 && 洗衣模式为热水
-//                                if (mOnSendInstructionListener != null) {
-//                                    mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                }
-//                                dispose(mKey);
-//                            } else {
-//                                if (mSendCount <= 3) {
-//                                    mSendCount++;
-//                                    sendCold();
-//                                } else {//连续发3轮没收到新报文则判定指令发送失败
-//                                    if (mOnSendInstructionListener != null) {
-//                                        mOnSendInstructionListener.sendInstructionFail(mKey, "send cold error");
-//                                    }
-//                                    dispose(mKey);
-//                                }
-//                            }
-//                        } else {//设置模式
-//                            if (mWashStatusEvent.getIsWashing() == 0x30) {//未开始洗衣
-//                                if (mRecCount > recCount) {//收到新报文
-//                                    if (mOnSendInstructionListener != null) {
-//                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                    }
-//                                    dispose(mKey);
-//                                } else {
-//                                    if (mSendCount <= 3) {
-//                                        mSendCount++;
-//                                        sendCold();
-//                                    } else {//连续发3轮没收到新报文则判定指令发送失败
-//                                        if (mOnSendInstructionListener != null) {
-//                                            mOnSendInstructionListener.sendInstructionFail(mKey, "send cold error");
-//                                        }
-//                                        dispose(mKey);
-//                                    }
-//                                }
-//                            } else {
-//                                if (mOnSendInstructionListener != null) {
-//                                    mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                }
-//                                dispose(mKey);
-//                            }
-//                        }
-//                    }
-//                })
-//                .subscribe();
+                .onErrorResumeNext(throwable -> {
+                    return Observable.empty();
+                })
+                .subscribe();
     }
 
     /*
@@ -587,22 +429,19 @@ public class JuRenProSerialPortHelper {
         mKey = DeviceAction.JuRenPro.ACTION_DELICATES;
         ++seq;
         long recCount = mRecCount;
-        AtomicBoolean isSuccess = new AtomicBoolean(false);
+        isSuccess.set(false);
         mDelicatesDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.io())
+                .doOnNext(aLong -> sendData(mKey))
                 .observeOn(AndroidSchedulers.mainThread())
-                .onErrorResumeNext(throwable -> {
-                    return Observable.empty();
-                })
-                .doOnNext(aLong -> {
+                .doAfterNext(aLong -> {
                     if (!isSuccess.get()) {
-
                         if (mWashStatusEvent != null) {//不是设置模式，
                             if (!mWashStatusEvent.isSetting()) {
                                 if (mWashStatusEvent.getIsWashing() == 0x30 && mWashStatusEvent.getWashMode() == 0x05) {//未开始洗衣 && 洗衣模式为热水
                                     isSuccess.set(true);
                                     if (mOnSendInstructionListener != null) {
-                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+                                        mOnSendInstructionListener.sendInstructionSuccess(DeviceAction.JuRenPro.ACTION_DELICATES, mWashStatusEvent);
                                     }
                                 } else {
                                     //todo
@@ -612,7 +451,7 @@ public class JuRenProSerialPortHelper {
                                     if (mRecCount > recCount) {//收到新报文
                                         isSuccess.set(true);
                                         if (mOnSendInstructionListener != null) {
-                                            mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+                                            mOnSendInstructionListener.sendInstructionSuccess(DeviceAction.JuRenPro.ACTION_DELICATES, mWashStatusEvent);
                                         }
                                     } else {
                                         //todo
@@ -620,71 +459,17 @@ public class JuRenProSerialPortHelper {
                                 } else {
                                     isSuccess.set(true);
                                     if (mOnSendInstructionListener != null) {
-                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+                                        mOnSendInstructionListener.sendInstructionSuccess(DeviceAction.JuRenPro.ACTION_DELICATES, mWashStatusEvent);
                                     }
                                 }
                             }
                         }
                     }
                 })
-                .subscribe(aLong -> {
-                    sendData1(mKey, INSTRUCTION_MODE);
-                });
-
-//        mKey = DeviceAction.JuRenPro.ACTION_DELICATES;
-//        long recCount = mRecCount;
-//        mDelicatesDisposable = Observable.create(e -> {
-//            sendData(mKey, INSTRUCTION_MODE);
-//            e.onComplete();
-//        }).subscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .doOnComplete(() -> {
-//                    if (mWashStatusEvent != null) {//不是设置模式，
-//                        if (!mWashStatusEvent.isSetting()) {
-//                            if (mWashStatusEvent.getIsWashing() == 0x30 && mWashStatusEvent.getWashMode() == 0x05) {//未开始洗衣 && 洗衣模式为热水
-//                                if (mOnSendInstructionListener != null) {
-//                                    mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                }
-//                                dispose(mKey);
-//                            } else {
-//                                if (mSendCount <= 3) {
-//                                    mSendCount++;
-//                                    sendDelicates();
-//                                } else {//连续发3轮没收到新报文则判定指令发送失败
-//                                    if (mOnSendInstructionListener != null) {
-//                                        mOnSendInstructionListener.sendInstructionFail(mKey, "send delicates error");
-//                                    }
-//                                    dispose(mKey);
-//                                }
-//                            }
-//                        } else {//设置模式
-//                            if (mWashStatusEvent.getIsWashing() == 0x30) {//未开始洗衣
-//                                if (mRecCount > recCount) {//收到新报文
-//                                    if (mOnSendInstructionListener != null) {
-//                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                    }
-//                                    dispose(mKey);
-//                                } else {
-//                                    if (mSendCount <= 3) {
-//                                        mSendCount++;
-//                                        sendDelicates();
-//                                    } else {//连续发3轮没收到新报文则判定指令发送失败
-//                                        if (mOnSendInstructionListener != null) {
-//                                            mOnSendInstructionListener.sendInstructionFail(mKey, "send delicates error");
-//                                        }
-//                                        dispose(mKey);
-//                                    }
-//                                }
-//                            } else {
-//                                if (mOnSendInstructionListener != null) {
-//                                    mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                }
-//                                dispose(mKey);
-//                            }
-//                        }
-//                    }
-//                })
-//                .subscribe();
+                .onErrorResumeNext(throwable -> {
+                    return Observable.empty();
+                })
+                .subscribe();
     }
 
     /*
@@ -694,14 +479,12 @@ public class JuRenProSerialPortHelper {
         dispose(mKey);
         mKey = DeviceAction.JuRenPro.ACTION_SUPER;
         ++seq;
-        AtomicBoolean isSuccess = new AtomicBoolean(false);
+        isSuccess.set(false);
         mSuperDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.io())
+                .doOnNext(aLong -> sendData(mKey))
                 .observeOn(AndroidSchedulers.mainThread())
-                .onErrorResumeNext(throwable -> {
-                    return Observable.empty();
-                })
-                .doOnNext(aLong -> {
+                .doAfterNext(aLong -> {
                     if (!isSuccess.get()) {
                         if (mWashStatusEvent != null) {
                             if (mCount == 0) {
@@ -713,7 +496,7 @@ public class JuRenProSerialPortHelper {
                                         mCount = 0;
                                         isSuccess.set(true);
                                         if (mOnSendInstructionListener != null) {
-                                            mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+                                            mOnSendInstructionListener.sendInstructionSuccess(DeviceAction.JuRenPro.ACTION_SUPER, mWashStatusEvent);
                                         }
                                     }
                                 } else if (mPreIsSupper == 0) {
@@ -722,7 +505,7 @@ public class JuRenProSerialPortHelper {
                                         mCount = 0;
                                         isSuccess.set(true);
                                         if (mOnSendInstructionListener != null) {
-                                            mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+                                            mOnSendInstructionListener.sendInstructionSuccess(DeviceAction.JuRenPro.ACTION_SUPER, mWashStatusEvent);
                                         }
                                     }
                                 }
@@ -731,45 +514,10 @@ public class JuRenProSerialPortHelper {
                         }
                     }
                 })
-                .subscribe(aLong -> {
-                    sendData1(mKey, INSTRUCTION_MODE);
-                });
-
-//        mKey = DeviceAction.JuRenPro.ACTION_SUPER;
-//        mSuperDisposable = Observable.create(e -> {
-//            sendData(mKey, INSTRUCTION_MODE);
-//            e.onComplete();
-//        }).subscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .doOnComplete(() -> {
-//                    if (mWashStatusEvent != null) {
-//                        if (mCount == 0) {
-//                            mPreIsSupper = mWashStatusEvent.getLightSupper();
-//                        } else {
-//                            if (mPreIsSupper == 1) {
-//                                if (mWashStatusEvent.getLightSupper() == 0) {
-//                                    mPreIsSupper = mWashStatusEvent.getLightSupper();
-//                                    mCount = 0;
-//                                    if (mOnSendInstructionListener != null) {
-//                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                    }
-//                                    dispose(mKey);
-//                                }
-//                            } else if (mPreIsSupper == 0) {
-//                                if (mWashStatusEvent.getLightSupper() == 1) {
-//                                    mPreIsSupper = mWashStatusEvent.getLightSupper();
-//                                    mCount = 0;
-//                                    if (mOnSendInstructionListener != null) {
-//                                        mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                                    }
-//                                    dispose(mKey);
-//                                }
-//                            }
-//                        }
-//                        mCount++;
-//                    }
-//                })
-//                .subscribe();
+                .onErrorResumeNext(throwable -> {
+                    return Observable.empty();
+                })
+                .subscribe();
     }
 
     /*
@@ -780,52 +528,25 @@ public class JuRenProSerialPortHelper {
         mKey = DeviceAction.JuRenPro.ACTION_START;
         ++seq;
         long recCount = mRecCount;
-        AtomicBoolean isSuccess = new AtomicBoolean(false);
+        isSuccess.set(false);
         mStartDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.io())
+                .doOnNext(aLong -> sendData(mKey))
                 .observeOn(AndroidSchedulers.mainThread())
-                .onErrorResumeNext(throwable -> {
-                    return Observable.empty();
-                })
-                .doOnNext(aLong -> {
+                .doAfterNext(aLong -> {
                     if (!isSuccess.get()) {
                         if (mRecCount > recCount) {//收到新报文
                             isSuccess.set(true);
                             if (mOnSendInstructionListener != null) {
-                                mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
+                                mOnSendInstructionListener.sendInstructionSuccess(DeviceAction.JuRenPro.ACTION_START, mWashStatusEvent);
                             }
                         }
                     }
                 })
-                .subscribe(aLong -> {
-                    sendData1(mKey, INSTRUCTION_MODE);
-                });
-//        mKey = KEY_START;
-//        long recCount = mRecCount;
-//        mStartDisposable = Observable.create(e -> {
-//            sendData(mKey, INSTRUCTION_MODE);
-//            e.onComplete();
-//        }).subscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .doOnComplete(() -> {
-//                    if (mRecCount > recCount) {//收到新报文
-//                        if (mOnSendInstructionListener != null) {
-//                            mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                        }
-//                        dispose(mKey);
-//                    } else {
-//                        if (mSendCount <= 3) {
-//                            mSendCount++;
-//                            sendStartOrStop();
-//                        } else {//连续发3轮没收到新报文则判定指令发送失败
-//                            if (mOnSendInstructionListener != null) {
-//                                mOnSendInstructionListener.sendInstructionFail(mKey, "send startOrStop error");
-//                            }
-//                            dispose(mKey);
-//                        }
-//                    }
-//                })
-//                .subscribe();
+                .onErrorResumeNext(throwable -> {
+                    return Observable.empty();
+                })
+                .subscribe();
     }
 
     /*
@@ -835,56 +556,26 @@ public class JuRenProSerialPortHelper {
         dispose(mKey);
         mKey = DeviceAction.JuRenPro.ACTION_SETTING;
         ++seq;
-        AtomicBoolean isSuccess = new AtomicBoolean(false);
+        isSuccess.set(false);
         mSettingDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.io())
+                .doOnNext(aLong -> sendData(mKey))
                 .observeOn(AndroidSchedulers.mainThread())
-                .onErrorResumeNext(throwable -> {
-                    return Observable.empty();
-                })
-                .doOnNext(aLong -> {
+                .doAfterNext(aLong -> {
                     if (!isSuccess.get()) {
                         if (mWashStatusEvent.isSetting() && ("0").equals(mWashStatusEvent.getText())) {
                             Log.e(TAG, "setting mode success");
                             isSuccess.set(true);
                             if (mOnSendInstructionListener != null) {
-                                mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-                            }
-                        } else {
-                            Log.e(TAG, "setting mode error");
-                            isSuccess.set(true);
-                            if (mOnSendInstructionListener != null) {
-                                mOnSendInstructionListener.sendInstructionFail(mKey, "setting mode error");
+                                mOnSendInstructionListener.sendInstructionSuccess(DeviceAction.JuRenPro.ACTION_SETTING, mWashStatusEvent);
                             }
                         }
                     }
                 })
-                .subscribe(aLong -> {
-                    sendData1(mKey, INSTRUCTION_MODE);
-                });
-
-//        mKey = DeviceAction.JuRenPro.ACTION_SETTING;
-//        mSettingDisposable = Observable.create(e -> {
-//            sendData(mKey, INSTRUCTION_MODE);
-//            e.onComplete();
-//        }).subscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .doOnComplete(() -> {
-//                    if (mWashStatusEvent.isSetting() && ("0").equals(mWashStatusEvent.getText())) {
-//                        Log.e(TAG, "setting mode success");
-//                        if (mOnSendInstructionListener != null) {
-//                            mOnSendInstructionListener.sendInstructionSuccess(mKey, mWashStatusEvent);
-//                        }
-//                        dispose(mKey);
-//                    } else {
-//                        Log.e(TAG, "setting mode error");
-//                        if (mOnSendInstructionListener != null) {
-//                            mOnSendInstructionListener.sendInstructionFail(mKey, "setting mode error");
-//                        }
-//                        dispose(mKey);
-//                    }
-//                })
-//                .subscribe();
+                .onErrorResumeNext(throwable -> {
+                    return Observable.empty();
+                })
+                .subscribe();
     }
 
     /*
@@ -892,13 +583,12 @@ public class JuRenProSerialPortHelper {
      */
     public void sendKill() {
         //判断是处于洗衣状态才可以使用kill
-        if (mWashStatusEvent != null && mWashStatusEvent.getIsWashing() == 0x40) {
-            Observable.create(e -> {
-                kill();
-                e.onComplete();
-            }).subscribeOn(Schedulers.io())
-                    .subscribe();
-        }
+        Observable.create(e -> {
+            kill();
+            e.onComplete();
+        }).subscribeOn(Schedulers.io())
+                .subscribe();
+
     }
 
     /*
@@ -907,77 +597,101 @@ public class JuRenProSerialPortHelper {
     private void kill() {
         isKilling = true;
         dispose(mKey);
+
+        if (mWashStatusEvent != null && mWashStatusEvent.isSetting()) {//设置模式
+            mKey = DeviceAction.JuRenPro.ACTION_HOT;
+            ++seq;
+            do {
+                sendData(mKey);
+                SystemClock.sleep(mPeriod);
+            } while (mWashStatusEvent.isSetting() || mWashStatusEvent.getErr() > 0);//不是设置状态，也不是错误状态
+        }
+
+        if (mWashStatusEvent != null && mWashStatusEvent.getErr() > 0) {
+            mKey = DeviceAction.JuRenPro.ACTION_START;
+            ++seq;
+            do {
+                sendData(mKey);
+                SystemClock.sleep(mPeriod);
+            } while (mWashStatusEvent == null || mWashStatusEvent.getIsWashing() != 0x40);//
+        }
+
         mKey = DeviceAction.JuRenPro.ACTION_SETTING;
         ++seq;
         for (; ; ) {
-            sendData1(mKey, INSTRUCTION_MODE);
+            sendData(mKey);
+            SystemClock.sleep(mPeriod);
             if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("0").equals(mWashStatusEvent.getText())) {
                 Log.e(TAG, "kill step1 success");
                 break;
             }
-            SystemClock.sleep(mPeriod);
         }
 
         mKey = DeviceAction.JuRenPro.ACTION_WARM;
         for (int i = 0; i < 3; i++) {
             ++seq;
             for (; ; ) {
-                sendData1(mKey, INSTRUCTION_MODE);
+                sendData(mKey);
+                SystemClock.sleep(mPeriod);
                 if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && (i + 1 + "").equals(mWashStatusEvent.getText())) {
+                    Log.e(TAG, "kill step2->" + (i + 1) + " success");
                     break;
                 }
-                SystemClock.sleep(mPeriod);
             }
         }
 
         mKey = DeviceAction.JuRenPro.ACTION_START;
         ++seq;
         for (; ; ) {
-            sendData1(mKey, INSTRUCTION_MODE);
+            sendData(mKey);
+            SystemClock.sleep(mPeriod);
             if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("LgC1").equals(mWashStatusEvent.getText())) {
                 Log.e(TAG, "kill step3 success");
                 break;
             }
-            SystemClock.sleep(mPeriod);
         }
 
         mKey = DeviceAction.JuRenPro.ACTION_WARM;
         for (int i = 0; i < 4; i++) {
             ++seq;
             for (; ; ) {
-                sendData1(mKey, INSTRUCTION_MODE);
+                sendData(mKey);
+                SystemClock.sleep(mPeriod);
                 if (mWashStatusEvent != null && mWashStatusEvent.isSetting()) {
                     if (i == 0) {
                         if (("tcL").equals(mWashStatusEvent.getText())) {
                             Log.e(TAG, "kill step4->" + i + "success");
                             break;
-                        } else {
-                            Log.e(TAG, "kill step4->" + i + "error");
                         }
+//                        else {
+//                            Log.e(TAG, "kill step4->" + i + "error");
+//                        }
                     } else if (i == 1) {
                         if (("PA55").equals(mWashStatusEvent.getText())) {
                             Log.e(TAG, "kill step4->" + i + "success");
                             break;
-                        } else {
-                            Log.e(TAG, "kill step4->" + i + "error");
                         }
+//                        else {
+//                            Log.e(TAG, "kill step4->" + i + "error");
+//                        }
                     } else if (i == 2) {
                         if (("dUCt").equals(mWashStatusEvent.getText())) {
                             Log.e(TAG, "kill step4->" + i + "success");
                             break;
-                        } else {
-                            Log.e(TAG, "kill step4->" + i + "error");
                         }
+//                        else {
+//                            Log.e(TAG, "kill step4->" + i + "error");
+//                        }
                     } else {
                         if (("h1LL").equals(mWashStatusEvent.getText())) {
                             Log.e(TAG, "kill step4->" + i + "success");
                             break;
-                        } else {
-                            Log.e(TAG, "kill step4->" + i + "error");
                         }
+//                        else {
+//                            Log.e(TAG, "kill step4->" + i + "error");
+//                        }
                     }
                 }
-                SystemClock.sleep(mPeriod);
             }
         }
 
@@ -985,31 +699,39 @@ public class JuRenProSerialPortHelper {
         mKey = DeviceAction.JuRenPro.ACTION_START;
         ++seq;
         for (; ; ) {
-            sendData1(mKey, INSTRUCTION_MODE);
+            sendData(mKey);
+            SystemClock.sleep(mPeriod);
             if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("0").equals(mWashStatusEvent.getText())) {
                 Log.e(TAG, "kill step5 success");
                 break;
             }
-            SystemClock.sleep(mPeriod);
         }
 
         mKey = DeviceAction.JuRenPro.ACTION_WARM;
         for (int i = 0; i < 17; i++) {
             ++seq;
             for (; ; ) {
-                sendData1(mKey, INSTRUCTION_MODE);
+                sendData(mKey);
+                SystemClock.sleep(mPeriod);
                 if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && (i + 1 + "").equals(mWashStatusEvent.getText())) {
                     Log.e(TAG, "kill step6 success");
                     break;
-                } else {
-//                    Log.e(TAG, "kill step6 error");
                 }
-                SystemClock.sleep(mPeriod);
             }
         }
-
+        mKey = DeviceAction.JuRenPro.ACTION_START;
+        ++seq;
+        for (int i = 0; i < 50; i++) {
+            sendData(mKey);
+            SystemClock.sleep(mPeriod);
+            if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("0").equals(mWashStatusEvent.getText())) {
+                Log.e(TAG, "kill step7 success");
+                break;
+            }
+        }
+        --seq;
         sendStartOrStop();
-        mKill = Observable.intervalRange(0, 240, 0, 1, TimeUnit.SECONDS).subscribeOn(Schedulers.io())
+        mKill = Observable.intervalRange(0, 240, 0, 1, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnNext(aLong -> {
                     Log.e(TAG, "doOnNext--->" + aLong);
@@ -1039,119 +761,10 @@ public class JuRenProSerialPortHelper {
                     isKilling = false;
                     mRecCount = 0;
                 })
+                .onErrorResumeNext(throwable -> {
+                    return Observable.empty();
+                })
                 .subscribe();
-
-//        isKilling = true;
-//        mKey = DeviceAction.JuRenPro.ACTION_SETTING;
-//        sendData(mKey, INSTRUCTION_MODE);
-//        if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("0").equals(mWashStatusEvent.getText())) {
-//            Log.e(TAG, "kill step1 success");
-//        } else {
-//            Log.e(TAG, "kill step1 error");
-//        }
-//        mKey = DeviceAction.JuRenPro.ACTION_WARM;
-//        for (int i = 0; i < 3; i++) {
-//            sendData(mKey, INSTRUCTION_MODE);
-//            if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && (i + 1 + "").equals(mWashStatusEvent.getText())) {
-//                Log.e(TAG, "kill step2->" + i + "success");
-//            } else {
-//                Log.e(TAG, "kill step2->" + i + "error");
-//            }
-//        }
-//        mKey = DeviceAction.JuRenPro.ACTION_START;
-//        sendData(mKey, INSTRUCTION_MODE);
-//        if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("LgC1").equals(mWashStatusEvent.getText())) {
-//            Log.e(TAG, "kill step3 success");
-//        } else {
-//            Log.e(TAG, "kill step3 error");
-//        }
-//        mKey = DeviceAction.JuRenPro.ACTION_WARM;
-//        for (int i = 0; i < 4; i++) {
-//            sendData(mKey, INSTRUCTION_MODE);
-//            if (mWashStatusEvent != null && mWashStatusEvent.isSetting()) {
-//                switch (i) {
-//                    case 0:
-//                        if (("tcL").equals(mWashStatusEvent.getText())) {
-//                            Log.e(TAG, "kill step4->" + i + "success");
-//                        } else {
-//                            Log.e(TAG, "kill step4->" + i + "error");
-//                        }
-//                        break;
-//                    case 1:
-//                        if (("PA55").equals(mWashStatusEvent.getText())) {
-//                            Log.e(TAG, "kill step4->" + i + "success");
-//                        } else {
-//                            Log.e(TAG, "kill step4->" + i + "error");
-//                        }
-//                        break;
-//                    case 2:
-//                        if (("dUCt").equals(mWashStatusEvent.getText())) {
-//                            Log.e(TAG, "kill step4->" + i + "success");
-//                        } else {
-//                            Log.e(TAG, "kill step4->" + i + "error");
-//                        }
-//                        break;
-//                    case 3:
-//                        if (("h1LL").equals(mWashStatusEvent.getText())) {
-//                            Log.e(TAG, "kill step4->" + i + "success");
-//                        } else {
-//                            Log.e(TAG, "kill step4->" + i + "error");
-//                        }
-//                        break;
-//                }
-//            } else {
-//                Log.e(TAG, "kill step4->" + i + "error");
-//            }
-//        }
-//        mKey = DeviceAction.JuRenPro.ACTION_START;
-//        sendData(mKey, INSTRUCTION_MODE);
-//        if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("0").equals(mWashStatusEvent.getText())) {
-//            Log.e(TAG, "kill step5 success");
-//        } else {
-//            Log.e(TAG, "kill step5 error");
-//        }
-//        mKey = DeviceAction.JuRenPro.ACTION_WARM;
-//        for (int i = 0; i < 17; i++) {
-//            sendData(mKey, INSTRUCTION_MODE);
-//            if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && (i + 1 + "").equals(mWashStatusEvent.getText())) {
-//                Log.e(TAG, "kill step6 success");
-//            } else {
-//                Log.e(TAG, "kill step6 error");
-//            }
-//        }
-//        mKey = DeviceAction.JuRenPro.ACTION_START;
-//        sendData(mKey, INSTRUCTION_MODE);
-//        mKill = Observable.intervalRange(0, 240, 0, 1, TimeUnit.SECONDS).subscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .doOnNext(aLong -> {
-//                    Log.e(TAG, "doOnNext--->" + aLong);
-//                    if (mWashStatusEvent != null) {
-//                        if (mWashStatusEvent.getViewStep() == DeviceWorkType.WORKTYPR_END && !mWashStatusEvent.isSetting() && mWashStatusEvent.getLightlock() == 0) {//end状态
-//                            if (mOnSendInstructionListener != null) {
-//                                mOnSendInstructionListener.sendInstructionSuccess(DeviceAction.JuRenPro.ACTION_KILL, mWashStatusEvent);
-//                            }
-//                            Log.e(TAG, "kill success");
-//                            if (mKill != null && !mKill.isDisposed()) {
-//                                mKill.dispose();
-//                            }
-//                        } else {
-//                            if (aLong == 239) {
-//                                if (mOnSendInstructionListener != null) {
-//                                    mOnSendInstructionListener.sendInstructionFail(DeviceAction.JuRenPro.ACTION_KILL, "kill error");
-//                                }
-//                                Log.e(TAG, "kill error");
-//                                if (mKill != null && !mKill.isDisposed()) {
-//                                    mKill.dispose();
-//                                }
-//                            }
-//                        }
-//                    }
-//                })
-//                .doOnComplete(() -> {
-//                    isKilling = false;
-//                    mRecCount = 0;
-//                })
-//                .subscribe();
     }
 
     /**
@@ -1161,26 +774,28 @@ public class JuRenProSerialPortHelper {
         dispose(mKey);
         mKey = DeviceAction.JuRenPro.ACTION_RESET;
         ++seq;
-        AtomicBoolean isSuccess = new AtomicBoolean(false);
+        isSuccess.set(false);
         mResetDisposable = Observable.interval(0, mPeriod, TimeUnit.MILLISECONDS)
                 .subscribeOn(Schedulers.io())
+                .doOnNext(aLong -> sendData(mKey))
                 .observeOn(AndroidSchedulers.mainThread())
-                .onErrorResumeNext(throwable -> {
-                    return Observable.empty();
-                })
-                .doOnNext(aLong -> {
+                .doAfterNext(aLong -> {
                     if (!isSuccess.get()) {
-                        if (mWashStatusEvent != null) {
-                            isSuccess.set(true);
-                            if (mCurrentStatusListener != null) {
-                                mCurrentStatusListener.currentStatus(mWashStatusEvent);
+                        if (isOnline) {
+                            if (mOnSendInstructionListener != null) {
+                                mOnSendInstructionListener.sendInstructionSuccess(DeviceAction.JuRenPro.ACTION_RESET, mWashStatusEvent);
+                            }
+                        } else if (aLong == 50) {
+                            if (mOnSendInstructionListener != null) {
+                                mOnSendInstructionListener.sendInstructionFail(DeviceAction.JuRenPro.ACTION_RESET, "sendReset fail");
                             }
                         }
                     }
                 })
-                .subscribe(aLong -> {
-                    sendData1(mKey, INSTRUCTION_MODE);
-                });
+                .onErrorResumeNext(throwable -> {
+                    return Observable.empty();
+                })
+                .subscribe();
     }
 
     /**
@@ -1194,13 +809,13 @@ public class JuRenProSerialPortHelper {
                 .subscribe();
     }
 
-    private synchronized void selfCleaning() throws IOException {
+    private synchronized void selfCleaning() {
         dispose(mKey);
         mKey = DeviceAction.JuRenPro.ACTION_SETTING;
         ++seq;
         int killIntervalCount = 50;
         for (int i = 0; i < killIntervalCount; i++) {
-            sendData1(mKey,INSTRUCTION_MODE);
+            sendData(mKey);
             SystemClock.sleep(50);
             if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("0").equals(mWashStatusEvent.getText())) {
                 Log.e(TAG, "selfCleaning step1 success");
@@ -1224,7 +839,7 @@ public class JuRenProSerialPortHelper {
         for (int i = 0; i < 3; i++) {
             ++seq;
             for (int j = 0; j < killIntervalCount; j++) {
-                sendData1(mKey,INSTRUCTION_MODE);
+                sendData(mKey);
                 SystemClock.sleep(50);
                 if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && (i + 1 + "").equals(mWashStatusEvent.getText())) {
                     Log.e(TAG, "selfCleaning step2->" + i + "success");
@@ -1248,7 +863,7 @@ public class JuRenProSerialPortHelper {
         mKey = DeviceAction.JuRenPro.ACTION_START;
         ++seq;
         for (int i = 0; i < killIntervalCount; i++) {
-            sendData1(mKey,INSTRUCTION_MODE);
+            sendData(mKey);
             SystemClock.sleep(50);
             if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("LgC1").equals(mWashStatusEvent.getText())) {
                 Log.e(TAG, "selfCleaning step3 success");
@@ -1271,7 +886,7 @@ public class JuRenProSerialPortHelper {
         mKey = DeviceAction.JuRenPro.ACTION_WARM;
         ++seq;
         for (int i = 0; i < killIntervalCount; i++) {
-            sendData1(mKey,INSTRUCTION_MODE);
+            sendData(mKey);
             SystemClock.sleep(50);
             if (mWashStatusEvent != null && mWashStatusEvent.isSetting() && ("tcL").equals(mWashStatusEvent.getText())) {
                 Log.e(TAG, "selfCleaning step4 success");
@@ -1294,9 +909,9 @@ public class JuRenProSerialPortHelper {
         mKey = DeviceAction.JuRenPro.ACTION_START;
         ++seq;
         for (int i = 0; i < killIntervalCount; i++) {
-            sendData1(mKey,INSTRUCTION_MODE);
+            sendData(mKey);
             SystemClock.sleep(50);
-            if (mWashStatusEvent != null && (mWashStatusEvent.getViewStep() == 1 || mWashStatusEvent.getViewStep() == 6) &&mWashStatusEvent.getWashMode() == 0x08) {
+            if (mWashStatusEvent != null && (mWashStatusEvent.getViewStep() == 1 || mWashStatusEvent.getViewStep() == 6) && mWashStatusEvent.getWashMode() == 0x08) {
                 Log.e(TAG, "selfCleaning success");
                 Observable.just(1)
                         .observeOn(AndroidSchedulers.mainThread())
@@ -1321,6 +936,8 @@ public class JuRenProSerialPortHelper {
                 return;
             }
         }
+        --seq;
+        sendStartOrStop();
     }
 
     /**
@@ -1365,45 +982,17 @@ public class JuRenProSerialPortHelper {
 //        mKey = DeviceAction.JuRenPro.ACTION_START;
 //        sendData(mKey, INSTRUCTION_MODE);
 //    }
-
-//    private void sendData(int key, int t) {
-//        byte[] msg;
-//        if (t == 1) {
-//            msg = new byte[]{0x02, 0x06, (byte) (key & 0xff), (byte) (seq & 0xff), (byte) 0x80, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03};
-//        } else {
-//            msg = new byte[]{0x02, 0x06, (byte) (key & 0xff), (byte) (seq & 0xff), (byte) 0x80, 0x20, 0, 1, 0, 0, 3};
-//        }
-//        short crc16_a = mCrc16.getCrc(msg, 0, msg.length - 3);
-//        msg[msg.length - 2] = (byte) (crc16_a >> 8);
-//        msg[msg.length - 3] = (byte) (crc16_a & 0xff);
-//        for (int i = 0; i < 8; i++) {
-//            try {
-//                mBufferedOutputStream.write(msg);
-//                mBufferedOutputStream.flush();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//            Log.e(TAG, "发送：" + MyFunc.ByteArrToHex(msg));
-//            try {
-//                Thread.sleep(50);
-//            } catch (InterruptedException ignored) {
-//            }
-//        }
-//        seq++;
-//    }
-    private void sendData1(int key, int t) {
-        byte[] msg;
-        if (t == 1) {//巨人+指令
-            msg = new byte[]{0x02, 0x06, (byte) (key & 0xff), (byte) (seq & 0xff), (byte) 0x80, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03};
-        } else {//巨人pro指令
-            msg = new byte[]{0x02, 0x06, (byte) (key & 0xff), (byte) (seq & 0xff), (byte) 0x80, 0x20, 0, 1, 0, 0, 3};
-        }
+    private void sendData(int key) {
+        msg[2] = (byte) (key & 0xff);
+        msg[3] = (byte) (seq & 0xff);
         short crc16_a = mCrc16.getCrc(msg, 0, msg.length - 3);
         msg[msg.length - 2] = (byte) (crc16_a >> 8);
         msg[msg.length - 3] = (byte) (crc16_a & 0xff);
         try {
-            mBufferedOutputStream.write(msg);
-            mBufferedOutputStream.flush();
+            if (mBufferedOutputStream != null) {
+                mBufferedOutputStream.write(msg);
+                mBufferedOutputStream.flush();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
