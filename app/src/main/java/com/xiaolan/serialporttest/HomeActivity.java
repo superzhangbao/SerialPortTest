@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
 import com.xiaolan.serialporttest.dryer.DryerActivity;
+import com.xiaolan.serialporttest.iot.IOTActivity;
 import com.xiaolan.serialporttest.mylib.DeviceEngine;
 import com.xiaolan.serialporttest.util1.MainActivity;
 import com.xiaolan.serialporttest.wash.juren.JuRenWashActivity;
@@ -25,7 +26,7 @@ public class HomeActivity extends AppCompatActivity {
         ButterKnife.bind(this);
     }
 
-    @OnClick({R.id.btn_wash_message, R.id.btn_juren_pro,R.id.btn_juren_plus, R.id.btn_juren,R.id.btn_xjl,R.id.btn_dryer})
+    @OnClick({R.id.btn_wash_message, R.id.btn_juren_pro,R.id.btn_juren_plus, R.id.btn_juren,R.id.btn_xjl,R.id.btn_dryer,R.id.btn_iot})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_wash_message:
@@ -50,6 +51,9 @@ public class HomeActivity extends AppCompatActivity {
             case R.id.btn_dryer:
                 DeviceEngine.getInstance().selectDevice(-1);
                 startActivity(new Intent(this,DryerActivity.class));
+                break;
+            case R.id.btn_iot:
+                startActivity(new Intent(this,IOTActivity.class));
                 break;
         }
     }

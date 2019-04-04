@@ -16,7 +16,17 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import com.aliyun.alink.linkkit.api.LinkKit;
+import com.aliyun.alink.linksdk.cmp.connect.channel.MqttPublishRequest;
+import com.aliyun.alink.linksdk.cmp.core.base.ARequest;
+import com.aliyun.alink.linksdk.cmp.core.base.AResponse;
+import com.aliyun.alink.linksdk.cmp.core.listener.IConnectSendListener;
+import com.aliyun.alink.linksdk.tools.AError;
+import com.aliyun.alink.linksdk.tools.log.IDGenerater;
+import com.xiaolan.serialporttest.App;
 import com.xiaolan.serialporttest.R;
+import com.xiaolan.serialporttest.event.InstrctionMode;
+import com.xiaolan.serialporttest.event.RRPCEvent;
 import com.xiaolan.serialporttest.mylib.DeviceAction;
 import com.xiaolan.serialporttest.mylib.DeviceEngine;
 import com.xiaolan.serialporttest.mylib.event.WashStatusEvent;
@@ -26,6 +36,10 @@ import com.xiaolan.serialporttest.mylib.listener.SerialPortOnlineListener;
 import com.xiaolan.serialporttest.mylib.utils.MyFunc;
 import com.xiaolan.serialporttest.util1.KeybordUtils;
 import com.xiaolan.serialporttest.util1.ToastUtil;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -78,6 +92,8 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
     private boolean mSuper = false;
     private int mBtnStatus = 0;
     private DispQueueThread2 mDispQueueThread2;
+    private int washStep = -1;
+    private int residueTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,15 +119,21 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
         DeviceEngine.getInstance().setOnCurrentStatusListener(this);
         //设置读取串口数据监听
         DeviceEngine.getInstance().setOnSerialPortOnlineListener(this);
+        EventBus.getDefault().register(this);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @SuppressLint("SetTextI18n")
     @OnClick({R.id.btn_finsh, R.id.btn_open_port, R.id.btn_clear, R.id.btn_hot,
             R.id.btn_warm, R.id.btn_cold, R.id.btn_soft, R.id.btn_super, R.id.btn_start_stop,
-            R.id.btn_kill, R.id.btn_setting,R.id.btn_reset,R.id.btn_self_cleaning})
+            R.id.btn_kill, R.id.btn_setting, R.id.btn_reset, R.id.btn_self_cleaning, R.id.btn_test})
     public void onViewClicked(View view) {
         switch (view.getId()) {
+            case R.id.btn_test:
+//                Observable.intervalRange(0, 5, 0, 3, TimeUnit.SECONDS)
+//                        .doOnNext(aLong -> updatePropertyValue(0, 0, false, "测试"))
+//                        .subscribe();
+                break;
             case R.id.btn_finsh:
                 boolean open = DeviceEngine.getInstance().isOpen();
                 if (open) {
@@ -119,7 +141,7 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
                         DeviceEngine.getInstance().close();
                     } catch (IOException e) {
                         e.printStackTrace();
-                    }finally {
+                    } finally {
                         finish();
                     }
                 }
@@ -390,10 +412,137 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
     public void currentStatus(Object washStatusEvent) {
         if (washStatusEvent instanceof WashStatusEvent) {
             WashStatusEvent washStatus = (WashStatusEvent) washStatusEvent;
+            int viewStep = washStatus.getViewStep();
+            int err = washStatus.getErr();
+            String text = washStatus.getText();
+            int washMode = washStatus.getWashMode();
+            int isWashing = washStatus.getIsWashing();
+            boolean isRunning = ((viewStep == 6 || viewStep == 7 || viewStep == 8 || viewStep == 1) && err == 0);
+            String topic;
+            if (err > 0) {//错误模式
+                topic = "error";
+                String payLoad = "EC" + text;
+                updatePropertyValue(payLoad, topic);
+            }
+            if (isRunning) {
+                if (isWashing == 0x40) {
+                    String payLoad = "";
+                    if (viewStep == 1) {
+                        topic = "runState";
+                        //洗衣模式
+                        switch (washMode) {
+                            case 0x02:
+                                payLoad = "MHo";
+                                break;
+                            case 0x03:
+                                payLoad = "MWa";
+                                break;
+                            case 0x04:
+                                payLoad = "MCo";
+                                break;
+                            case 0x05:
+                                payLoad = "MDe";
+                                break;
+                            case 0x08:
+                                payLoad = "MTo";
+                                break;
+                        }
+                        int lightSupper = washStatus.getLightSupper();
+                        if (lightSupper == 1) {
+                            payLoad = payLoad + "S";
+                        }
+                        updatePropertyValue(payLoad, topic);
+                    } else if (viewStep == 6 && washStep != viewStep) {
+                        washStep = viewStep;
+                        topic = "period";
+                        payLoad = "PW";
+                        updatePropertyValue(payLoad, topic);
+                    } else if (viewStep == 7 && washStep != viewStep) {
+                        washStep = viewStep;
+                        topic = "period";
+                        payLoad = "PR";
+                        updatePropertyValue(payLoad, topic);
+                    } else if (viewStep == 8 && washStep != viewStep) {
+                        washStep = viewStep;
+                        topic = "period";
+                        payLoad = "PE";
+                        updatePropertyValue(payLoad, topic);
+                    }
+                }
+
+                try {
+                    Integer time = Integer.valueOf(text);
+                    if (time != residueTime) {
+                        residueTime = time;
+                        topic = "remainTime";
+                        String payLoad = "T" + time;
+                        updatePropertyValue(payLoad, topic);
+                    }
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                }
+            }
             Log.e(TAG, "屏显：" + washStatus.getLogmsg().toString());
             mDispQueueThread2.AddQueue(washStatus);
         }
     }
+
+    private void updatePropertyValue(String payLoad, String topic) {
+        MqttPublishRequest request = new MqttPublishRequest();
+        // 支持 0 和 1， 默认0
+        request.qos = 1;
+        request.isRPC = false;
+        request.topic = "/" + App.productKey + "/" + App.deviceName + "/user/" + topic;//发布topic
+        request.msgId = String.valueOf(IDGenerater.generateId());
+        request.payloadObj = payLoad + ",123456789";
+        LinkKit.getInstance().publish(request, new IConnectSendListener() {
+            @Override
+            public void onResponse(ARequest aRequest, AResponse aResponse) {
+                Log.e(TAG, "onResponse() called with: aRequest = [" + aRequest + "], aResponse = [" + aResponse + "]");
+            }
+
+            @Override
+            public void onFailure(ARequest aRequest, AError aError) {
+                Log.e(TAG, "onFailure() called with: aRequest = [" + aRequest + "], aError = [" + aError.getCode() + "---" + aError.getMsg() + "]");
+            }
+        });
+    }
+
+    @Subscribe(threadMode = ThreadMode.POSTING)
+    public void onInstrctionMode(InstrctionMode instrctionMode) {
+        if (instrctionMode != null) {
+            int mode = instrctionMode.getInstrctionMode();
+            switch (mode) {
+                case 0:
+                    Log.e(TAG, "收到指令0");
+//                    try {
+//                        DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_KILL);
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+                    break;
+                case 1:
+                    Log.e(TAG, "收到指令1");
+//                    try {
+//                        DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_SELF_CLEANING);
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+                    break;
+                default:
+                    Log.e(TAG, "收到指令" + mode);
+                    break;
+            }
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.POSTING)
+    public void onRRPCEvent(RRPCEvent rrpcEvent) {
+        if (rrpcEvent != null) {
+            ToastUtil.show("收到RRPC消息");
+        }
+    }
+
 
     //----------------------------------------------------刷新显示线程
     private class DispQueueThread2 extends Thread {
@@ -429,6 +578,7 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        EventBus.getDefault().unregister(this);
         try {
             DeviceEngine.getInstance().close();
         } catch (IOException e) {

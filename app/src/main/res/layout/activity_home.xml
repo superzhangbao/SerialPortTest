@@ -35,4 +35,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="烘干机"/>
+    <Button
+        android:id="@+id/btn_iot"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="IOT测试页面"/>
 </LinearLayout>

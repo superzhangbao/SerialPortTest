@@ -16,7 +16,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        tools:ignore="GoogleAppIndexingWarning">
+        tools:ignore="GoogleAppIndexingWarning"
+        tools:replace="android:allowBackup">
         <activity android:name=".HomeActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -34,9 +35,9 @@
             android:name=".wash.juren.JuRenWashActivity"
             android:windowSoftInputMode="adjustUnspecified|stateHidden" />
         <activity android:name=".wash.xjl.XjlWashActivity" />
-        <activity android:name=".WaterActivity" />
         <activity android:name=".wash.jurenplus.JuRenPlusWashActivity" />
-        <activity android:name=".dryer.DryerActivity"></activity>
+        <activity android:name=".dryer.DryerActivity" />
+        <activity android:name=".iot.IOTActivity"></activity>
     </application>
 
 </manifest>

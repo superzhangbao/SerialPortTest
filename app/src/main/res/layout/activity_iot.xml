@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".iot.IOTActivity"
+    android:orientation="vertical">
+    <Button
+        android:id="@+id/initialize"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="初始化"
+        tools:layout_editor_absoluteX="288dp"
+        tools:layout_editor_absoluteY="2dp" />
+    <Button
+        android:id="@+id/send1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="发送上行消息 system"
+        tools:layout_editor_absoluteX="6dp"
+        tools:layout_editor_absoluteY="2dp" />
+    <Button
+        android:id="@+id/send2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="发送上行消息 error"
+        tools:layout_editor_absoluteX="6dp"
+        tools:layout_editor_absoluteY="2dp" />
+    <Button
+        android:id="@+id/send3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="发送下行消息 mode"
+        tools:layout_editor_absoluteX="6dp"
+        tools:layout_editor_absoluteY="2dp" />
+    <Button
+        android:id="@+id/send4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="发送下行消息 period"
+        tools:layout_editor_absoluteX="6dp"
+        tools:layout_editor_absoluteY="2dp" />
+    <Button
+        android:id="@+id/send5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="发送下行消息 order"
+        tools:layout_editor_absoluteX="6dp"
+        tools:layout_editor_absoluteY="2dp" />
+    <Button
+        android:id="@+id/send6"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="发送下行消息 remainTime"
+        tools:layout_editor_absoluteX="6dp"
+        tools:layout_editor_absoluteY="2dp" />
+    <Button
+        android:id="@+id/send7"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="发送下行消息 runState"
+        tools:layout_editor_absoluteX="6dp"
+        tools:layout_editor_absoluteY="2dp" />
+
+    <EditText
+        android:id="@+id/et"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+</LinearLayout>
