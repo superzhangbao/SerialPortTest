@@ -5,9 +5,12 @@ import android.support.multidex.MultiDex;
 import android.util.Log;
 
 import com.aliyun.alink.linksdk.tools.AError;
-import com.xiaolan.serialporttest.iot.IDemoCallback;
-import com.xiaolan.serialporttest.iot.InitManager;
+import com.xiaolan.iot.IDemoCallback;
+import com.xiaolan.iot.IotClient;
 import com.xiaolan.serialporttest.util1.ToastUtil;
+
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 
 public class App extends Application {
     private static final String TAG = "App";
@@ -22,7 +25,7 @@ public class App extends Application {
         MultiDex.install(this);
         ToastUtil.init(this);
 
-//        InitManager.registerDevice(this, productKey, deviceName, productSecret, new IConnectSendListener() {
+//        IotClient.getInstance().registerDevice(this, productKey, deviceName, productSecret, new IConnectSendListener() {
 //            @Override
 //            public void onResponse(ARequest aRequest, AResponse aResponse) {
 //                Log.e(TAG, "onResponse() called with: aRequest = [" + aRequest + "], aResponse = [" + (aResponse == null ? "null" : aResponse.data) + "]");
@@ -42,7 +45,7 @@ public class App extends Application {
 //                        // 用户需要按照实际场景持久化设备的三元组信息，用于后续的连接
 //                        SharedPreferences preferences = getSharedPreferences("deviceAuthInfo", 0);
 //                        SharedPreferences.Editor editor = preferences.edit();
-//                        editor.putString("deviceId", productKey+deviceName);
+//                        editor.putString("deviceId", productKey + deviceName);
 //                        editor.putString("deviceSecret", deviceSecret);
 //                        //提交当前数据
 //                        editor.commit();
@@ -53,11 +56,13 @@ public class App extends Application {
 //            @Override
 //            public void onFailure(ARequest aRequest, AError aError) {
 //                Log.e(TAG, "onFailure() called with: aRequest = [" + aRequest + "], aError = [" + aError + "]");
+//                ToastUtil.show("注册设备失败");
 //            }
 //        });
+
         if (!isInitDone) {
             connect();
-        }else {
+        } else {
             ToastUtil.show("已初始化");
         }
     }
@@ -65,21 +70,31 @@ public class App extends Application {
     private void connect() {
         Log.e(TAG, "connect() called");
         // SDK初始化
-        InitManager.init(this, productKey, deviceName, deviceSecret, productSecret, new IDemoCallback() {
-
+        IotClient.getInstance().init(this, productKey, deviceName, deviceSecret, productSecret, new IDemoCallback() {
             @Override
             public void onError(AError aError) {
                 Log.e(TAG, "onError() called with: aError = [" + aError + "]");
                 // 初始化失败，初始化失败之后需要用户负责重新初始化
                 // 如一开始网络不通导致初始化失败，后续网络回复之后需要重新初始化
-                ToastUtil.show("初始化失败");
+                Observable.just(1)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnNext(integer -> {
+                            ToastUtil.show("初始化失败");
+                            isInitDone = false;
+                        })
+                        .subscribe();
             }
 
             @Override
             public void onInitDone(Object data) {
                 Log.e(TAG, "onInitDone() called with: data = [" + data + "]");
-                ToastUtil.show("初始化成功");
-                isInitDone = true;
+                Observable.just(1)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnNext(integer -> {
+                            ToastUtil.show("初始化成功");
+                            isInitDone = true;
+                        })
+                        .subscribe();
             }
         });
     }

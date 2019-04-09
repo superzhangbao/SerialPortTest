@@ -37,7 +37,8 @@
         <activity android:name=".wash.xjl.XjlWashActivity" />
         <activity android:name=".wash.jurenplus.JuRenPlusWashActivity" />
         <activity android:name=".dryer.DryerActivity" />
-        <activity android:name=".iot.IOTActivity"></activity>
+        <activity android:name=".iot.IOTActivity"
+            android:windowSoftInputMode="adjustUnspecified|stateHidden"/>
     </application>
 
 </manifest>

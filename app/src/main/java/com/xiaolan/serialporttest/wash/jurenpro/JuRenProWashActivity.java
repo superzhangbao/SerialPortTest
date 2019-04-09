@@ -16,13 +16,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
-import com.aliyun.alink.linkkit.api.LinkKit;
-import com.aliyun.alink.linksdk.cmp.connect.channel.MqttPublishRequest;
-import com.aliyun.alink.linksdk.cmp.core.base.ARequest;
-import com.aliyun.alink.linksdk.cmp.core.base.AResponse;
-import com.aliyun.alink.linksdk.cmp.core.listener.IConnectSendListener;
-import com.aliyun.alink.linksdk.tools.AError;
-import com.aliyun.alink.linksdk.tools.log.IDGenerater;
+import com.xiaolan.iot.IotClient;
 import com.xiaolan.serialporttest.App;
 import com.xiaolan.serialporttest.R;
 import com.xiaolan.serialporttest.event.InstrctionMode;
@@ -49,6 +43,14 @@ import java.util.Queue;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+
+//import com.aliyun.alink.linkkit.api.LinkKit;
+//import com.aliyun.alink.linksdk.cmp.connect.channel.MqttPublishRequest;
+//import com.aliyun.alink.linksdk.cmp.core.base.ARequest;
+//import com.aliyun.alink.linksdk.cmp.core.base.AResponse;
+//import com.aliyun.alink.linksdk.cmp.core.listener.IConnectSendListener;
+//import com.aliyun.alink.linksdk.tools.AError;
+//import com.aliyun.alink.linksdk.tools.log.IDGenerater;
 
 /**
  * 巨人pro洗衣机页面
@@ -92,8 +94,6 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
     private boolean mSuper = false;
     private int mBtnStatus = 0;
     private DispQueueThread2 mDispQueueThread2;
-    private int washStep = -1;
-    private int residueTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -400,113 +400,56 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
         String s = MyFunc.ByteArrToHex(bytes);
         Log.e(TAG, "串口上线:" + s);
         Toast.makeText(this, "串口上线" + s, Toast.LENGTH_SHORT).show();
+        IotClient.getInstance().uploadRestoreError(App.productKey,App.deviceName,"O963147630");
     }
 
     @Override
     public void onSerialPortOffline(String msg) {
         Log.e(TAG, msg);
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+        IotClient.getInstance().uploadError(App.productKey,App.deviceName,"O963147630");
     }
 
     @Override
     public void currentStatus(Object washStatusEvent) {
         if (washStatusEvent instanceof WashStatusEvent) {
             WashStatusEvent washStatus = (WashStatusEvent) washStatusEvent;
+            int washMode = washStatus.getWashMode();
+            int lightSupper = washStatus.getLightSupper();
             int viewStep = washStatus.getViewStep();
             int err = washStatus.getErr();
             String text = washStatus.getText();
-            int washMode = washStatus.getWashMode();
-            int isWashing = washStatus.getIsWashing();
-            boolean isRunning = ((viewStep == 6 || viewStep == 7 || viewStep == 8 || viewStep == 1) && err == 0);
-            String topic;
-            if (err > 0) {//错误模式
-                topic = "error";
-                String payLoad = "EC" + text;
-                updatePropertyValue(payLoad, topic);
-            }
-            if (isRunning) {
-                if (isWashing == 0x40) {
-                    String payLoad = "";
-                    if (viewStep == 1) {
-                        topic = "runState";
-                        //洗衣模式
-                        switch (washMode) {
-                            case 0x02:
-                                payLoad = "MHo";
-                                break;
-                            case 0x03:
-                                payLoad = "MWa";
-                                break;
-                            case 0x04:
-                                payLoad = "MCo";
-                                break;
-                            case 0x05:
-                                payLoad = "MDe";
-                                break;
-                            case 0x08:
-                                payLoad = "MTo";
-                                break;
-                        }
-                        int lightSupper = washStatus.getLightSupper();
-                        if (lightSupper == 1) {
-                            payLoad = payLoad + "S";
-                        }
-                        updatePropertyValue(payLoad, topic);
-                    } else if (viewStep == 6 && washStep != viewStep) {
-                        washStep = viewStep;
-                        topic = "period";
-                        payLoad = "PW";
-                        updatePropertyValue(payLoad, topic);
-                    } else if (viewStep == 7 && washStep != viewStep) {
-                        washStep = viewStep;
-                        topic = "period";
-                        payLoad = "PR";
-                        updatePropertyValue(payLoad, topic);
-                    } else if (viewStep == 8 && washStep != viewStep) {
-                        washStep = viewStep;
-                        topic = "period";
-                        payLoad = "PE";
-                        updatePropertyValue(payLoad, topic);
-                    }
-                }
-
-                try {
-                    Integer time = Integer.valueOf(text);
-                    if (time != residueTime) {
-                        residueTime = time;
-                        topic = "remainTime";
-                        String payLoad = "T" + time;
-                        updatePropertyValue(payLoad, topic);
-                    }
-                } catch (NumberFormatException e) {
-                    e.printStackTrace();
-                }
-            }
+            String text2 = washStatus.getText2();
+            boolean isRunning = washStatus.getIsRunning();
+            boolean isError = washStatus.getIsError();
+            int period = washStatus.getPeriod();//洗衣阶段
+            //IOT去执行解析数据,上报数据
+            IotClient.getInstance().uploadWashRunning(isRunning,isError,period,washMode,lightSupper,viewStep,err,text,text2,"O963147630",App.productKey,App.deviceName);
             Log.e(TAG, "屏显：" + washStatus.getLogmsg().toString());
             mDispQueueThread2.AddQueue(washStatus);
         }
     }
 
-    private void updatePropertyValue(String payLoad, String topic) {
-        MqttPublishRequest request = new MqttPublishRequest();
-        // 支持 0 和 1， 默认0
-        request.qos = 1;
-        request.isRPC = false;
-        request.topic = "/" + App.productKey + "/" + App.deviceName + "/user/" + topic;//发布topic
-        request.msgId = String.valueOf(IDGenerater.generateId());
-        request.payloadObj = payLoad + ",123456789";
-        LinkKit.getInstance().publish(request, new IConnectSendListener() {
-            @Override
-            public void onResponse(ARequest aRequest, AResponse aResponse) {
-                Log.e(TAG, "onResponse() called with: aRequest = [" + aRequest + "], aResponse = [" + aResponse + "]");
-            }
-
-            @Override
-            public void onFailure(ARequest aRequest, AError aError) {
-                Log.e(TAG, "onFailure() called with: aRequest = [" + aRequest + "], aError = [" + aError.getCode() + "---" + aError.getMsg() + "]");
-            }
-        });
-    }
+//    private void updatePropertyValue(String payLoad, String topic) {
+//        MqttPublishRequest request = new MqttPublishRequest();
+//        // 支持 0 和 1， 默认0
+//        request.qos = 1;
+//        request.isRPC = false;
+//        request.topic = "/" + App.productKey + "/" + App.deviceName + "/user/" + topic;//发布topic
+//        request.msgId = String.valueOf(IDGenerater.generateId());
+//        request.payloadObj = payLoad + ",123456789";
+//        LinkKit.getInstance().publish(request, new IConnectSendListener() {
+//            @Override
+//            public void onResponse(ARequest aRequest, AResponse aResponse) {
+//                Log.e(TAG, "onResponse() called with: aRequest = [" + aRequest + "], aResponse = [" + aResponse + "]");
+//            }
+//
+//            @Override
+//            public void onFailure(ARequest aRequest, AError aError) {
+//                Log.e(TAG, "onFailure() called with: aRequest = [" + aRequest + "], aError = [" + aError.getCode() + "---" + aError.getMsg() + "]");
+//            }
+//        });
+//    }
 
     @Subscribe(threadMode = ThreadMode.POSTING)
     public void onInstrctionMode(InstrctionMode instrctionMode) {

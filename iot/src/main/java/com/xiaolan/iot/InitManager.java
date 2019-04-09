@@ -1,4 +1,4 @@
-package com.xiaolan.serialporttest.iot;
+package com.xiaolan.iot;
 
 import android.content.Context;
 import android.util.Log;

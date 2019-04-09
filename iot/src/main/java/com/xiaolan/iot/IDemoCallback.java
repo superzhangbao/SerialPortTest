@@ -1,4 +1,4 @@
-package com.xiaolan.serialporttest.iot;
+package com.xiaolan.iot;
 
 import com.aliyun.alink.linkkit.api.ILinkKitConnectListener;
 

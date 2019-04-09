@@ -13,12 +13,15 @@ import com.aliyun.alink.linksdk.cmp.core.base.AResponse
 import com.aliyun.alink.linksdk.cmp.core.base.ConnectState
 import com.aliyun.alink.linksdk.cmp.core.listener.IConnectNotifyListener
 import com.aliyun.alink.linksdk.cmp.core.listener.IConnectSendListener
+import com.aliyun.alink.linksdk.cmp.core.listener.IConnectSubscribeListener
 import com.aliyun.alink.linksdk.tools.AError
-import com.aliyun.alink.linksdk.tools.log.IDGenerater
+import com.xiaolan.iot.IDemoCallback
+import com.xiaolan.iot.IotClient
 import com.xiaolan.serialporttest.App
-import com.xiaolan.serialporttest.App.*
+import com.xiaolan.serialporttest.App.CONNECT_ID
 import com.xiaolan.serialporttest.R
 import com.xiaolan.serialporttest.event.RRPCEvent
+import com.xiaolan.serialporttest.util1.KeybordUtils
 import com.xiaolan.serialporttest.util1.ToastUtil
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -32,58 +35,64 @@ import java.util.concurrent.TimeUnit
 /**
  * 测试IOT
  */
-class IOTActivity : AppCompatActivity(), View.OnClickListener, IConnectNotifyListener {
+class IOTActivity : AppCompatActivity(), View.OnClickListener, IConnectNotifyListener, IConnectSendListener {
+
     override fun onClick(v: View?) {
         when (v?.id) {
             R.id.initialize -> {
-                if (!TextUtils.isEmpty(deviceSecret)) {
-                    if(!App.isInitDone) {
+                if (!TextUtils.isEmpty(App.deviceSecret)) {
+                    if (!App.isInitDone) {
                         connect()
-                    }else{
+                    } else {
                         ToastUtil.show("已初始化")
                     }
                 }
             }
             R.id.send1 -> {
-//                Observable.intervalRange(0, 5, 0, 1000, TimeUnit.MILLISECONDS)
-//                        .doOnNext { aLong -> updatePropertyValue(0, 1, false, "测试topic1___$aLong", "pub") }
-////                        .subscribe()
                 Observable.intervalRange(0, 1, 0, 1000, TimeUnit.MILLISECONDS)
-                        .doOnNext { aLong -> updatePropertyValue(0, 1, false, "SVe1.0", "system") }
+                        .doOnNext { IotClient.getInstance().uploadData(App.productKey, App.deviceName, "system", "SVe1.0,O123456789", this) }
                         .subscribe()
-
             }
             R.id.send2 -> {
-//                Observable.intervalRange(0, 5, 0, 1000, TimeUnit.MILLISECONDS)
-//                        .doOnNext { aLong -> updatePropertyValue(0, 1, false, "测试topic1___$aLong", "pub1") }
-//                        .subscribe()
-                Observable.intervalRange(0, 1, 0, 1000, TimeUnit.MILLISECONDS)
-                        .doOnNext { aLong -> updatePropertyValue(0, 1, false, "EC1E", "error") }
+                Observable.just(1)
+                        .doOnNext { IotClient.getInstance().uploadData(App.productKey, App.deviceName, "error", "EC1E,O123456789", this) }
+                        .subscribe()
+                Observable.just(1)
+                        .doOnNext { IotClient.getInstance().uploadData(App.productKey, App.deviceName, "error", "ECdE,O123456789", this) }
+                        .subscribe()
+                Observable.just(1)
+                        .doOnNext { IotClient.getInstance().uploadData(App.productKey, App.deviceName, "error", "ECUE,O123456789", this) }
+                        .subscribe()
+                Observable.just(1)
+                        .doOnNext { IotClient.getInstance().uploadData(App.productKey, App.deviceName, "error", "ECUN,O123456789", this) }
+                        .subscribe()
+                Observable.just(1)
+                        .doOnNext { IotClient.getInstance().uploadData(App.productKey, App.deviceName, "error", "ECDX,O123456789", this) }
                         .subscribe()
             }
-            R.id.send3->{
+            R.id.send3 -> {
                 Observable.intervalRange(0, 1, 0, 1000, TimeUnit.MILLISECONDS)
-                        .doOnNext { aLong -> updatePropertyValue(0, 1, false, "MHo", "mode") }
+                        .doOnNext { IotClient.getInstance().uploadData(App.productKey, App.deviceName, "mode", "MHo,O123456789", this) }
                         .subscribe()
             }
-            R.id.send4->{
+            R.id.send4 -> {
                 Observable.intervalRange(0, 1, 0, 1000, TimeUnit.MILLISECONDS)
-                        .doOnNext { aLong -> updatePropertyValue(0, 1, false, "PW", "period") }
+                        .doOnNext { IotClient.getInstance().uploadData(App.productKey, App.deviceName, "period", "PW,O123456789", this) }
                         .subscribe()
             }
-            R.id.send5->{
+            R.id.send5 -> {
                 Observable.intervalRange(0, 1, 0, 1000, TimeUnit.MILLISECONDS)
-                        .doOnNext { aLong -> updatePropertyValue(0, 1, false, "O123456789", "order") }
+                        .doOnNext { IotClient.getInstance().uploadData(App.productKey, App.deviceName, "order", "COr,O123456789", this) }
                         .subscribe()
             }
-            R.id.send6->{
+            R.id.send6 -> {
                 Observable.intervalRange(0, 1, 0, 1000, TimeUnit.MILLISECONDS)
-                        .doOnNext { aLong -> updatePropertyValue(0, 1, false, "T32", "remainTime") }
+                        .doOnNext { IotClient.getInstance().uploadData(App.productKey, App.deviceName, "remainTime", "T32,O123456789", this) }
                         .subscribe()
             }
-            R.id.send7->{
+            R.id.send7 -> {
                 Observable.intervalRange(0, 1, 0, 1000, TimeUnit.MILLISECONDS)
-                        .doOnNext { aLong -> updatePropertyValue(0, 1, false, "RR", "runState") }
+                        .doOnNext { IotClient.getInstance().uploadData(App.productKey, App.deviceName, "runState", "RR,O123456789", this) }
                         .subscribe()
             }
         }
@@ -98,6 +107,7 @@ class IOTActivity : AppCompatActivity(), View.OnClickListener, IConnectNotifyLis
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_iot)
+        KeybordUtils.isSoftInputShow(this)
         EventBus.getDefault().register(this)
         mDispQueueThread = DispQueueThread()
         mDispQueueThread?.start()
@@ -110,44 +120,39 @@ class IOTActivity : AppCompatActivity(), View.OnClickListener, IConnectNotifyLis
         send5.setOnClickListener(this)
         send6.setOnClickListener(this)
         send7.setOnClickListener(this)
-        LinkKit.getInstance().registerOnPushListener(this)
+        IotClient.getInstance().registerOnPushListener(this)
     }
 
 
     private fun connect() {
         Log.e(TAG, "connect() called")
         // SDK初始化
-        InitManager.init(this, productKey, deviceName, deviceSecret, productSecret, object : IDemoCallback {
-            override fun onError(aError: AError) {
+        IotClient.getInstance().init(this, App.productKey, App.deviceName, App.deviceSecret, App.productSecret, object : IDemoCallback {
+            override fun onInitDone(data: Any?) {
+                Log.e(TAG, "onInitDone() called with: data = [$data]")
+                Observable.just(1)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnNext { ToastUtil.show("初始化成功") }
+                        .subscribe()
+                IotClient.getInstance().subscribe(object : IConnectSubscribeListener {
+                    override fun onSuccess() {
+                        ToastUtil.show("订阅成功")
+                    }
+
+                    override fun onFailure(p0: AError?) {
+                        ToastUtil.show("订阅成功")
+                    }
+                }, "/a1KiHgH1DKF/cs101/user/sub2", "/a1KiHgH1DKF/cs101/user/sub")
+            }
+
+            override fun onError(aError: AError?) {
                 Log.e(TAG, "onError() called with: aError = [$aError]")
                 // 初始化失败，初始化失败之后需要用户负责重新初始化
                 // 如一开始网络不通导致初始化失败，后续网络回复之后需要重新初始化
                 Observable.just(1)
                         .observeOn(AndroidSchedulers.mainThread())
-                        .doOnNext { integer -> ToastUtil.show("初始化失败") }
+                        .doOnNext { ToastUtil.show("初始化失败") }
                         .subscribe()
-            }
-
-            override fun onInitDone(data: Any) {
-                Log.e(TAG, "onInitDone() called with: data = [$data]")
-                Observable.just(1)
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .doOnNext { integer -> ToastUtil.show("初始化成功") }
-                        .subscribe()
-                // 订阅
-//                val subscribeRequest = MqttSubscribeRequest()
-//                // subTopic 替换成用户自己需要订阅的 topic
-//                subscribeRequest.topic = "/a1KiHgH1DKF/cs101/user/sub2"
-//                subscribeRequest.topic = "/a1KiHgH1DKF/cs101/user/sub"
-//                subscribeRequest.isSubscribe = true
-//                LinkKit.getInstance().subscribe(subscribeRequest, object : IConnectSubscribeListener {
-//
-//                    override fun onSuccess() = ToastUtil.show("订阅成功")
-//
-//                    override fun onFailure(p0: AError?) {
-//                        ToastUtil.show("订阅失败")
-//                    }
-//                })
             }
         })
     }
@@ -181,7 +186,7 @@ class IOTActivity : AppCompatActivity(), View.OnClickListener, IConnectNotifyLis
             val resId = topic.substring(topic.indexOf("rrpc/request/") + 13)
             request.msgId = resId
             // TODO 用户根据实际情况填写 仅做参考
-            request.payloadObj = "RL,"+System.currentTimeMillis()+",O123456789"
+            request.payloadObj = "RL," + System.currentTimeMillis() + ",O123456789"
             LinkKit.getInstance().publish(request, object : IConnectSendListener {
                 override fun onResponse(aRequest: ARequest, aResponse: AResponse) {
                     Log.e(TAG, "返回topic成功 =======onResponse() called with: aRequest = [$aRequest], aResponse = [$aResponse]")
@@ -223,29 +228,37 @@ class IOTActivity : AppCompatActivity(), View.OnClickListener, IConnectNotifyLis
         }
     }
 
-    private fun updatePropertyValue(viewStep: Int, washMode: Int, isRunning: Boolean, text: String, topic: String) {
-        val request = MqttPublishRequest()
-        // 支持 0 和 1， 默认0
-        request.qos = 1
-        request.isRPC = false
-        request.topic = "/"+App.productKey+"/" + App.deviceName + "/user/$topic"//发布topic
-        val resId = IDGenerater.generateId().toString()
-        request.msgId = resId
-        // TODO 用户根据实际情况填写 仅做参考
-//        val wash = Wash(viewStep.toLong(), washMode.toLong(), isRunning, text)
-
-        request.payloadObj = "$text,O123456789"
-        Log.e(TAG,"走了")
-        LinkKit.getInstance().publish(request, object : IConnectSendListener {
-            override fun onResponse(aRequest: ARequest, aResponse: AResponse) {
-                Log.e(TAG, "onResponse() called with: aRequest = [$aRequest], aResponse = [$aResponse] ,topic = [$topic]")
-            }
-
-            override fun onFailure(aRequest: ARequest, aError: AError) {
-                Log.e(TAG, "onFailure() called with: aRequest = [" + aRequest + "], aError = [" + aError.code + "---" + aError.msg + "]")
-            }
-        })
+    override fun onResponse(aRequest: ARequest?, aResponse: AResponse?) {
+        Log.e(TAG, "onResponse() called with: aRequest = [$aRequest], aResponse = [$aResponse]")
     }
+
+
+    override fun onFailure(aRequest: ARequest?, aError: AError?) {
+        Log.e(TAG, "onFailure() called with: aRequest = [" + aRequest + "], aError = [" + aError?.code + "---" + aError?.msg + "]")
+    }
+
+
+//    private fun updatePropertyValue(viewStep: Int, washMode: Int, isRunning: Boolean, text: String, topic: String) {
+//        val request = MqttPublishRequest()
+//        // 支持 0 和 1， 默认0
+//        request.qos = 1
+//        request.isRPC = false
+//        request.topic = "/"+App.productKey+"/" + App.deviceName + "/user/$topic"//发布topic
+//        val resId = IDGenerater.generateId().toString()
+//        request.msgId = resId
+//        // TODO 用户根据实际情况填写 仅做参考
+////        val wash = Wash(viewStep.toLong(), washMode.toLong(), isRunning, text)
+//        request.payloadObj = "$text,O123456789"
+//        Log.e(TAG,"走了")
+//        LinkKit.getInstance().publish(request, object : IConnectSendListener {
+//            override fun onResponse(aRequest: ARequest, aResponse: AResponse) {
+//            }
+//
+//            override fun onFailure(aRequest: ARequest, aError: AError) {
+//
+//            }
+//        })
+//    }
 
     //----------------------------------------------------刷新显示线程
     private inner class DispQueueThread : Thread() {

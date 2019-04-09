@@ -1,4 +1,4 @@
-package com.xiaolan.serialporttest.mylib.event;
+package com.xiaolan.iot;
 
 /**
  * 洗衣机状态类
@@ -18,15 +18,9 @@ public class WashStatusEvent {
     private String text;
     private String text2;
 
-    private boolean isRunning;
-    private boolean isError;
-    private boolean isIdle;
-    private int period; //洗衣阶段  0,洗涤 1,漂洗 2,脱水 3,桶自洁
-
     private StringBuilder logmsg;
 
-    public WashStatusEvent() {
-    }
+    public WashStatusEvent() {}
 
     public WashStatusEvent(boolean isSetting, int washMode, int lights1, int lights2, int lights3, int lightSupper, int lightlock, int isWashing, int viewStep, int err, int msgInt, String text, String text2, StringBuilder logmsg) {
         this.isSetting = isSetting;
@@ -155,42 +149,6 @@ public class WashStatusEvent {
 
     public void setLogmsg(StringBuilder logmsg) {
         this.logmsg = logmsg;
-    }
-
-    public void setIsRunning(boolean isRunning) {
-        this.isRunning = isRunning;
-    }
-
-    public boolean getIsRunning() {
-        return isRunning;
-    }
-
-    public void setIsError(boolean isError) {
-        this.isError = isError;
-    }
-
-    public boolean getIsError() {
-        return isError;
-    }
-
-    public void setIsIdle(boolean isIdle) {
-         this.isIdle = isIdle;
-    }
-
-    public boolean getIsIdle() {
-        return isIdle;
-    }
-
-    /**
-     * 洗衣阶段
-     * @param period 0,洗涤 1,漂洗 2,脱水
-     */
-    public void setWashPeriod(int period) {
-        this.period = period;
-    }
-
-    public int getPeriod() {
-        return period;
     }
 
     @Override
