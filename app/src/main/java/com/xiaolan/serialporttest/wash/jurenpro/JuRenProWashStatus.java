@@ -220,7 +220,7 @@ public class JuRenProWashStatus {
      * 判断是否处于运行状态
      */
     public boolean isRunning() {//mViewStep == 2是暂停状态
-        return (mViewStep == 6 || mViewStep == 7 || mViewStep == 8 || mViewStep == 2 || mViewStep == 1 ||mViewStep == 0x0a) && mErr == 0;
+        return (mViewStep == 6 || mViewStep == 7 || mViewStep == 8 || mViewStep == 2||mViewStep == 0x0a) && mErr == 0;
     }
 
     public int getPeriod(int viewStep) {

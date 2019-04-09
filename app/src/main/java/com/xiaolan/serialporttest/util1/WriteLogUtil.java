@@ -28,7 +28,7 @@ public class WriteLogUtil {
             Date now = new Date();
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
             String sDate = dateFormat.format(now);
-            fw.write(sDate + " : " + log + "\r\n");
+            fw.write(sDate + " : ==" + log + "\r\n");
             fw.flush();
         } catch (IOException e) {
             e.printStackTrace();

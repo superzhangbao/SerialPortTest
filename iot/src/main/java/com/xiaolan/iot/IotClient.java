@@ -122,32 +122,34 @@ public class IotClient implements IConnectSendListener {
 
     /**
      * 上报错误，主要用来单独上报串口掉线
+     *
      * @param productKey  产品类型
      * @param deviceName  设备名称
      * @param orderNumber 订单号
      */
     public void uploadError(String productKey, String deviceName, String orderNumber) {
-        uploadData(productKey,deviceName,TopicManager.ERROR_TOPIC,getWash()+"DX,"+orderNumber,this);
+        uploadData(productKey, deviceName, TopicManager.ERROR_TOPIC, getWash() + "DX," + orderNumber, this);
     }
 
     /**
-     *错误恢复，主要用来单独上报串口上线
+     * 错误恢复，主要用来单独上报串口上线
+     *
      * @param productKey  产品类型
      * @param deviceName  设备名称
      * @param orderNumber 订单号
      */
     public void uploadRestoreError(String productKey, String deviceName, String orderNumber) {
         if (TextUtils.isEmpty(orderNumber)) {
-            uploadData(productKey,deviceName,TopicManager.ERROR_TOPIC,getWash()+"REr",this);
-        }else {
-            uploadData(productKey,deviceName,TopicManager.ERROR_TOPIC,getWash()+"REr,"+orderNumber,this);
+            uploadData(productKey, deviceName, TopicManager.ERROR_TOPIC, "REr", this);
+        } else {
+            uploadData(productKey, deviceName, TopicManager.ERROR_TOPIC, "REr," + orderNumber, this);
         }
     }
 
     /**
      * 上报洗衣机状态等数据
      */
-    public void uploadWashRunning(boolean isRunning, boolean isError, int period, int washMode, int lightSupper, int viewStep, int err, String text, String text2, String orderNumber, String productKey, String deviceName) {
+    public synchronized void uploadWashRunning(boolean isRunning, boolean isError, int period, int washMode, int lightSupper, int viewStep, int err, String text, String text2, String orderNumber, String productKey, String deviceName) {
         uploadRemainTime(text, text2, orderNumber, productKey, deviceName);//上报时间
         if (isError) {//错误模式
             mPreIsError = true;
@@ -168,13 +170,13 @@ public class IotClient implements IConnectSendListener {
                     break;
             }
             uploadData(productKey, deviceName, TopicManager.ERROR_TOPIC, payload, this);//故障topic
-            Log.e(TAG,"发送了故障topic----"+TopicManager.ERROR_TOPIC);
+            Log.e(TAG, "发送了故障topic----" + TopicManager.ERROR_TOPIC);
         } else if (isRunning) {//运行状态
             //发送故障恢复topic
             if (mPreIsError) {
                 mPreIsError = false;
                 uploadData(productKey, deviceName, TopicManager.RESTOREERROR_TOPIC, "REr," + orderNumber, this);
-                Log.e(TAG,"发送了故障恢复topic----"+TopicManager.RESTOREERROR_TOPIC+"="+err);
+                Log.e(TAG, "发送了故障恢复topic----" + TopicManager.RESTOREERROR_TOPIC + "=" + err);
             }
             String payload;
             switch (period) {
@@ -183,7 +185,7 @@ public class IotClient implements IConnectSendListener {
                         mPrePeriod = period;
                         payload = "PW," + orderNumber;
                         uploadData(productKey, deviceName, TopicManager.PERIOD_TOPIC, payload, this);
-                        Log.e(TAG,"发送了阶段topic----"+TopicManager.PERIOD_TOPIC+"=PW");
+                        Log.e(TAG, "发送了阶段topic----" + TopicManager.PERIOD_TOPIC + "=PW");
                     }
                     break;
                 case 1://漂洗状态
@@ -191,7 +193,7 @@ public class IotClient implements IConnectSendListener {
                         mPrePeriod = period;
                         payload = "PR," + orderNumber;
                         uploadData(productKey, deviceName, TopicManager.PERIOD_TOPIC, payload, this);
-                        Log.e(TAG,"发送了阶段topic----"+TopicManager.PERIOD_TOPIC+"=PR");
+                        Log.e(TAG, "发送了阶段topic----" + TopicManager.PERIOD_TOPIC + "=PR");
                     }
                     break;
                 case 2://脱水状态
@@ -199,7 +201,7 @@ public class IotClient implements IConnectSendListener {
                         mPrePeriod = period;
                         payload = "PE," + orderNumber;
                         uploadData(productKey, deviceName, TopicManager.PERIOD_TOPIC, payload, this);
-                        Log.e(TAG,"发送了阶段topic----"+TopicManager.PERIOD_TOPIC+"=PE");
+                        Log.e(TAG, "发送了阶段topic----" + TopicManager.PERIOD_TOPIC + "=PE");
                     }
                     break;
                 default:
@@ -211,70 +213,69 @@ public class IotClient implements IConnectSendListener {
                     mPreRunStatus = 4;
                     payload = "RP," + orderNumber;
                     uploadData(productKey, deviceName, TopicManager.RUNSTATUS_TOPIC, payload, this);
-                    Log.e(TAG,"发送了运行状态topic----"+TopicManager.RUNSTATUS_TOPIC+"=RP");
+                    Log.e(TAG, "发送了运行状态topic----" + TopicManager.RUNSTATUS_TOPIC + "=RP");
                 }
-            } else if (viewStep == 0x0a) {//运行完成
-                //发送运行完成
-                if (mPreRunStatus != 2) {
-                    mPreRunStatus = 2;
-                    payload = "RF," + orderNumber;
-                    uploadData(productKey, deviceName, TopicManager.RUNSTATUS_TOPIC, payload, this);
-                    Log.e(TAG,"发送了运行状态topic----"+TopicManager.RUNSTATUS_TOPIC+"=RF");
-                }
-                //重置状态
-                reset();
             } else {
                 //发送运行中
                 if (mPreRunStatus != 1) {//运行中
                     mPreRunStatus = 1;
                     payload = "RR," + orderNumber;
                     uploadData(productKey, deviceName, TopicManager.RUNSTATUS_TOPIC, payload, this);
-                    Log.e(TAG,"发送了运行状态topic----"+TopicManager.RUNSTATUS_TOPIC+"=RR");
+                    Log.e(TAG, "发送了运行状态topic----" + TopicManager.RUNSTATUS_TOPIC + "=RR");
                     if (!mIsSendMode) {
                         mIsSendMode = true;
                         //洗衣模式
                         switch (washMode) {
                             case 0x02://热水
                                 if (lightSupper == 1) {
-                                    payload = "MHoS"+ orderNumber;//热水加强
+                                    payload = "MHoS" + orderNumber;//热水加强
                                 } else {
-                                    payload = "MHo"+ orderNumber;
+                                    payload = "MHo" + orderNumber;
                                 }
                                 Log.e(TAG, "洗衣模式：" + "热水");
                                 break;
                             case 0x03://温水
                                 if (lightSupper == 1) {
-                                    payload = "MWaS"+ orderNumber;//温水加强
+                                    payload = "MWaS" + orderNumber;//温水加强
                                 } else {
-                                    payload = "MWa"+ orderNumber;
+                                    payload = "MWa" + orderNumber;
                                 }
                                 Log.e(TAG, "洗衣模式：" + "温水");
                                 break;
                             case 0x04://冷水
                                 if (lightSupper == 1) {
-                                    payload = "MCoS"+ orderNumber;//冷水加强
+                                    payload = "MCoS" + orderNumber;//冷水加强
                                 } else {
-                                    payload = "MCo"+ orderNumber;
+                                    payload = "MCo" + orderNumber;
                                 }
                                 break;
                             case 0x05://轻柔
-                                payload = "MDe"+ orderNumber;
+                                payload = "MDe" + orderNumber;
                                 break;
                             case 0x08://桶自洁
-                                payload = "MTo"+ orderNumber;
+                                payload = "MTo" + orderNumber;
                                 break;
                         }
                         uploadData(productKey, deviceName, TopicManager.MODE_TOPIC, payload, this);
-                        Log.e(TAG,"发送了模式topic----"+TopicManager.MODE_TOPIC+"="+payload);
+                        Log.e(TAG, "发送了模式topic----" + TopicManager.MODE_TOPIC + "=" + payload);
                     }
                 }
             }
         } else {//空闲状态
-            if (mPreRunStatus != 3) {//空闲
-                String payload = "RI," + orderNumber;
-                mPreRunStatus = 3;
+            //发送运行完成
+            if (mPreRunStatus == 1) {
+                mPreRunStatus = 2;
+                String payload = "RF," + orderNumber;
                 uploadData(productKey, deviceName, TopicManager.RUNSTATUS_TOPIC, payload, this);
-                Log.e(TAG,"发送了运行状态topic----"+TopicManager.RUNSTATUS_TOPIC+"=RI");
+                Log.e(TAG, "发送了运行状态topic----" + TopicManager.RUNSTATUS_TOPIC + "=RF");
+                //重置状态
+                reset();
+            }
+            if (mPreRunStatus != 3) {//空闲
+                mPreRunStatus = 3;
+                String payload = "RI," + orderNumber;
+                uploadData(productKey, deviceName, TopicManager.RUNSTATUS_TOPIC, payload, this);
+                Log.e(TAG, "发送了运行状态topic----" + TopicManager.RUNSTATUS_TOPIC + "=RI");
             }
         }
     }
@@ -288,7 +289,7 @@ public class IotClient implements IConnectSendListener {
             if (time != mPreTime) {
                 String payLoad = "T" + time + "," + orderNumber;
                 uploadData(productKey, deviceName, TopicManager.REMAINTIME_TOPIC, payLoad, IotClient.this);
-                Log.e(TAG,"发送了上报时间topic----"+TopicManager.REMAINTIME_TOPIC+"剩余时间="+time);
+                Log.e(TAG, "发送了上报时间topic----" + TopicManager.REMAINTIME_TOPIC + "剩余时间=" + time);
                 mPreTime = time;
                 if (mTimeDispos != null && !mTimeDispos.isDisposed()) {
                     mTimeDispos.dispose();
@@ -301,14 +302,14 @@ public class IotClient implements IConnectSendListener {
                                 if (aLong == 121) {//120s 剩余时间无变化直接上报
                                     String payLoad = "T" + time + "," + orderNumber;
                                     uploadData(productKey, deviceName, TopicManager.REMAINTIME_TOPIC, payLoad, IotClient.this);
-                                    Log.e(TAG,"发送了上报时间topic----"+TopicManager.REMAINTIME_TOPIC+"剩余时间="+time+"(120s 上报)");
+                                    Log.e(TAG, "发送了上报时间topic----" + TopicManager.REMAINTIME_TOPIC + "剩余时间=" + time + "(120s 上报)");
                                 }
                             }
                         });
             }
         } catch (NumberFormatException e) {
             e.printStackTrace();
-            Log.e(TAG,"剩余时间解析错误");
+            Log.e(TAG, "剩余时间解析错误");
         }
     }
 
@@ -339,6 +340,6 @@ public class IotClient implements IConnectSendListener {
         if (mTimeDispos != null && !mTimeDispos.isDisposed()) {
             mTimeDispos.dispose();
         }
-        Log.e(TAG,"已重置状态");
+        Log.e(TAG, "已重置状态");
     }
 }
