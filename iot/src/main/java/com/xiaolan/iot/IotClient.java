@@ -128,6 +128,7 @@ public class IotClient implements IConnectSendListener {
      */
     public void uploadError(String productKey, String deviceName, String orderNumber) {
         uploadData(productKey, deviceName, TopicManager.ERROR_TOPIC, getWash() + "DX," + orderNumber, this);
+        Log.e(TAG, "发送了故障topic----" + TopicManager.ERROR_TOPIC+"DX");
     }
 
     /**
@@ -139,10 +140,11 @@ public class IotClient implements IConnectSendListener {
      */
     public void uploadRestoreError(String productKey, String deviceName, String orderNumber) {
         if (TextUtils.isEmpty(orderNumber)) {
-            uploadData(productKey, deviceName, TopicManager.ERROR_TOPIC, "REr", this);
+            uploadData(productKey, deviceName, TopicManager.RESTOREERROR_TOPIC, "REr", this);
         } else {
-            uploadData(productKey, deviceName, TopicManager.ERROR_TOPIC, "REr," + orderNumber, this);
+            uploadData(productKey, deviceName, TopicManager.RESTOREERROR_TOPIC, "REr," + orderNumber, this);
         }
+        Log.e(TAG, "发送了故障恢复topic----" + TopicManager.RESTOREERROR_TOPIC + "=DX");
     }
 
     /**
@@ -174,7 +176,7 @@ public class IotClient implements IConnectSendListener {
                 if (!TextUtils.isEmpty(text) && text.equals("h1LL")) {//判断是设置模式且当屏显是h1LL的时候
                     mPreRunStatus = 5;
                     uploadData(productKey, deviceName, TopicManager.RUNSTATUS_TOPIC, "RK," + orderNumber, this);
-                    Log.e(TAG, "发送了运行状态topic----" + TopicManager.RUNSTATUS_TOPIC + "=" + err);
+                    Log.e(TAG, "发送了运行状态topic----" + TopicManager.RUNSTATUS_TOPIC + "=RK");
                 }
             }else {
                 uploadRemainTime(text, text2, orderNumber, productKey, deviceName);//运行中开始上报时间
