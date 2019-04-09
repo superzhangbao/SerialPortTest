@@ -27,12 +27,10 @@ public class IotClient implements IConnectSendListener {
 
     private int mPrePeriod = -1;//之前的洗衣阶段
     private boolean mPreIsError = false;//之前是否错误
-    private boolean mPreIsRunning = false;//之前是否运行中的状态
     private int mPreRunStatus = -1;//0锁定 1运行中 2运行完成 3空闲 4暂停 5kill
     private boolean mIsSendMode = false;//是否上报过mode
     private int mPreTime = -1;
     private Disposable mTimeDispos;
-    private Long countDownTime;//120s倒计时
 
     private IotClient() {
     }
@@ -150,8 +148,7 @@ public class IotClient implements IConnectSendListener {
     /**
      * 上报洗衣机状态等数据
      */
-    public synchronized void uploadWashRunning(boolean isRunning, boolean isError, int period, int washMode, int lightSupper, int viewStep, int err, String text, String text2, String orderNumber, String productKey, String deviceName) {
-        uploadRemainTime(text, text2, orderNumber, productKey, deviceName);//上报时间
+    public synchronized void uploadWashRunning(int isWashing, boolean isRunning, boolean isError, int period, int washMode, int lightSupper, int viewStep, int err, String text, String text2, String orderNumber, String productKey, String deviceName) {
         if (isError) {//错误模式
             mPreIsError = true;
             String payload;
@@ -172,107 +169,115 @@ public class IotClient implements IConnectSendListener {
             }
             uploadData(productKey, deviceName, TopicManager.ERROR_TOPIC, payload, this);//故障topic
             Log.e(TAG, "发送了故障topic----" + TopicManager.ERROR_TOPIC);
-        } else if (isRunning) {//运行状态
-            //发送故障恢复topic
-            if (mPreIsError) {
-                mPreIsError = false;
-                uploadData(productKey, deviceName, TopicManager.RESTOREERROR_TOPIC, "REr," + orderNumber, this);
-                Log.e(TAG, "发送了故障恢复topic----" + TopicManager.RESTOREERROR_TOPIC + "=" + err);
-            }
-            String payload;
-            switch (period) {
-                case 0://洗涤状态
-                    if (mPrePeriod != period) {
-                        mPrePeriod = period;
-                        payload = "PW," + orderNumber;
-                        uploadData(productKey, deviceName, TopicManager.PERIOD_TOPIC, payload, this);
-                        Log.e(TAG, "发送了阶段topic----" + TopicManager.PERIOD_TOPIC + "=PW");
-                    }
-                    break;
-                case 1://漂洗状态
-                    if (mPrePeriod != period) {
-                        mPrePeriod = period;
-                        payload = "PR," + orderNumber;
-                        uploadData(productKey, deviceName, TopicManager.PERIOD_TOPIC, payload, this);
-                        Log.e(TAG, "发送了阶段topic----" + TopicManager.PERIOD_TOPIC + "=PR");
-                    }
-                    break;
-                case 2://脱水状态
-                    if (mPrePeriod != period) {
-                        mPrePeriod = period;
-                        payload = "PE," + orderNumber;
-                        uploadData(productKey, deviceName, TopicManager.PERIOD_TOPIC, payload, this);
-                        Log.e(TAG, "发送了阶段topic----" + TopicManager.PERIOD_TOPIC + "=PE");
-                    }
-                    break;
-                default:
-                    mPrePeriod = -1;
-                    break;
-            }
-            if (viewStep == 2) {//暂停
-                if (mPreRunStatus != 4) {//暂停
-                    mPreRunStatus = 4;
-                    payload = "RP," + orderNumber;
-                    uploadData(productKey, deviceName, TopicManager.RUNSTATUS_TOPIC, payload, this);
-                    Log.e(TAG, "发送了运行状态topic----" + TopicManager.RUNSTATUS_TOPIC + "=RP");
-                }
-            } else if (viewStep == 0x0a) {
-                //发送运行完成
-                if (mPreRunStatus == 1) {
-                    mPreRunStatus = 2;
-                    payload = "RF," + orderNumber;
-                    uploadData(productKey, deviceName, TopicManager.RUNSTATUS_TOPIC, payload, this);
-                    Log.e(TAG, "发送了运行状态topic----" + TopicManager.RUNSTATUS_TOPIC + "=RF");
-                    //重置状态
-                    reset();
+        } else if (isRunning) {//运行中状态
+            if (isWashing == 10) {//设置模式
+                if (!TextUtils.isEmpty(text) && text.equals("h1LL")) {//判断是设置模式且当屏显是h1LL的时候
+                    uploadData(productKey, deviceName, TopicManager.RUNSTATUS_TOPIC, "RK," + orderNumber, this);
+                    Log.e(TAG, "发送了运行状态topic----" + TopicManager.RUNSTATUS_TOPIC + "=" + err);
                 }
             }else {
-                //发送运行中
-                if (mPreRunStatus != 1) {//运行中
-                    mPreRunStatus = 1;
-                    payload = "RR," + orderNumber;
-                    uploadData(productKey, deviceName, TopicManager.RUNSTATUS_TOPIC, payload, this);
-                    Log.e(TAG, "发送了运行状态topic----" + TopicManager.RUNSTATUS_TOPIC + "=RR");
-                    if (!mIsSendMode) {
-                        mIsSendMode = true;
-                        //洗衣模式
-                        switch (washMode) {
-                            case 0x02://热水
-                                if (lightSupper == 1) {
-                                    payload = "MHoS," + orderNumber;//热水加强
-                                } else {
-                                    payload = "MHo," + orderNumber;
-                                }
-                                Log.e(TAG, "洗衣模式：" + "热水");
-                                break;
-                            case 0x03://温水
-                                if (lightSupper == 1) {
-                                    payload = "MWaS," + orderNumber;//温水加强
-                                } else {
-                                    payload = "MWa," + orderNumber;
-                                }
-                                Log.e(TAG, "洗衣模式：" + "温水");
-                                break;
-                            case 0x04://冷水
-                                if (lightSupper == 1) {
-                                    payload = "MCoS," + orderNumber;//冷水加强
-                                } else {
-                                    payload = "MCo," + orderNumber;
-                                }
-                                break;
-                            case 0x05://轻柔
-                                payload = "MDe," + orderNumber;
-                                break;
-                            case 0x08://桶自洁
-                                payload = "MTo," + orderNumber;
-                                break;
+                uploadRemainTime(text, text2, orderNumber, productKey, deviceName);//运行中开始上报时间
+                //发送故障恢复topic
+                if (mPreIsError) {
+                    mPreIsError = false;
+                    uploadData(productKey, deviceName, TopicManager.RESTOREERROR_TOPIC, "REr," + orderNumber, this);
+                    Log.e(TAG, "发送了故障恢复topic----" + TopicManager.RESTOREERROR_TOPIC + "=" + err);
+                }
+
+                String payload;
+                switch (period) {
+                    case 0://洗涤状态
+                        if (mPrePeriod != period) {
+                            mPrePeriod = period;
+                            payload = "PW," + orderNumber;
+                            uploadData(productKey, deviceName, TopicManager.PERIOD_TOPIC, payload, this);
+                            Log.e(TAG, "发送了阶段topic----" + TopicManager.PERIOD_TOPIC + "=PW");
                         }
-                        uploadData(productKey, deviceName, TopicManager.MODE_TOPIC, payload, this);
-                        Log.e(TAG, "发送了模式topic----" + TopicManager.MODE_TOPIC + "=" + payload);
+                        break;
+                    case 1://漂洗状态
+                        if (mPrePeriod != period) {
+                            mPrePeriod = period;
+                            payload = "PR," + orderNumber;
+                            uploadData(productKey, deviceName, TopicManager.PERIOD_TOPIC, payload, this);
+                            Log.e(TAG, "发送了阶段topic----" + TopicManager.PERIOD_TOPIC + "=PR");
+                        }
+                        break;
+                    case 2://脱水状态
+                        if (mPrePeriod != period) {
+                            mPrePeriod = period;
+                            payload = "PE," + orderNumber;
+                            uploadData(productKey, deviceName, TopicManager.PERIOD_TOPIC, payload, this);
+                            Log.e(TAG, "发送了阶段topic----" + TopicManager.PERIOD_TOPIC + "=PE");
+                        }
+                        break;
+                    default:
+                        mPrePeriod = -1;
+                        break;
+                }
+                if (viewStep == 2) {//暂停
+                    if (mPreRunStatus != 4) {//暂停
+                        mPreRunStatus = 4;
+                        payload = "RP," + orderNumber;
+                        uploadData(productKey, deviceName, TopicManager.RUNSTATUS_TOPIC, payload, this);
+                        Log.e(TAG, "发送了运行状态topic----" + TopicManager.RUNSTATUS_TOPIC + "=RP");
+                    }
+                } else if (viewStep == 0x0a) {
+                    //发送运行完成
+                    if (mPreRunStatus == 1) {
+                        mPreRunStatus = 2;
+                        payload = "RF," + orderNumber;
+                        uploadData(productKey, deviceName, TopicManager.RUNSTATUS_TOPIC, payload, this);
+                        Log.e(TAG, "发送了运行状态topic----" + TopicManager.RUNSTATUS_TOPIC + "=RF");
+                        //重置状态
+                        reset();
+                    }
+                }else {
+                    //发送运行中
+                    if (mPreRunStatus != 1) {//运行中
+                        mPreRunStatus = 1;
+                        payload = "RR," + orderNumber;
+                        uploadData(productKey, deviceName, TopicManager.RUNSTATUS_TOPIC, payload, this);
+                        Log.e(TAG, "发送了运行状态topic----" + TopicManager.RUNSTATUS_TOPIC + "=RR");
+                        if (!mIsSendMode) {
+                            mIsSendMode = true;
+                            //洗衣模式
+                            switch (washMode) {
+                                case 0x02://热水
+                                    if (lightSupper == 1) {
+                                        payload = "MHoS," + orderNumber;//热水加强
+                                    } else {
+                                        payload = "MHo," + orderNumber;
+                                    }
+                                    Log.e(TAG, "洗衣模式：" + "热水");
+                                    break;
+                                case 0x03://温水
+                                    if (lightSupper == 1) {
+                                        payload = "MWaS," + orderNumber;//温水加强
+                                    } else {
+                                        payload = "MWa," + orderNumber;
+                                    }
+                                    Log.e(TAG, "洗衣模式：" + "温水");
+                                    break;
+                                case 0x04://冷水
+                                    if (lightSupper == 1) {
+                                        payload = "MCoS," + orderNumber;//冷水加强
+                                    } else {
+                                        payload = "MCo," + orderNumber;
+                                    }
+                                    break;
+                                case 0x05://轻柔
+                                    payload = "MDe," + orderNumber;
+                                    break;
+                                case 0x08://桶自洁
+                                    payload = "MTo," + orderNumber;
+                                    break;
+                            }
+                            uploadData(productKey, deviceName, TopicManager.MODE_TOPIC, payload, this);
+                            Log.e(TAG, "发送了模式topic----" + TopicManager.MODE_TOPIC + "=" + payload);
+                        }
                     }
                 }
             }
-
         } else {//空闲状态
             if (mPreRunStatus != 3) {//空闲
                 mPreRunStatus = 3;
@@ -336,7 +341,6 @@ public class IotClient implements IConnectSendListener {
     private void reset() {
         mPrePeriod = -1;//之前的洗衣阶段
         mPreIsError = false;//之前是否错误
-        mPreIsRunning = false;//之前是否运行中的
         mPreRunStatus = -1;//0锁定 1运行中 2运行完成
         mIsSendMode = false;//是否上报过mode
         //结束计时
