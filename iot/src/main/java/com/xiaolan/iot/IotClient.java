@@ -29,7 +29,7 @@ public class IotClient implements IConnectSendListener {
     private boolean mPreIsError = false;//之前是否错误
     private int mPreRunStatus = -1;//0锁定 1运行中 2运行完成 3空闲 4暂停 5kill
     private boolean mIsSendMode = false;//是否上报过mode
-    private int mPreTime = -1;
+    private int mPreTime = -1;//上次的时间
     private Disposable mTimeDispos;
 
     private IotClient() {
@@ -172,6 +172,7 @@ public class IotClient implements IConnectSendListener {
         } else if (isRunning) {//运行中状态
             if (isWashing == 10) {//设置模式
                 if (!TextUtils.isEmpty(text) && text.equals("h1LL")) {//判断是设置模式且当屏显是h1LL的时候
+                    mPreRunStatus = 5;
                     uploadData(productKey, deviceName, TopicManager.RUNSTATUS_TOPIC, "RK," + orderNumber, this);
                     Log.e(TAG, "发送了运行状态topic----" + TopicManager.RUNSTATUS_TOPIC + "=" + err);
                 }
