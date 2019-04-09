@@ -117,6 +117,7 @@ public class IotClient implements IConnectSendListener {
         mqttPublishRequest.topic = "/" + productKey + "/" + deviceName + "/user/" + topic;//发布topic
         mqttPublishRequest.msgId = String.valueOf(IDGenerater.generateId());
         mqttPublishRequest.payloadObj = payload;
+        Log.e(TAG,"msgId:"+mqttPublishRequest.msgId);
         LinkKit.getInstance().publish(mqttPublishRequest, iConnectSendListener);
     }
 
@@ -228,32 +229,32 @@ public class IotClient implements IConnectSendListener {
                         switch (washMode) {
                             case 0x02://热水
                                 if (lightSupper == 1) {
-                                    payload = "MHoS" + orderNumber;//热水加强
+                                    payload = "MHoS," + orderNumber;//热水加强
                                 } else {
-                                    payload = "MHo" + orderNumber;
+                                    payload = "MHo," + orderNumber;
                                 }
                                 Log.e(TAG, "洗衣模式：" + "热水");
                                 break;
                             case 0x03://温水
                                 if (lightSupper == 1) {
-                                    payload = "MWaS" + orderNumber;//温水加强
+                                    payload = "MWaS," + orderNumber;//温水加强
                                 } else {
-                                    payload = "MWa" + orderNumber;
+                                    payload = "MWa," + orderNumber;
                                 }
                                 Log.e(TAG, "洗衣模式：" + "温水");
                                 break;
                             case 0x04://冷水
                                 if (lightSupper == 1) {
-                                    payload = "MCoS" + orderNumber;//冷水加强
+                                    payload = "MCoS," + orderNumber;//冷水加强
                                 } else {
-                                    payload = "MCo" + orderNumber;
+                                    payload = "MCo," + orderNumber;
                                 }
                                 break;
                             case 0x05://轻柔
-                                payload = "MDe" + orderNumber;
+                                payload = "MDe," + orderNumber;
                                 break;
                             case 0x08://桶自洁
-                                payload = "MTo" + orderNumber;
+                                payload = "MTo," + orderNumber;
                                 break;
                         }
                         uploadData(productKey, deviceName, TopicManager.MODE_TOPIC, payload, this);
@@ -261,6 +262,7 @@ public class IotClient implements IConnectSendListener {
                     }
                 }
             }
+
         } else {//空闲状态
             //发送运行完成
             if (mPreRunStatus == 1) {
