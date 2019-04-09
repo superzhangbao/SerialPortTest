@@ -28,7 +28,6 @@ import android_serialport_api.SerialPort;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
 public class XjlSerialPortHelper {
@@ -145,6 +144,9 @@ public class XjlSerialPortHelper {
             mBufferedOutputStream.close();
             mBufferedOutputStream = null;
         }
+        mCurrentStatusListener = null;
+        mOnSendInstructionListener = null;
+        mSerialPortOnlineListener = null;
         isOnline = false;
         hasOnline = false;
         readThreadStartTime = 0;
@@ -1059,7 +1061,7 @@ public class XjlSerialPortHelper {
     }
 
     private class ReadThread extends Thread {
-        private static final int DATA_LENGTH = 64;
+        private final int DATA_LENGTH = 64;
 
         @Override
         public void run() {

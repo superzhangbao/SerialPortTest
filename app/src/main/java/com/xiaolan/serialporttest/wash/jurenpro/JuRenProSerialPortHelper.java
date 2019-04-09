@@ -139,6 +139,9 @@ public class JuRenProSerialPortHelper {
             mBufferedOutputStream.close();
             mBufferedOutputStream = null;
         }
+        mOnSendInstructionListener = null;
+        mSerialPortOnlineListener = null;
+        mCurrentStatusListener = null;
         isOnline = false;
         hasOnline = false;
         readThreadStartTime = 0;
@@ -146,7 +149,7 @@ public class JuRenProSerialPortHelper {
     }
 
     private class ReadThread extends Thread {
-        private static final int DATA_LENGTH = 64;
+        private final int DATA_LENGTH = 64;
 
         @Override
         public void run() {

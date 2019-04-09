@@ -417,7 +417,7 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
             int isWashing = washStatus.getIsWashing();
             int period = washStatus.getPeriod();//洗衣阶段
             //IOT去执行解析数据,上报数据
-            IotClient.getInstance().uploadWashRunning(isWashing,isRunning,isError,period,washMode,lightSupper,viewStep,err,text,text2,"O963147630",App.productKey,App.deviceName);
+            IotClient.getInstance().uploadWashRunning("1.0",isWashing,isRunning,isError,period,washMode,lightSupper,viewStep,err,text,text2,"O963147630",App.productKey,App.deviceName);
             Log.e(TAG, "屏显：" + washStatus.getLogmsg().toString());
             mDispQueueThread2.AddQueue(washStatus);
         }

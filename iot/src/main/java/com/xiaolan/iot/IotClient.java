@@ -115,7 +115,7 @@ public class IotClient implements IConnectSendListener {
         mqttPublishRequest.topic = "/" + productKey + "/" + deviceName + "/user/" + topic;//发布topic
         mqttPublishRequest.msgId = String.valueOf(IDGenerater.generateId());
         mqttPublishRequest.payloadObj = payload;
-        Log.e(TAG,"msgId:"+mqttPublishRequest.msgId);
+        Log.e(TAG, "msgId:" + mqttPublishRequest.msgId);
         LinkKit.getInstance().publish(mqttPublishRequest, iConnectSendListener);
     }
 
@@ -148,7 +148,7 @@ public class IotClient implements IConnectSendListener {
     /**
      * 上报洗衣机状态等数据
      */
-    public synchronized void uploadWashRunning(int isWashing, boolean isRunning, boolean isError, int period, int washMode, int lightSupper, int viewStep, int err, String text, String text2, String orderNumber, String productKey, String deviceName) {
+    public synchronized void uploadWashRunning(final String version, int isWashing, boolean isRunning, boolean isError, int period, int washMode, int lightSupper, int viewStep, int err, String text, String text2, final String orderNumber, final String productKey, final String deviceName) {
         if (isError) {//错误模式
             mPreIsError = true;
             String payload;
@@ -176,7 +176,7 @@ public class IotClient implements IConnectSendListener {
                     uploadData(productKey, deviceName, TopicManager.RUNSTATUS_TOPIC, "RK," + orderNumber, this);
                     Log.e(TAG, "发送了运行状态topic----" + TopicManager.RUNSTATUS_TOPIC + "=" + err);
                 }
-            }else {
+            } else {
                 uploadRemainTime(text, text2, orderNumber, productKey, deviceName);//运行中开始上报时间
                 //发送故障恢复topic
                 if (mPreIsError) {
@@ -232,7 +232,7 @@ public class IotClient implements IConnectSendListener {
                         //重置状态
                         reset();
                     }
-                }else {
+                } else {
                     //发送运行中
                     if (mPreRunStatus != 1) {//运行中
                         mPreRunStatus = 1;
@@ -273,8 +273,21 @@ public class IotClient implements IConnectSendListener {
                                     payload = "MTo," + orderNumber;
                                     break;
                             }
-                            uploadData(productKey, deviceName, TopicManager.MODE_TOPIC, payload, this);
-                            Log.e(TAG, "发送了模式topic----" + TopicManager.MODE_TOPIC + "=" + payload);
+                            final String finalPayload = payload;
+                            Observable.intervalRange(1, 2, 1, 1, TimeUnit.SECONDS)
+                                    .doOnNext(new Consumer<Long>() {
+                                        @Override
+                                        public void accept(Long aLong) {
+                                            if (aLong == 1) {
+                                                uploadData(productKey, deviceName, TopicManager.MODE_TOPIC, finalPayload, IotClient.this);
+                                                Log.e(TAG, "发送了模式topic----" + TopicManager.MODE_TOPIC + "=" + finalPayload);
+                                            } else {
+                                                uploadData(productKey, deviceName, TopicManager.SYSTEM_TOPIC, "SVe" + version + "," + orderNumber, IotClient.this);
+                                                Log.e(TAG, "发送了系统topic----" + TopicManager.SYSTEM_TOPIC + "=" + "SVe" + version + "," + orderNumber);
+                                            }
+                                        }
+                                    })
+                                    .subscribe();
                         }
                     }
                 }

@@ -29,7 +29,6 @@ import android_serialport_api.SerialPort;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
 /**
@@ -134,6 +133,9 @@ public class JuRenPlusSerialPortHelper {
             mBufferedOutputStream.close();
             mBufferedOutputStream = null;
         }
+        mCurrentStatusListener = null;
+        mOnSendInstructionListener = null;
+        mSerialPortOnlineListener = null;
         isOnline = false;
         hasOnline = false;
         readThreadStartTime = 0;
@@ -141,7 +143,7 @@ public class JuRenPlusSerialPortHelper {
     }
 
     private class ReadThread extends Thread {
-        private static final int DATA_LENGTH = 64;
+        private final int DATA_LENGTH = 64;
 
         @Override
         public void run() {
@@ -163,7 +165,7 @@ public class JuRenPlusSerialPortHelper {
                         if (len != -1) {
 //                            Log.e("buffer", "len:" + len + "值：" + MyFunc.ByteArrToHex(buffer));
                             if (len >= 30) {
-                                //读巨人洗衣机上报报文
+                                //读巨人+洗衣机上报报文
                                 JuRenPlusWashRead(buffer, len);
                             }
                         }

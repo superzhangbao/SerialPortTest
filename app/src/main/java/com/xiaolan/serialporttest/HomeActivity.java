@@ -24,6 +24,8 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         ButterKnife.bind(this);
+        SelectDeviceHelper selectDeviceHelper = new SelectDeviceHelper();
+        selectDeviceHelper.checkSendSetting();
     }
 
     @OnClick({R.id.btn_wash_message, R.id.btn_juren_pro,R.id.btn_juren_plus, R.id.btn_juren,R.id.btn_xjl,R.id.btn_dryer,R.id.btn_iot})
