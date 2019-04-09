@@ -216,7 +216,17 @@ public class IotClient implements IConnectSendListener {
                     uploadData(productKey, deviceName, TopicManager.RUNSTATUS_TOPIC, payload, this);
                     Log.e(TAG, "发送了运行状态topic----" + TopicManager.RUNSTATUS_TOPIC + "=RP");
                 }
-            } else {
+            } else if (viewStep == 0x0a) {
+                //发送运行完成
+                if (mPreRunStatus == 1) {
+                    mPreRunStatus = 2;
+                    payload = "RF," + orderNumber;
+                    uploadData(productKey, deviceName, TopicManager.RUNSTATUS_TOPIC, payload, this);
+                    Log.e(TAG, "发送了运行状态topic----" + TopicManager.RUNSTATUS_TOPIC + "=RF");
+                    //重置状态
+                    reset();
+                }
+            }else {
                 //发送运行中
                 if (mPreRunStatus != 1) {//运行中
                     mPreRunStatus = 1;
@@ -264,15 +274,6 @@ public class IotClient implements IConnectSendListener {
             }
 
         } else {//空闲状态
-            //发送运行完成
-            if (mPreRunStatus == 1) {
-                mPreRunStatus = 2;
-                String payload = "RF," + orderNumber;
-                uploadData(productKey, deviceName, TopicManager.RUNSTATUS_TOPIC, payload, this);
-                Log.e(TAG, "发送了运行状态topic----" + TopicManager.RUNSTATUS_TOPIC + "=RF");
-                //重置状态
-                reset();
-            }
             if (mPreRunStatus != 3) {//空闲
                 mPreRunStatus = 3;
                 String payload = "RI," + orderNumber;

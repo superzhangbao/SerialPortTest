@@ -44,14 +44,6 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-//import com.aliyun.alink.linkkit.api.LinkKit;
-//import com.aliyun.alink.linksdk.cmp.connect.channel.MqttPublishRequest;
-//import com.aliyun.alink.linksdk.cmp.core.base.ARequest;
-//import com.aliyun.alink.linksdk.cmp.core.base.AResponse;
-//import com.aliyun.alink.linksdk.cmp.core.listener.IConnectSendListener;
-//import com.aliyun.alink.linksdk.tools.AError;
-//import com.aliyun.alink.linksdk.tools.log.IDGenerater;
-
 /**
  * 巨人pro洗衣机页面
  */
