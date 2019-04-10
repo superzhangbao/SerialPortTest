@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Random;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -86,6 +87,7 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
     private boolean mSuper = false;
     private int mBtnStatus = 0;
     private DispQueueThread2 mDispQueueThread2;
+    private String orderNumber = "O11111111111";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -392,14 +394,14 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
         String s = MyFunc.ByteArrToHex(bytes);
         Log.e(TAG, "串口上线:" + s);
         Toast.makeText(this, "串口上线" + s, Toast.LENGTH_SHORT).show();
-        IotClient.getInstance().uploadRestoreError(App.productKey,App.deviceName,"O963147630");
+        IotClient.getInstance().uploadRestoreError(App.productKey,App.deviceName,orderNumber);
     }
 
     @Override
     public void onSerialPortOffline(String msg) {
         Log.e(TAG, msg);
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-        IotClient.getInstance().uploadError(App.productKey,App.deviceName,"O963147630");
+        IotClient.getInstance().uploadError(App.productKey,App.deviceName,orderNumber);
     }
 
     @Override
@@ -417,7 +419,7 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
             int isWashing = washStatus.getIsWashing();
             int period = washStatus.getPeriod();//洗衣阶段
             //IOT去执行解析数据,上报数据
-            IotClient.getInstance().uploadWashRunning("1.0",isWashing,isRunning,isError,period,washMode,lightSupper,viewStep,err,text,text2,"O963147630",App.productKey,App.deviceName);
+            IotClient.getInstance().uploadWashRunning("1.0",isWashing,isRunning,isError,period,washMode,lightSupper,viewStep,err,text,text2,orderNumber,App.productKey,App.deviceName);
             Log.e(TAG, "屏显：" + washStatus.getLogmsg().toString());
             mDispQueueThread2.AddQueue(washStatus);
         }

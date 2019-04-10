@@ -37,7 +37,7 @@ import io.reactivex.schedulers.Schedulers;
  */
 
 public class JuRenProSerialPortHelper {
-    private static final String TAG = "JuRenProSerialPort";
+    private final String TAG = this.getClass().getSimpleName();
     private SerialPort mSerialPort;
     private OutputStream mOutputStream;
     private InputStream mInputStream;
@@ -1056,6 +1056,7 @@ public class JuRenProSerialPortHelper {
                 break;
             case DeviceAction.JuRenPro.ACTION_SETTING:
                 if (mSettingDisposable != null && !mSettingDisposable.isDisposed()) {
+                    Log.e(TAG,"JuRenPro SettingDisposable.dispose()");
                     mSettingDisposable.dispose();
                 }
                 break;

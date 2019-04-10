@@ -2,6 +2,7 @@ package com.xiaolan.serialporttest.mylib;
 
 import com.xiaolan.serialporttest.dryer.DeviceEngineDryerService;
 import com.xiaolan.serialporttest.dryer.DryerManager;
+import com.xiaolan.serialporttest.mylib.event.WashStatusEvent;
 import com.xiaolan.serialporttest.mylib.listener.CurrentStatusListener;
 import com.xiaolan.serialporttest.mylib.listener.OnSendInstructionListener;
 import com.xiaolan.serialporttest.mylib.listener.SerialPortOnlineListener;
@@ -15,7 +16,7 @@ import java.io.IOException;
 /**
  * 提供给外部使用的设备管理引擎
  */
-public class DeviceEngine {
+public class DeviceEngine implements OnSendInstructionListener {
 
     private static DeviceEngineIService DEVICE_ENGINE_ISERVICE = null;
 
@@ -28,9 +29,30 @@ public class DeviceEngine {
         return DeviceEngineHolder.DEVICE_ENGINE;
     }
 
+    @Override
+    public void sendInstructionSuccess(int key, WashStatusEvent washStatusEvent) {
+
+    }
+
+    @Override
+    public void sendInstructionFail(int key, String message) {
+
+    }
+
 
     private static class DeviceEngineHolder {
         private static final DeviceEngine DEVICE_ENGINE = new DeviceEngine();
+    }
+
+    public void checkDevice() {
+        DEVICE_ENGINE_ISERVICE =XjlWashManager.getInstance();
+        XjlWashManager.getInstance().setOnSendInstructionListener(this);
+        try {
+            XjlWashManager.getInstance().open();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        XjlWashManager.getInstance().push(DeviceAction.JuRenPro.ACTION_SETTING);
     }
 
     public void selectDevice(int model) {

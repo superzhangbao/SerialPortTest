@@ -31,7 +31,7 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 public class XjlSerialPortHelper {
-    private static final String TAG = "XjlSerialPortHelper";
+    private final String TAG = this.getClass().getSimpleName();
 
     private SerialPort mSerialPort;
     private OutputStream mOutputStream;
@@ -48,7 +48,7 @@ public class XjlSerialPortHelper {
     private CRC16 mCrc16;
     private static final int SHOW_LENGTH = 30;
     private byte[] mPreMsg = new byte[SHOW_LENGTH];
-    private int seq = -1;
+    private int seq;
     private int mKey;
     private OnSendInstructionListener mOnSendInstructionListener;
     private SerialPortOnlineListener mSerialPortOnlineListener;
@@ -121,7 +121,6 @@ public class XjlSerialPortHelper {
 
     public void close() throws IOException {
         _isOpen = false;
-        dispose(mKey);
         if (mReadThread != null)
             mReadThread.interrupt();
         if (mSerialPort != null) {
@@ -150,6 +149,7 @@ public class XjlSerialPortHelper {
         isOnline = false;
         hasOnline = false;
         readThreadStartTime = 0;
+        dispose(mKey);
     }
 
     /**
@@ -1047,6 +1047,7 @@ public class XjlSerialPortHelper {
             case DeviceAction.Xjl.ACTION_SETTING:
                 if (mSettingDisposable != null && !mSettingDisposable.isDisposed()) {
                     mSettingDisposable.dispose();
+                    Log.e(TAG,"Xjl SettingDisposable.dispose()");
                 }
                 break;
             case DeviceAction.Xjl.ACTION_RESET:
@@ -1202,25 +1203,25 @@ public class XjlSerialPortHelper {
 
         switch (key) {
             case DeviceAction.Xjl.ACTION_START:
-                Log.e(TAG, "sendData: =====================================KEY_START");
+                Log.e(TAG, "sendData: "+MyFunc.ByteArrToHex(msg)+"====================KEY_START");
                 break;
             case DeviceAction.Xjl.ACTION_MODE1:
-                Log.e(TAG, "sendData: =====================================KEY_HOT");
+                Log.e(TAG, "sendData: "+MyFunc.ByteArrToHex(msg)+"====================KEY_HOT");
                 break;
             case DeviceAction.Xjl.ACTION_MODE2:
-                Log.e(TAG, "sendData: =====================================KEY_WARM");
+                Log.e(TAG, "sendData: "+MyFunc.ByteArrToHex(msg)+"====================KEY_WARM");
                 break;
             case DeviceAction.Xjl.ACTION_MODE3:
-                Log.e(TAG, "sendData: =====================================KEY_COLD");
+                Log.e(TAG, "sendData: "+MyFunc.ByteArrToHex(msg)+"====================KEY_COLD");
                 break;
             case DeviceAction.Xjl.ACTION_MODE4:
-                Log.e(TAG, "sendData: =====================================KEY_DELICATES");
+                Log.e(TAG, "sendData: "+MyFunc.ByteArrToHex(msg)+"====================KEY_DELICATES");
                 break;
             case DeviceAction.Xjl.ACTION_SUPER:
-                Log.e(TAG, "sendData: =====================================KEY_SUPER");
+                Log.e(TAG, "sendData: "+MyFunc.ByteArrToHex(msg)+"====================KEY_SUPER");
                 break;
             case DeviceAction.Xjl.ACTION_SETTING:
-                Log.e(TAG, "sendData: =====================================KEY_SETTING");
+                Log.e(TAG, "sendData: "+MyFunc.ByteArrToHex(msg)+"====================KEY_SETTING");
                 break;
         }
     }

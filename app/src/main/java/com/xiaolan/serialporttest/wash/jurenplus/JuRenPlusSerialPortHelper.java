@@ -36,7 +36,7 @@ import io.reactivex.schedulers.Schedulers;
  */
 
 public class JuRenPlusSerialPortHelper {
-    private static final String TAG = "JuRenProSerialPort";
+    private final String TAG = this.getClass().getSimpleName();
     private SerialPort mSerialPort;
     private OutputStream mOutputStream;
     private InputStream mInputStream;
@@ -571,12 +571,13 @@ public class JuRenPlusSerialPortHelper {
                             if (mOnSendInstructionListener != null) {
                                 mOnSendInstructionListener.sendInstructionSuccess(DeviceAction.JuRenPlus.ACTION_SETTING, mWashStatusEvent);
                             }
-                        } else {
-                            Log.e(TAG, "setting mode error");
-                            if (mOnSendInstructionListener != null) {
-                                mOnSendInstructionListener.sendInstructionFail(DeviceAction.JuRenPlus.ACTION_SETTING, "setting mode error");
-                            }
                         }
+//                        else {
+//                            Log.e(TAG, "setting mode error");
+//                            if (mOnSendInstructionListener != null) {
+//                                mOnSendInstructionListener.sendInstructionFail(DeviceAction.JuRenPlus.ACTION_SETTING, "setting mode error");
+//                            }
+//                        }
                     }
                 })
                 .onErrorResumeNext(throwable -> {
@@ -1063,6 +1064,7 @@ public class JuRenPlusSerialPortHelper {
                 break;
             case DeviceAction.JuRenPlus.ACTION_SETTING:
                 if (mSettingDisposable != null && !mSettingDisposable.isDisposed()) {
+                    Log.e(TAG,"JuRenPlus SettingDisposable.dispose()");
                     mSettingDisposable.dispose();
                 }
                 break;
