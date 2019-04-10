@@ -7,12 +7,15 @@ import android.view.View;
 
 import com.xiaolan.serialporttest.dryer.DryerActivity;
 import com.xiaolan.serialporttest.iot.IOTActivity;
+import com.xiaolan.serialporttest.mylib.DeviceAction;
 import com.xiaolan.serialporttest.mylib.DeviceEngine;
 import com.xiaolan.serialporttest.util1.MainActivity;
 import com.xiaolan.serialporttest.wash.juren.JuRenWashActivity;
 import com.xiaolan.serialporttest.wash.jurenplus.JuRenPlusWashActivity;
 import com.xiaolan.serialporttest.wash.jurenpro.JuRenProWashActivity;
 import com.xiaolan.serialporttest.wash.xjl.XjlWashActivity;
+
+import java.io.IOException;
 
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -24,11 +27,10 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         ButterKnife.bind(this);
-        SelectDeviceHelper selectDeviceHelper = new SelectDeviceHelper();
-        selectDeviceHelper.checkSendSetting();
     }
 
-    @OnClick({R.id.btn_wash_message, R.id.btn_juren_pro,R.id.btn_juren_plus, R.id.btn_juren,R.id.btn_xjl,R.id.btn_dryer,R.id.btn_iot})
+    @OnClick({R.id.btn_wash_message, R.id.btn_juren_pro,R.id.btn_juren_plus, R.id.btn_juren,
+            R.id.btn_xjl,R.id.btn_dryer,R.id.btn_iot,R.id.btn_automatic})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_wash_message:
@@ -57,6 +59,16 @@ public class HomeActivity extends AppCompatActivity {
             case R.id.btn_iot:
                 startActivity(new Intent(this,IOTActivity.class));
                 break;
+            case R.id.btn_automatic://自动识别
+                automatic();
+                break;
         }
+    }
+
+    /**
+     * 自动识别
+     */
+    private void automatic() {
+
     }
 }
