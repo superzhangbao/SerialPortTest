@@ -18,25 +18,14 @@ public class ExampleUnitTest {
 
     @Test
     public void addition_isCorrect() {
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 50; j++) {
-                if (i ==0) {
-                    if (j == 5) break;
-                    System.out.println("i:"+i+"  j:"+j);
-                }
-                if (i ==1) {
-                    if (j == 5) break;
-                    System.out.println("i:"+i+"  j:"+j);
-                }
-                if (i ==2) {
-                    if (j == 5) break;
-                    System.out.println("i:"+i+"  j:"+j);
-                }
-                if (i ==3) {
-                    if (j == 5) break;
-                    System.out.println("i:"+i+"  j:"+j);
-                }
-            }
+        int i = 1;
+        int x = 2;
+        if (i == 1) {
+            i= 0;
         }
+        if (x==2) {
+            x =0;
+        }
+        System.out.println("i"+i+",x"+x);
     }
 }

@@ -53,7 +53,7 @@ class DryerActivity : AppCompatActivity(), CurrentStatusListener, OnSendInstruct
         when(v?.id) {
             R.id.btn_open_port->{
                 //打开/关闭串口
-                if (btn_open_port.getText() == "打开串口") {
+                if (btn_open_port.text == "打开串口") {
                     try {
                         DeviceEngine.getInstance().open()
                         btn_open_port.text = "关闭串口"
@@ -94,7 +94,7 @@ class DryerActivity : AppCompatActivity(), CurrentStatusListener, OnSendInstruct
             }
             R.id.btn_setting->{
                 checkIsOpen()
-                DeviceEngine.getInstance().push(DeviceAction.Dryer.ACTION_SETTING,0);
+                DeviceEngine.getInstance().push(DeviceAction.Dryer.ACTION_SETTING,0)
             }
             R.id.btn_kill->{
                 checkIsOpen()
@@ -106,7 +106,7 @@ class DryerActivity : AppCompatActivity(), CurrentStatusListener, OnSendInstruct
             }
             R.id.btn_noheat_start->{
                 checkIsOpen()
-                DeviceEngine.getInstance().push(DeviceAction.Dryer.ACTION_NOHEAT,1);
+                DeviceEngine.getInstance().push(DeviceAction.Dryer.ACTION_NOHEAT,1)
             }
             R.id.btn_clear->{
                 editTextRecDisp.setText("")
@@ -128,15 +128,21 @@ class DryerActivity : AppCompatActivity(), CurrentStatusListener, OnSendInstruct
         ToastUtil.show(msg)
     }
 
-    override fun sendInstructionSuccess(key: Int, washStatusEvent: WashStatusEvent?) {
-        when(key) {
-            DeviceAction.Dryer.ACTION_KILL->{
-                ToastUtil.show("Kill Success!!!")
-                Log.e(TAG,"Kill Success!!!")
-            }
-            DeviceAction.Dryer.ACTION_INIT->{
-                ToastUtil.show("Init Success!!!")
-                Log.e(TAG,"Init Success!!!")
+    override fun sendInstructionSuccess(key: Int, dryerStatus: Any?) {
+        if(dryerStatus is DryerStatus) {
+            when(key) {
+                DeviceAction.Dryer.ACTION_KILL->{
+                    ToastUtil.show("Kill Success!!!")
+                    Log.e(TAG,"Kill Success!!!")
+                }
+                DeviceAction.Dryer.ACTION_INIT->{
+                    ToastUtil.show("Init Success!!!")
+                    Log.e(TAG,"Init Success!!!")
+                }
+                DeviceAction.Dryer.ACTION_SETTING->{
+                    ToastUtil.show("Setting Success!!!")
+                    Log.e(TAG,"Setting Success!!!")
+                }
             }
         }
     }

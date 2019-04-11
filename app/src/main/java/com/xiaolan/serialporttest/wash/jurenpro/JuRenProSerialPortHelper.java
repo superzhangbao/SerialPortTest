@@ -117,6 +117,13 @@ public class JuRenProSerialPortHelper {
         mWriteLog = false;
         mWriteLogUtil.writeLogClose();
         _isOpen = false;
+        mOnSendInstructionListener = null;
+        mSerialPortOnlineListener = null;
+        mCurrentStatusListener = null;
+        isOnline = false;
+        hasOnline = false;
+        readThreadStartTime = 0;
+        dispose(mKey);
         if (mReadThread != null)
             mReadThread.interrupt();
         if (mSerialPort != null) {
@@ -139,13 +146,6 @@ public class JuRenProSerialPortHelper {
             mBufferedOutputStream.close();
             mBufferedOutputStream = null;
         }
-        mOnSendInstructionListener = null;
-        mSerialPortOnlineListener = null;
-        mCurrentStatusListener = null;
-        isOnline = false;
-        hasOnline = false;
-        readThreadStartTime = 0;
-        dispose(mKey);
     }
 
     private class ReadThread extends Thread {

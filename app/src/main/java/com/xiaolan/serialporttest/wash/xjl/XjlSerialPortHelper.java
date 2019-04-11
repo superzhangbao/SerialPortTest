@@ -121,6 +121,13 @@ public class XjlSerialPortHelper {
 
     public void close() throws IOException {
         _isOpen = false;
+        mCurrentStatusListener = null;
+        mOnSendInstructionListener = null;
+        mSerialPortOnlineListener = null;
+        isOnline = false;
+        hasOnline = false;
+        readThreadStartTime = 0;
+        dispose(mKey);
         if (mReadThread != null)
             mReadThread.interrupt();
         if (mSerialPort != null) {
@@ -143,13 +150,7 @@ public class XjlSerialPortHelper {
             mBufferedOutputStream.close();
             mBufferedOutputStream = null;
         }
-        mCurrentStatusListener = null;
-        mOnSendInstructionListener = null;
-        mSerialPortOnlineListener = null;
-        isOnline = false;
-        hasOnline = false;
-        readThreadStartTime = 0;
-        dispose(mKey);
+
     }
 
     /**

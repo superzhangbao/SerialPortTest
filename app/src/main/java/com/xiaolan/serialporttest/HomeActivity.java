@@ -24,7 +24,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class HomeActivity extends AppCompatActivity implements SelectDeviceHelper.OnCheckDeviceListener {
+public class HomeActivity extends AppCompatActivity {
     @BindView(R.id.btn_automatic)
     Button btnAutomatic;
 
@@ -66,36 +66,7 @@ public class HomeActivity extends AppCompatActivity implements SelectDeviceHelpe
                 startActivity(new Intent(this, IOTActivity.class));
                 break;
             case R.id.btn_automatic://自动识别
-                automatic();
-                break;
-        }
-    }
-
-    /**
-     * 自动识别
-     */
-    private void automatic() {
-        SelectDeviceHelper selectDeviceHelper = new SelectDeviceHelper();
-        selectDeviceHelper.setOnCheckDeviceListener(this);
-        selectDeviceHelper.checkSendSetting();
-        ToastUtil.show("自动识别");
-    }
-
-    @SuppressLint("SetTextI18n")
-    @Override
-    public void device(int type) {
-        switch (type) {
-            case 0:
-                btnAutomatic.setText("这是巨人Pro洗衣机");
-                ToastUtil.show("这是巨人Pro洗衣机");
-                break;
-            case 2:
-                btnAutomatic.setText("这是小精灵洗衣机");
-                ToastUtil.show("这是小精灵洗衣机");
-                break;
-            case 3:
-                btnAutomatic.setText("这是巨人Plus洗衣机");
-                ToastUtil.show("这是巨人Plus洗衣机");
+                startActivity(new Intent(this,AutoMaticActivity.class));
                 break;
         }
     }

@@ -22,11 +22,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import android_serialport_api.SerialPort;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Action;
+import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
 public class DryerSerialPortHelper implements DeviceEngineDryerService {
@@ -95,9 +98,10 @@ public class DryerSerialPortHelper implements DeviceEngineDryerService {
     private Disposable mMedDisposable;
     private Disposable mLowDisposable;
     private Disposable mNoHeatDisposable;
+    private Disposable mSettingDisposable;
     private byte[] mCoinByte;
     private byte[] mKeyByte;
-    private String mShowText;
+    private volatile String mShowText;
     private StringBuilder showWord;
 
 
@@ -449,9 +453,7 @@ public class DryerSerialPortHelper implements DeviceEngineDryerService {
                         .onErrorResumeNext(throwable -> {
                             return Observable.empty();
                         })
-                        .subscribe(integer -> {
-                            kill();
-                        });
+                        .subscribe(integer -> kill());
 
                 break;
             case DeviceAction.Dryer.ACTION_INIT:
@@ -460,9 +462,34 @@ public class DryerSerialPortHelper implements DeviceEngineDryerService {
                         .onErrorResumeNext(throwable -> {
                             return Observable.empty();
                         })
-                        .subscribe(integer -> {
-                            initSet();
-                        });
+                        .subscribe(integer -> initSet());
+                break;
+            case DeviceAction.Dryer.ACTION_SETTING:
+                Log.e(TAG,"DeviceAction.Dryer.ACTION_SETTING");
+                if (mSettingDisposable != null && !mSettingDisposable.isDisposed()) {
+                    mSettingDisposable.dispose();
+                }
+                mSettingDisposable = Observable.intervalRange(0,2,0,1200,TimeUnit.MILLISECONDS)
+                        .subscribeOn(Schedulers.io())
+                        .doOnNext(integer -> {
+                            if (integer == 0) {
+                                writeOne(key);
+                            }
+                        })
+                        .onErrorResumeNext(throwable -> {
+                            return Observable.empty();
+                        })
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnComplete(() -> {
+                            Log.e(TAG,"mShowText:"+mShowText+"======================mOnSendInstructionListener"+mOnSendInstructionListener);
+                            if ("0".equals(mShowText) && state == STATE_SETTING) {
+                                if (mOnSendInstructionListener!= null) {
+                                    mOnSendInstructionListener.sendInstructionSuccess(key,mDryerStatus);
+                                    Log.e(TAG,"发送回调");
+                                }
+                            }
+                        })
+                        .subscribe();
                 break;
             default:
                 Observable.just(1)
@@ -528,6 +555,7 @@ public class DryerSerialPortHelper implements DeviceEngineDryerService {
 //        }
         byte[] strByte = new byte[]{0x7F, (byte) (seq & 0xff), (byte) 0xF0, (byte) (key & 0xff)};
         for (int i = 0; i < 10; ++i) {
+            Log.e(TAG,MyFunc.ByteArrToHex(strByte)+"========"+key);
             mBufferedOutputStream.write(strByte);
             mBufferedOutputStream.flush();
             Thread.sleep(80);
@@ -1588,6 +1616,10 @@ public class DryerSerialPortHelper implements DeviceEngineDryerService {
     @Override
     public void close() throws IOException {
         _isOpen = false;
+        isOnline = false;
+        hasOnline = false;
+        readThreadStartTime = 0;
+        dispose(mKey);
         if (mReadThread != null)
             mReadThread.interrupt();
         if (mSerialPort != null) {
@@ -1610,10 +1642,6 @@ public class DryerSerialPortHelper implements DeviceEngineDryerService {
             mBufferedOutputStream.close();
             mBufferedOutputStream = null;
         }
-        isOnline = false;
-        hasOnline = false;
-        readThreadStartTime = 0;
-        dispose(mKey);
     }
 
     private void dispose(int mKey) {
@@ -1646,6 +1674,11 @@ public class DryerSerialPortHelper implements DeviceEngineDryerService {
             case DeviceAction.Dryer.ACTION_NOHEAT:
                 if (mNoHeatDisposable != null && !mNoHeatDisposable.isDisposed()) {
                     mNoHeatDisposable.dispose();
+                }
+                break;
+            case DeviceAction.Dryer.ACTION_SETTING:
+                if (mSettingDisposable != null && !mSettingDisposable.isDisposed()) {
+                    mSettingDisposable.dispose();
                 }
                 break;
         }

@@ -120,14 +120,9 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
     @SuppressLint("SetTextI18n")
     @OnClick({R.id.btn_finsh, R.id.btn_open_port, R.id.btn_clear, R.id.btn_hot,
             R.id.btn_warm, R.id.btn_cold, R.id.btn_soft, R.id.btn_super, R.id.btn_start_stop,
-            R.id.btn_kill, R.id.btn_setting, R.id.btn_reset, R.id.btn_self_cleaning, R.id.btn_test})
+            R.id.btn_kill, R.id.btn_setting, R.id.btn_reset, R.id.btn_self_cleaning})
     public void onViewClicked(View view) {
         switch (view.getId()) {
-            case R.id.btn_test:
-//                Observable.intervalRange(0, 5, 0, 3, TimeUnit.SECONDS)
-//                        .doOnNext(aLong -> updatePropertyValue(0, 0, false, "测试"))
-//                        .subscribe();
-                break;
             case R.id.btn_finsh:
                 boolean open = DeviceEngine.getInstance().isOpen();
                 if (open) {
@@ -321,42 +316,45 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
     }
 
     @Override
-    public void sendInstructionSuccess(int key, WashStatusEvent washStatusEvent) {
-        switch (key) {
-            case 1:
-                Log.e(TAG, "开始指令成功");
-                ToastUtil.show("开始指令成功");
-                break;
-            case 2:
-                Log.e(TAG, "热水指令成功");
-                ToastUtil.show("热水指令成功");
-                break;
-            case 3:
-                Log.e(TAG, "温水指令成功");
-                ToastUtil.show("温水指令成功");
-                break;
-            case 4:
-                Log.e(TAG, "冷水指令成功");
-                ToastUtil.show("冷水指令成功");
-                break;
-            case 5:
-                Log.e(TAG, "精致衣物指令成功");
-                ToastUtil.show("精致衣物指令成功");
-                break;
-            case 6:
-                Log.e(TAG, "加强洗指令成功");
-                ToastUtil.show("加强洗指令成功");
-                break;
-            case 8:
-                Log.e(TAG, "设置指令成功");
-                ToastUtil.show("设置指令成功");
-                break;
-            case 10:
-                Log.e(TAG, "kill指令成功");
-                ToastUtil.show("kill指令成功");
-                break;
+    public void sendInstructionSuccess(int key, Object object) {
+        if (object instanceof WashStatusEvent) {
+            WashStatusEvent washStatusEvent = (WashStatusEvent) object;
+            switch (key) {
+                case 1:
+                    Log.e(TAG, "开始指令成功");
+                    ToastUtil.show("开始指令成功");
+                    break;
+                case 2:
+                    Log.e(TAG, "热水指令成功");
+                    ToastUtil.show("热水指令成功");
+                    break;
+                case 3:
+                    Log.e(TAG, "温水指令成功");
+                    ToastUtil.show("温水指令成功");
+                    break;
+                case 4:
+                    Log.e(TAG, "冷水指令成功");
+                    ToastUtil.show("冷水指令成功");
+                    break;
+                case 5:
+                    Log.e(TAG, "精致衣物指令成功");
+                    ToastUtil.show("精致衣物指令成功");
+                    break;
+                case 6:
+                    Log.e(TAG, "加强洗指令成功");
+                    ToastUtil.show("加强洗指令成功");
+                    break;
+                case 8:
+                    Log.e(TAG, "设置指令成功");
+                    ToastUtil.show("设置指令成功");
+                    break;
+                case 10:
+                    Log.e(TAG, "kill指令成功");
+                    ToastUtil.show("kill指令成功");
+                    break;
+            }
+            mDispQueueThread2.AddQueue(washStatusEvent);//线程定时刷新显示
         }
-        mDispQueueThread2.AddQueue(washStatusEvent);//线程定时刷新显示
     }
 
     @Override

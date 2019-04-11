@@ -77,50 +77,52 @@ class XjlWashActivity : AppCompatActivity(), View.OnClickListener, OnSendInstruc
         }
     }
 
-    override fun sendInstructionSuccess(key: Int, washStatusEvent: WashStatusEvent?) {
-        when (key) {
-            DeviceAction.Xjl.ACTION_START -> {
-                Log.e(TAG, "开始指令成功")
-                ToastUtil.show("开始指令成功")
+    override fun sendInstructionSuccess(key: Int, obj: Any?) {
+        if(obj is WashStatusEvent) {
+            when (key) {
+                DeviceAction.Xjl.ACTION_START -> {
+                    Log.e(TAG, "开始指令成功")
+                    ToastUtil.show("开始指令成功")
+                }
+                DeviceAction.Xjl.ACTION_MODE1 -> {
+                    Log.e(TAG, "热水指令成功")
+                    ToastUtil.show("热水指令成功")
+                }
+                DeviceAction.Xjl.ACTION_MODE2 -> {
+                    Log.e(TAG, "温水指令成功")
+                    ToastUtil.show("温水指令成功")
+                }
+                DeviceAction.Xjl.ACTION_MODE3 -> {
+                    Log.e(TAG, "冷水指令成功")
+                    ToastUtil.show("冷水指令成功")
+                }
+                DeviceAction.Xjl.ACTION_MODE4 -> {
+                    Log.e(TAG, "精致衣物指令成功")
+                    ToastUtil.show("精致衣物指令成功")
+                }
+                DeviceAction.Xjl.ACTION_SUPER -> {
+                    Log.e(TAG, "加强洗指令成功")
+                    ToastUtil.show("加强洗指令成功")
+                }
+                DeviceAction.Xjl.ACTION_SETTING -> {
+                    Log.e(TAG, "设置指令成功")
+                    ToastUtil.show("设置指令成功")
+                }
+                DeviceAction.Xjl.ACTION_KILL -> {
+                    Log.e(TAG, "kill指令成功")
+                    ToastUtil.show("kill指令成功")
+                }
+                DeviceAction.Xjl.ACTION_RESET->{
+                    Log.e(TAG, "reset指令成功")
+                    ToastUtil.show("reset指令成功")
+                }
+                DeviceAction.Xjl.ACTION_SELF_CLEANING -> {
+                    Log.e(TAG, "桶自洁指令成功")
+                    ToastUtil.show("桶自洁指令成功")
+                }
             }
-            DeviceAction.Xjl.ACTION_MODE1 -> {
-                Log.e(TAG, "热水指令成功")
-                ToastUtil.show("热水指令成功")
-            }
-            DeviceAction.Xjl.ACTION_MODE2 -> {
-                Log.e(TAG, "温水指令成功")
-                ToastUtil.show("温水指令成功")
-            }
-            DeviceAction.Xjl.ACTION_MODE3 -> {
-                Log.e(TAG, "冷水指令成功")
-                ToastUtil.show("冷水指令成功")
-            }
-            DeviceAction.Xjl.ACTION_MODE4 -> {
-                Log.e(TAG, "精致衣物指令成功")
-                ToastUtil.show("精致衣物指令成功")
-            }
-            DeviceAction.Xjl.ACTION_SUPER -> {
-                Log.e(TAG, "加强洗指令成功")
-                ToastUtil.show("加强洗指令成功")
-            }
-            DeviceAction.Xjl.ACTION_SETTING -> {
-                Log.e(TAG, "设置指令成功")
-                ToastUtil.show("设置指令成功")
-            }
-            DeviceAction.Xjl.ACTION_KILL -> {
-                Log.e(TAG, "kill指令成功")
-                ToastUtil.show("kill指令成功")
-            }
-            DeviceAction.Xjl.ACTION_RESET->{
-                Log.e(TAG, "reset指令成功")
-                ToastUtil.show("reset指令成功")
-            }
-            DeviceAction.Xjl.ACTION_SELF_CLEANING -> {
-                Log.e(TAG, "桶自洁指令成功")
-                ToastUtil.show("桶自洁指令成功")
-            }
+            obj.let { mDispQueueThread2?.addQueue(obj) }//线程定时刷新显示
         }
-        washStatusEvent?.let { mDispQueueThread2?.addQueue(it) }//线程定时刷新显示
     }
 
     override fun sendInstructionFail(key: Int, message: String?) {

@@ -80,42 +80,45 @@ public class JuRenWashActivity extends AppCompatActivity implements OnSendInstru
     }
 
     @Override
-    public void sendInstructionSuccess(int key, WashStatusEvent washStatusEvent) {
-        switch (key) {
-            case 1:
-                Log.e(TAG, "开始指令成功");
-                ToastUtil.show("开始指令成功");
-                break;
-            case 2:
-                Log.e(TAG, "whites指令成功");
-                ToastUtil.show("whites指令成功");
-                break;
-            case 3:
-                Log.e(TAG, "colors指令成功");
-                ToastUtil.show("colors指令成功");
-                break;
-            case 4:
-                Log.e(TAG, "delicates指令成功");
-                ToastUtil.show("delicates指令成功");
-                break;
-            case 5:
-                Log.e(TAG, "perm.press指令成功");
-                ToastUtil.show("perm.press指令成功");
-                break;
-            case 6:
-                Log.e(TAG, "加强洗指令成功");
-                ToastUtil.show("加强洗指令成功");
-                break;
-            case 8:
-                Log.e(TAG, "设置指令成功");
-                ToastUtil.show("设置指令成功");
-                break;
-            case 10:
-                Log.e(TAG, "kill指令成功");
-                ToastUtil.show("kill指令成功");
-                break;
+    public void sendInstructionSuccess(int key, Object object) {
+        if (object instanceof WashStatusEvent) {
+            WashStatusEvent washStatusEvent = (WashStatusEvent) object;
+            switch (key) {
+                case 1:
+                    Log.e(TAG, "开始指令成功");
+                    ToastUtil.show("开始指令成功");
+                    break;
+                case 2:
+                    Log.e(TAG, "whites指令成功");
+                    ToastUtil.show("whites指令成功");
+                    break;
+                case 3:
+                    Log.e(TAG, "colors指令成功");
+                    ToastUtil.show("colors指令成功");
+                    break;
+                case 4:
+                    Log.e(TAG, "delicates指令成功");
+                    ToastUtil.show("delicates指令成功");
+                    break;
+                case 5:
+                    Log.e(TAG, "perm.press指令成功");
+                    ToastUtil.show("perm.press指令成功");
+                    break;
+                case 6:
+                    Log.e(TAG, "加强洗指令成功");
+                    ToastUtil.show("加强洗指令成功");
+                    break;
+                case 8:
+                    Log.e(TAG, "设置指令成功");
+                    ToastUtil.show("设置指令成功");
+                    break;
+                case 10:
+                    Log.e(TAG, "kill指令成功");
+                    ToastUtil.show("kill指令成功");
+                    break;
+            }
+            mDispQueueThread2.AddQueue(washStatusEvent);//线程定时刷新显示
         }
-        mDispQueueThread2.AddQueue(washStatusEvent);//线程定时刷新显示
     }
 
     @Override
@@ -167,7 +170,7 @@ public class JuRenWashActivity extends AppCompatActivity implements OnSendInstru
 
     @OnClick({R.id.btn_finsh, R.id.btn_open_port, R.id.btn_clear, R.id.btn_whites, R.id.btn_colors,
             R.id.btn_delicates, R.id.btn_perm_press, R.id.btn_super, R.id.btn_start, R.id.btn_setting,
-            R.id.btn_kill,R.id.btn_fuwei})
+            R.id.btn_kill, R.id.btn_fuwei})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_finsh:
@@ -181,7 +184,7 @@ public class JuRenWashActivity extends AppCompatActivity implements OnSendInstru
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                }else {
+                } else {
                     try {
                         DeviceEngine.getInstance().open();
                         mBtnOpenPort.setText("关闭串口");
@@ -312,8 +315,6 @@ public class JuRenWashActivity extends AppCompatActivity implements OnSendInstru
         try {
             DeviceEngine.getInstance().close();
         } catch (IOException e) {
-            Toast.makeText(this, "关闭串口异常", Toast.LENGTH_SHORT).show();
-            Log.e(TAG, "关闭串口异常");
             e.printStackTrace();
         }
     }

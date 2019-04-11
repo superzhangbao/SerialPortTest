@@ -1,5 +1,7 @@
 package com.xiaolan.serialporttest.mylib;
 
+import android.util.Log;
+
 import com.xiaolan.serialporttest.dryer.DeviceEngineDryerService;
 import com.xiaolan.serialporttest.dryer.DryerManager;
 import com.xiaolan.serialporttest.mylib.event.WashStatusEvent;
@@ -16,8 +18,9 @@ import java.io.IOException;
 /**
  * 提供给外部使用的设备管理引擎
  */
-public class DeviceEngine implements OnSendInstructionListener {
+public class DeviceEngine  {
 
+    private static final String TAG = "DeviceEngine";
     private static DeviceEngineIService DEVICE_ENGINE_ISERVICE = null;
 
     private static DeviceEngineDryerService DEVICE_ENGINE_DRYERSERVICE = null;
@@ -29,30 +32,8 @@ public class DeviceEngine implements OnSendInstructionListener {
         return DeviceEngineHolder.DEVICE_ENGINE;
     }
 
-    @Override
-    public void sendInstructionSuccess(int key, WashStatusEvent washStatusEvent) {
-
-    }
-
-    @Override
-    public void sendInstructionFail(int key, String message) {
-
-    }
-
-
     private static class DeviceEngineHolder {
         private static final DeviceEngine DEVICE_ENGINE = new DeviceEngine();
-    }
-
-    public void checkDevice() {
-        DEVICE_ENGINE_ISERVICE =XjlWashManager.getInstance();
-        XjlWashManager.getInstance().setOnSendInstructionListener(this);
-        try {
-            XjlWashManager.getInstance().open();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        XjlWashManager.getInstance().push(DeviceAction.JuRenPro.ACTION_SETTING);
     }
 
     public void selectDevice(int model) {
@@ -80,10 +61,11 @@ public class DeviceEngine implements OnSendInstructionListener {
      */
     public void open() throws IOException {
         checkMode();
+        if (DEVICE_ENGINE_DRYERSERVICE != null) {
+            DEVICE_ENGINE_DRYERSERVICE.open();
+        }
         if (DEVICE_ENGINE_ISERVICE != null) {
             DEVICE_ENGINE_ISERVICE.open();
-        } else if (DEVICE_ENGINE_DRYERSERVICE != null) {
-            DEVICE_ENGINE_DRYERSERVICE.open();
         }
     }
 
@@ -94,8 +76,11 @@ public class DeviceEngine implements OnSendInstructionListener {
         checkMode();
         if (DEVICE_ENGINE_ISERVICE != null) {
             DEVICE_ENGINE_ISERVICE.close();
-        } else if (DEVICE_ENGINE_DRYERSERVICE != null) {
+            DEVICE_ENGINE_ISERVICE = null;
+        }
+        if (DEVICE_ENGINE_DRYERSERVICE != null) {
             DEVICE_ENGINE_DRYERSERVICE.close();
+            DEVICE_ENGINE_DRYERSERVICE = null;
         }
     }
 
@@ -115,9 +100,11 @@ public class DeviceEngine implements OnSendInstructionListener {
 
     public void setOnSendInstructionListener(OnSendInstructionListener onSendInstructionListener) {
         checkMode();
+        Log.e(TAG,"DEVICE_ENGINE_ISERVICE:"+DEVICE_ENGINE_ISERVICE+",--------DEVICE_ENGINE_DRYERSERVICE:"+DEVICE_ENGINE_DRYERSERVICE);
         if (DEVICE_ENGINE_ISERVICE != null) {
             DEVICE_ENGINE_ISERVICE.setOnSendInstructionListener(onSendInstructionListener);
-        } else if (DEVICE_ENGINE_DRYERSERVICE != null) {
+        }
+        if (DEVICE_ENGINE_DRYERSERVICE != null) {
             DEVICE_ENGINE_DRYERSERVICE.setOnSendInstructionListener(onSendInstructionListener);
         }
     }
@@ -126,7 +113,8 @@ public class DeviceEngine implements OnSendInstructionListener {
         checkMode();
         if (DEVICE_ENGINE_ISERVICE != null) {
             DEVICE_ENGINE_ISERVICE.setOnCurrentStatusListener(onCurrentStatusListener);
-        } else if (DEVICE_ENGINE_DRYERSERVICE != null) {
+        }
+        if (DEVICE_ENGINE_DRYERSERVICE != null) {
             DEVICE_ENGINE_DRYERSERVICE.setOnCurrentStatusListener(onCurrentStatusListener);
         }
     }
@@ -135,7 +123,8 @@ public class DeviceEngine implements OnSendInstructionListener {
         checkMode();
         if (DEVICE_ENGINE_ISERVICE != null) {
             DEVICE_ENGINE_ISERVICE.setOnSerialPortOnlineListener(onSerialPortOnlineListener);
-        } else if (DEVICE_ENGINE_DRYERSERVICE != null) {
+        }
+        if (DEVICE_ENGINE_DRYERSERVICE != null) {
             DEVICE_ENGINE_DRYERSERVICE.setOnSerialPortOnlineListener(onSerialPortOnlineListener);
         }
     }
