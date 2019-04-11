@@ -25,6 +25,7 @@ public class SelectDeviceHelper implements OnSendInstructionListener {
     private final String TAG = "SelectDeviceHelper";
     private boolean sendSuccess;
     private int mCount;
+    private boolean isFinisned;
 
     private OnCheckDeviceListener onCheckDeviceListener;
 
@@ -108,7 +109,6 @@ public class SelectDeviceHelper implements OnSendInstructionListener {
     }
 
     private void checkOne(int i, OnCheckDeviceFinishListener onCheckDeviceFinishListener) {
-        mCount = 0;
         DeviceEngine.getInstance().selectDevice(i);
         DeviceEngine.getInstance().setOnSendInstructionListener(SelectDeviceHelper.this);
         try {
@@ -119,87 +119,45 @@ public class SelectDeviceHelper implements OnSendInstructionListener {
         }
 
 
-        Observable.just(1)
-//                .delay(1000, TimeUnit.MILLISECONDS)
-                .observeOn(AndroidSchedulers.mainThread())
-                .repeatWhen(objectObservable -> objectObservable.flatMap((Function<Object, ObservableSource<?>>) o -> {
-                    mCount++;
-                    if (mCount > 2 && !sendSuccess) {
-                        DeviceEngine.getInstance().close();
-                        switch (i) {
-                            case 0:
-                                Log.e(TAG, "close 巨人Pro");
-                                break;
-                            case 2:
-                                Log.e(TAG, "close 小精灵");
-                                break;
-                            case 3:
-                                Log.e(TAG, "close 巨人Plus");
-                                break;
-                            case -1:
-                                Log.e(TAG, "close 烘干机");
-                                break;
-                        }
-                        onCheckDeviceFinishListener.checkUnFinish();
-                        return Observable.empty();
-                    } else if (sendSuccess) {
-//                        onCheckDeviceFinishListener.checkFinish();
-                        return Observable.empty();
-                    } else {
-                        return Observable.just(1).delay(1600, TimeUnit.MILLISECONDS);
-                    }
-                }))
-                .doOnNext(integer -> {
-                    if (!sendSuccess) {
-                        switch (i) {
-                            case 0:
-                                Log.e(TAG, "push(DeviceAction.JuRenPro.ACTION_SETTING)");
-                                try {
-                                    DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_SETTING);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                                break;
-                            case 2:
-                                Log.e(TAG, "push(DeviceAction.Xjl.ACTION_SETTING)");
-                                try {
-                                    DeviceEngine.getInstance().push(DeviceAction.Xjl.ACTION_SETTING);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                                break;
-                            case 3:
-                                Log.e(TAG, "push(DeviceAction.JuRenPlus.ACTION_SETTING)");
-                                try {
-                                    DeviceEngine.getInstance().push(DeviceAction.JuRenPlus.ACTION_SETTING);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                                break;
-                            case -1:
-                                Log.e(TAG, "push(DeviceAction.Dryer.ACTION_SETTING)");
-                                try {
-                                    DeviceEngine.getInstance().push(DeviceAction.Dryer.ACTION_SETTING, 0);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                                break;
-                        }
-                    } else {
-                        onCheckDeviceFinishListener.checkFinish();
-                    }
-                })
-                .doOnComplete(() -> Log.e(TAG, "doOnComplete"))
-                .subscribe();
-
-//        Observable.intervalRange(1000,3,1000,1600,TimeUnit.MILLISECONDS)
+//        Observable.just(1)
 //                .observeOn(AndroidSchedulers.mainThread())
-//                .flatMap((Function<Long, ObservableSource<?>>) aLong -> {
-//                    Log.e(TAG,"flatMap:----------"+"sendSuccess:"+sendSuccess);
+//                .repeatWhen(objectObservable -> objectObservable.flatMap((Function<Object, ObservableSource<?>>) o -> {
+//                    mCount++;
+//                    if (mCount > 2 && !sendSuccess) {
+//                        try {
+//                            DeviceEngine.getInstance().close();
+//                            switch (i) {
+//                                case 0:
+//                                    Log.e(TAG, "close 巨人Pro");
+//                                    break;
+//                                case 2:
+//                                    Log.e(TAG, "close 小精灵");
+//                                    break;
+//                                case 3:
+//                                    Log.e(TAG, "close 巨人Plus");
+//                                    break;
+//                                case -1:
+//                                    Log.e(TAG, "close 烘干机");
+//                                    break;
+//                            }
+//                        } catch (IOException e) {
+//                            e.printStackTrace();
+//                        }
+//                        onCheckDeviceFinishListener.checkUnFinish();
+//                        return Observable.empty();
+//                    } else if (sendSuccess) {
+////                        onCheckDeviceFinishListener.checkFinish();
+//                        return Observable.empty();
+//                    } else {
+//                        return Observable.just(1).delay(1600, TimeUnit.MILLISECONDS);
+//                    }
+//                }))
+//                .doOnNext(integer -> {
+//                    Log.e(TAG,Thread.currentThread().getName());
 //                    if (!sendSuccess) {
 //                        switch (i) {
 //                            case 0:
-//                                Log.e(TAG,"push(DeviceAction.JuRenPro.ACTION_SETTING)");
+//                                Log.e(TAG, "push(DeviceAction.JuRenPro.ACTION_SETTING)");
 //                                try {
 //                                    DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_SETTING);
 //                                } catch (IOException e) {
@@ -207,7 +165,7 @@ public class SelectDeviceHelper implements OnSendInstructionListener {
 //                                }
 //                                break;
 //                            case 2:
-//                                Log.e(TAG,"push(DeviceAction.Xjl.ACTION_SETTING)");
+//                                Log.e(TAG, "push(DeviceAction.Xjl.ACTION_SETTING)");
 //                                try {
 //                                    DeviceEngine.getInstance().push(DeviceAction.Xjl.ACTION_SETTING);
 //                                } catch (IOException e) {
@@ -215,7 +173,7 @@ public class SelectDeviceHelper implements OnSendInstructionListener {
 //                                }
 //                                break;
 //                            case 3:
-//                                Log.e(TAG,"push(DeviceAction.JuRenPlus.ACTION_SETTING)");
+//                                Log.e(TAG, "push(DeviceAction.JuRenPlus.ACTION_SETTING)");
 //                                try {
 //                                    DeviceEngine.getInstance().push(DeviceAction.JuRenPlus.ACTION_SETTING);
 //                                } catch (IOException e) {
@@ -223,45 +181,92 @@ public class SelectDeviceHelper implements OnSendInstructionListener {
 //                                }
 //                                break;
 //                            case -1:
-//                                Log.e(TAG,"push(DeviceAction.Dryer.ACTION_SETTING)");
+//                                Log.e(TAG, "push(DeviceAction.Dryer.ACTION_SETTING)");
 //                                try {
-//                                    DeviceEngine.getInstance().push(DeviceAction.Dryer.ACTION_SETTING,0);
+//                                    DeviceEngine.getInstance().push(DeviceAction.Dryer.ACTION_SETTING, 0);
 //                                } catch (IOException e) {
 //                                    e.printStackTrace();
 //                                }
 //                                break;
 //                        }
-//                        return Observable.just(1);
-//                    }else {
+//                    } else {
 //                        onCheckDeviceFinishListener.checkFinish();
-//                        return Observable.empty();
 //                    }
 //                })
-//                .doOnComplete(() -> {
-//                    if (!sendSuccess) {
-//                        try {
-//                            DeviceEngine.getInstance().close();
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                        }
-//                        switch (i) {
-//                            case 0:
-//                                Log.e(TAG,"close 巨人Pro");
-//                                break;
-//                            case 2:
-//                                Log.e(TAG,"close 小精灵");
-//                                break;
-//                            case 3:
-//                                Log.e(TAG,"close 巨人Plus");
-//                                break;
-//                            case -1:
-//                                Log.e(TAG,"close 烘干机");
-//                                break;
-//                        }
-//                        onCheckDeviceFinishListener.checkUnFinish();
-//                    }
-//                })
+//                .doOnComplete(() -> Log.e(TAG, "doOnComplete"))
 //                .subscribe();
+
+        Observable.intervalRange(1000,3,1000,1600,TimeUnit.MILLISECONDS)
+                .observeOn(AndroidSchedulers.mainThread())
+               .doOnNext(aLong -> {
+                   Log.e(TAG,"flatMap:----------"+"sendSuccess:"+sendSuccess);
+                   if (!sendSuccess) {
+                       switch (i) {
+                           case 0:
+                               Log.e(TAG,"push(DeviceAction.JuRenPro.ACTION_SETTING)");
+                               try {
+                                   DeviceEngine.getInstance().push(DeviceAction.JuRenPro.ACTION_SETTING);
+                               } catch (IOException e) {
+                                   e.printStackTrace();
+                               }
+                               break;
+                           case 2:
+                               Log.e(TAG,"push(DeviceAction.Xjl.ACTION_SETTING)");
+                               try {
+                                   DeviceEngine.getInstance().push(DeviceAction.Xjl.ACTION_SETTING);
+                               } catch (IOException e) {
+                                   e.printStackTrace();
+                               }
+                               break;
+                           case 3:
+                               Log.e(TAG,"push(DeviceAction.JuRenPlus.ACTION_SETTING)");
+                               try {
+                                   DeviceEngine.getInstance().push(DeviceAction.JuRenPlus.ACTION_SETTING);
+                               } catch (IOException e) {
+                                   e.printStackTrace();
+                               }
+                               break;
+                           case -1:
+                               Log.e(TAG,"push(DeviceAction.Dryer.ACTION_SETTING)");
+                               try {
+                                   DeviceEngine.getInstance().push(DeviceAction.Dryer.ACTION_SETTING,0);
+                               } catch (IOException e) {
+                                   e.printStackTrace();
+                               }
+                               break;
+                       }
+                   }else {
+                       if (!isFinisned) {
+                           onCheckDeviceFinishListener.checkFinish();
+                           isFinisned = true;
+                       }
+                   }
+               })
+                .doOnComplete(() -> {
+                    if (!sendSuccess) {
+                        try {
+                            DeviceEngine.getInstance().close();
+                            switch (i) {
+                                case 0:
+                                    Log.e(TAG,"close 巨人Pro");
+                                    break;
+                                case 2:
+                                    Log.e(TAG,"close 小精灵");
+                                    break;
+                                case 3:
+                                    Log.e(TAG,"close 巨人Plus");
+                                    break;
+                                case -1:
+                                    Log.e(TAG,"close 烘干机");
+                                    break;
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        onCheckDeviceFinishListener.checkUnFinish();
+                    }
+                })
+                .subscribe();
     }
 
     @Override

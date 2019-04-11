@@ -1616,10 +1616,10 @@ public class DryerSerialPortHelper implements DeviceEngineDryerService {
     @Override
     public void close() throws IOException {
         _isOpen = false;
+        dispose(mKey);
         isOnline = false;
         hasOnline = false;
         readThreadStartTime = 0;
-        dispose(mKey);
         if (mReadThread != null)
             mReadThread.interrupt();
         if (mSerialPort != null) {

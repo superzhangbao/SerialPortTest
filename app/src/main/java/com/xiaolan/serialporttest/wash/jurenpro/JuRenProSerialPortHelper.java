@@ -114,16 +114,16 @@ public class JuRenProSerialPortHelper {
     }
 
     public void close() throws IOException {
+        dispose(mKey);
         mWriteLog = false;
         mWriteLogUtil.writeLogClose();
-        _isOpen = false;
         mOnSendInstructionListener = null;
         mSerialPortOnlineListener = null;
         mCurrentStatusListener = null;
         isOnline = false;
         hasOnline = false;
         readThreadStartTime = 0;
-        dispose(mKey);
+        _isOpen = false;
         if (mReadThread != null)
             mReadThread.interrupt();
         if (mSerialPort != null) {

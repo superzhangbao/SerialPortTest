@@ -2,9 +2,11 @@ package com.xiaolan.serialporttest
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import com.xiaolan.serialporttest.mylib.DeviceAction
 import com.xiaolan.serialporttest.mylib.DeviceEngine
+import com.xiaolan.serialporttest.mylib.listener.SerialPortOnlineListener
 import com.xiaolan.serialporttest.util1.ToastUtil
 import kotlinx.android.synthetic.main.activity_auto_matic.*
 import kotlinx.android.synthetic.main.activity_dryer.view.*
@@ -13,7 +15,21 @@ import java.io.IOException
 /**
  * 自动识别页面
  */
-class AutoMaticActivity : AppCompatActivity(), SelectDeviceHelper.OnCheckDeviceListener, View.OnClickListener {
+class AutoMaticActivity : AppCompatActivity(), SelectDeviceHelper.OnCheckDeviceListener, View.OnClickListener, SerialPortOnlineListener {
+
+    companion object {
+        const val TAG:String = "AutoMaticActivity"
+    }
+    override fun onSerialPortOnline(bytes: ByteArray?) {
+        Log.e(TAG,"串口上线")
+        ToastUtil.show("串口上线")
+    }
+
+    override fun onSerialPortOffline(msg: String?) {
+        Log.e(TAG,"串口掉线")
+        ToastUtil.show("串口掉线")
+    }
+
     private var mSuper: Boolean = false
     private var mType:Int = -100
 
@@ -395,6 +411,7 @@ class AutoMaticActivity : AppCompatActivity(), SelectDeviceHelper.OnCheckDeviceL
                 ToastUtil.show("这是巨人Pro洗衣机")
                 ll_dryer.visibility = View.GONE
                 ll_wash.visibility = View.VISIBLE
+                DeviceEngine.getInstance().setOnSerialPortOnlineListener(this)
             }
             2 -> {
                 tv_type.text = "这是小精灵洗衣机"
@@ -402,6 +419,7 @@ class AutoMaticActivity : AppCompatActivity(), SelectDeviceHelper.OnCheckDeviceL
                 ToastUtil.show("这是小精灵洗衣机")
                 ll_dryer.visibility = View.GONE
                 ll_wash.visibility = View.VISIBLE
+                DeviceEngine.getInstance().setOnSerialPortOnlineListener(this)
             }
             3 -> {
                 mType = type
@@ -409,6 +427,7 @@ class AutoMaticActivity : AppCompatActivity(), SelectDeviceHelper.OnCheckDeviceL
                 ToastUtil.show("这是巨人Plus洗衣机")
                 ll_dryer.visibility = View.GONE
                 ll_wash.visibility = View.VISIBLE
+                DeviceEngine.getInstance().setOnSerialPortOnlineListener(this)
             }
             -1->{
                 mType = type
@@ -416,6 +435,7 @@ class AutoMaticActivity : AppCompatActivity(), SelectDeviceHelper.OnCheckDeviceL
                 ToastUtil.show("这是烘干机")
                 ll_dryer.visibility = View.VISIBLE
                 ll_wash.visibility = View.GONE
+                DeviceEngine.getInstance().setOnSerialPortOnlineListener(this)
             }
             else -> {
                 tv_type.text = "无法识别"
