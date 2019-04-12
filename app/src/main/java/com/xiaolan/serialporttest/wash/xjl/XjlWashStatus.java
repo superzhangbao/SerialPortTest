@@ -92,12 +92,17 @@ public class XjlWashStatus {
                     mLogmsg.append("错误状态：" + "是").append("\r\n");
                     switch (mErr) {
                         case 0x02:
-                            Log.e(TAG, "错误原因：" + "进水管故障");
-                            mLogmsg.append("错误原因：" + "进水管故障").append("\r\n");
+                            Log.e(TAG, "错误原因：" + "进水管故障,1E");
+                            mLogmsg.append("错误原因：" + "进水管故障,1E").append("\r\n");
                             break;
                         case 0x01:
-                            Log.e(TAG, "错误原因：" + "关门失败");
-                            mLogmsg.append("错误原因：" + "关门失败").append("\r\n");
+                        case 0x17:
+                            Log.e(TAG, "错误原因：" + "关门失败,dE");
+                            mLogmsg.append("错误原因：" + "关门失败,dE").append("\r\n");
+                            break;
+                        case 0x04:
+                            Log.e(TAG, "错误原因：" + "不平衡,UE");
+                            mLogmsg.append("错误原因：" + "不平衡,UE").append("\r\n");
                             break;
                         default:
                             Log.e(TAG, "错误原因：" + "未知错误");
@@ -198,8 +203,14 @@ public class XjlWashStatus {
             mWashStatusEvent.setText(mText);
             mWashStatusEvent.setText2(mText2);
             mWashStatusEvent.setLogmsg(mLogmsg);
+            mWashStatusEvent.setIsRunning(isRunning());
+            mWashStatusEvent.setIsError(isError());
+            mWashStatusEvent.setIsIdle(isIdle());
+            mWashStatusEvent.setWashPeriod(getPeriod(mViewStep));
         }else {
-            mWashStatusEvent = new WashStatusEvent(mIsSetting, mWashMode, mLights1, mLights2, mLights3, mLightSupper, mLightlock, mIsWashing, mViewStep, mErr, mMsgInt, mText,mText2, mLogmsg);
+            mWashStatusEvent = new WashStatusEvent(mIsSetting, mWashMode, mLights1, mLights2, mLights3,
+                    mLightSupper, mLightlock, mIsWashing, mViewStep, mErr, mMsgInt, mText,mText2,
+                    mLogmsg,isRunning(),isError(),isIdle(),getPeriod(mViewStep));
         }
         return mWashStatusEvent;    }
 
@@ -208,5 +219,32 @@ public class XjlWashStatus {
      */
     public boolean isError() {
         return mErr > 0;
+    }
+
+    /**
+     * 判断是否是闲置的
+     */
+    public boolean isIdle() {
+        return !isRunning() && !isError();
+    }
+
+    /**
+     * 判断是否处于运行状态
+     */
+    public boolean isRunning() {//mViewStep == 2是暂停状态
+        return (mViewStep == 6 || mViewStep == 7 || mViewStep == 8 || mViewStep == 2||mViewStep == 0x0a) && mErr == 0;
+    }
+
+    public int getPeriod(int viewStep) {
+        switch (viewStep) {
+            case 6:
+                return 0;//洗涤
+            case 7:
+                return 1;//漂洗
+            case 8:
+                return 2;//脱水
+            default:
+                return -1;
+        }
     }
 }

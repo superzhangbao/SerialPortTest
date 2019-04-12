@@ -87,12 +87,17 @@ public class JuRenProWashStatus {
                     mLogmsg.append("错误状态：" + "是").append("\r\n");
                     switch (mErr) {
                         case 0x02:
-                            Log.e(TAG, "错误原因：" + "进水管故障");
-                            mLogmsg.append("错误原因：" + "进水管故障").append("\r\n");
+                            Log.e(TAG, "错误原因：" + "进水管故障,1E");
+                            mLogmsg.append("错误原因：" + "进水管故障,1E").append("\r\n");
                             break;
-                        case 0x11:
-                            Log.e(TAG, "错误原因：" + "关门失败");
-                            mLogmsg.append("错误原因：" + "关门失败").append("\r\n");
+                        case 0x01:
+                        case 0x17:
+                            Log.e(TAG, "错误原因：" + "关门失败,dE");
+                            mLogmsg.append("错误原因：" + "关门失败,dE").append("\r\n");
+                            break;
+                        case 0x04:
+                            Log.e(TAG, "错误原因：" + "不平衡,UE");
+                            mLogmsg.append("错误原因：" + "不平衡,UE").append("\r\n");
                             break;
                         default:
                             Log.e(TAG, "错误原因：" + "未知错误");
@@ -197,7 +202,9 @@ public class JuRenProWashStatus {
             mWashStatusEvent.setIsIdle(isIdle());
             mWashStatusEvent.setWashPeriod(getPeriod(mViewStep));
         } else {
-            mWashStatusEvent = new WashStatusEvent(mIsSetting, mWashMode, mLights1, mLights2, mLights3, mLightSupper, mLightlock, mIsWashing, mViewStep, mErr, mMsgInt, mText, "", mLogmsg);
+            mWashStatusEvent = new WashStatusEvent(mIsSetting, mWashMode, mLights1, mLights2, mLights3,
+                    mLightSupper, mLightlock, mIsWashing, mViewStep, mErr, mMsgInt, mText, "",
+                    mLogmsg,isRunning(),isError(),isIdle(),getPeriod(mViewStep));
         }
         return mWashStatusEvent;
     }

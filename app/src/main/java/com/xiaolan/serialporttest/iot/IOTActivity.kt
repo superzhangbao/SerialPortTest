@@ -37,6 +37,31 @@ import java.util.concurrent.TimeUnit
  */
 class IOTActivity : AppCompatActivity(), View.OnClickListener, IConnectNotifyListener, IConnectSendListener {
 
+    companion object {
+        const val TAG: String = "IOTActivity"
+    }
+
+    private var mDispQueueThread: DispQueueThread? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_iot)
+        KeybordUtils.isSoftInputShow(this)
+        EventBus.getDefault().register(this)
+        mDispQueueThread = DispQueueThread()
+        mDispQueueThread?.start()
+
+        initialize.setOnClickListener(this)
+        send1.setOnClickListener(this)
+        send2.setOnClickListener(this)
+        send3.setOnClickListener(this)
+        send4.setOnClickListener(this)
+        send5.setOnClickListener(this)
+        send6.setOnClickListener(this)
+        send7.setOnClickListener(this)
+        IotClient.getInstance().registerOnPushListener(this)
+    }
+
     override fun onClick(v: View?) {
         when (v?.id) {
             R.id.initialize -> {
@@ -97,32 +122,6 @@ class IOTActivity : AppCompatActivity(), View.OnClickListener, IConnectNotifyLis
             }
         }
     }
-
-    companion object {
-        const val TAG: String = "IOTActivity"
-    }
-
-    private var mDispQueueThread: DispQueueThread? = null
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_iot)
-        KeybordUtils.isSoftInputShow(this)
-        EventBus.getDefault().register(this)
-        mDispQueueThread = DispQueueThread()
-        mDispQueueThread?.start()
-
-        initialize.setOnClickListener(this)
-        send1.setOnClickListener(this)
-        send2.setOnClickListener(this)
-        send3.setOnClickListener(this)
-        send4.setOnClickListener(this)
-        send5.setOnClickListener(this)
-        send6.setOnClickListener(this)
-        send7.setOnClickListener(this)
-        IotClient.getInstance().registerOnPushListener(this)
-    }
-
 
     private fun connect() {
         Log.e(TAG, "connect() called")

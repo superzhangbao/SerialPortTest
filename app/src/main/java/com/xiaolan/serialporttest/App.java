@@ -60,11 +60,11 @@ public class App extends Application {
 //            }
 //        });
 
-//        if (!isInitDone) {
-//            connect();
-//        } else {
-//            ToastUtil.show("已初始化");
-//        }
+        if (!isInitDone) {
+            connect();
+        } else {
+            ToastUtil.show("已初始化");
+        }
     }
 
     private void connect() {

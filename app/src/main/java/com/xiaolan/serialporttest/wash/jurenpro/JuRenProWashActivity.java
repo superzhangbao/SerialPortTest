@@ -39,7 +39,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.Random;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -399,7 +398,7 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
     public void onSerialPortOffline(String msg) {
         Log.e(TAG, msg);
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-        IotClient.getInstance().uploadError(App.productKey,App.deviceName,orderNumber);
+        IotClient.getInstance().uploadDxError(App.productKey,App.deviceName,orderNumber);
     }
 
     @Override
@@ -422,27 +421,6 @@ public class JuRenProWashActivity extends AppCompatActivity implements RadioGrou
             mDispQueueThread2.AddQueue(washStatus);
         }
     }
-
-//    private void updatePropertyValue(String payLoad, String topic) {
-//        MqttPublishRequest request = new MqttPublishRequest();
-//        // 支持 0 和 1， 默认0
-//        request.qos = 1;
-//        request.isRPC = false;
-//        request.topic = "/" + App.productKey + "/" + App.deviceName + "/user/" + topic;//发布topic
-//        request.msgId = String.valueOf(IDGenerater.generateId());
-//        request.payloadObj = payLoad + ",123456789";
-//        LinkKit.getInstance().publish(request, new IConnectSendListener() {
-//            @Override
-//            public void onResponse(ARequest aRequest, AResponse aResponse) {
-//                Log.e(TAG, "onResponse() called with: aRequest = [" + aRequest + "], aResponse = [" + aResponse + "]");
-//            }
-//
-//            @Override
-//            public void onFailure(ARequest aRequest, AError aError) {
-//                Log.e(TAG, "onFailure() called with: aRequest = [" + aRequest + "], aError = [" + aError.getCode() + "---" + aError.getMsg() + "]");
-//            }
-//        });
-//    }
 
     @Subscribe(threadMode = ThreadMode.POSTING)
     public void onInstrctionMode(InstrctionMode instrctionMode) {

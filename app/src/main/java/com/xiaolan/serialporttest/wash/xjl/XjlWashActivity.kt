@@ -5,6 +5,8 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import com.xiaolan.iot.IotClient
+import com.xiaolan.serialporttest.App
 import com.xiaolan.serialporttest.R
 import com.xiaolan.serialporttest.mylib.DeviceAction
 import com.xiaolan.serialporttest.mylib.DeviceEngine
@@ -27,6 +29,8 @@ class XjlWashActivity : AppCompatActivity(), View.OnClickListener, OnSendInstruc
     private var mSelectMode: Int = -1
 
     private var mSuper: Boolean = false
+
+    private val ordernumber: String = "Oxjl1234567"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,7 +55,6 @@ class XjlWashActivity : AppCompatActivity(), View.OnClickListener, OnSendInstruc
 
         mDispQueueThread2 = DispQueueThread2()
         mDispQueueThread2?.start()
-//        mPortFinder = new SerialPortFinder();
         //设置发送指令监听
         DeviceEngine.getInstance().setOnSendInstructionListener(this)
         //设置上报状态监听
@@ -64,16 +67,33 @@ class XjlWashActivity : AppCompatActivity(), View.OnClickListener, OnSendInstruc
         val s = MyFunc.ByteArrToHex(bytes)
         Log.e(TAG, "串口上线:$s")
         Toast.makeText(this, "串口上线$s", Toast.LENGTH_SHORT).show()
+        //上报故障解除
+        IotClient.getInstance().uploadRestoreError(App.productKey,App.deviceName,ordernumber)
     }
 
     override fun onSerialPortOffline(msg: String?) {
         Log.e(TAG, msg)
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+        //上报故障
+        IotClient.getInstance().uploadDxError(App.productKey,App.deviceName,ordernumber)
     }
 
     override fun currentStatus(washStatusEvent: Any?) {
         if (washStatusEvent is WashStatusEvent) {
             Log.e(TAG, "屏显：${washStatusEvent.text}")
+            val washMode = washStatusEvent.washMode
+            val lightSupper = washStatusEvent.lightSupper
+            val viewStep = washStatusEvent.viewStep
+            val err = washStatusEvent.err
+            val text = washStatusEvent.text
+            val text2 = washStatusEvent.text2
+            val isRunning = washStatusEvent.isRunning
+            val isError = washStatusEvent.isError
+            val isWashing = washStatusEvent.isWashing
+            val period = washStatusEvent.period//洗衣阶段
+            //IOT去执行解析数据,上报数据
+            IotClient.getInstance().uploadWashRunning("1.0",isWashing,isRunning,isError,period,
+                    washMode,lightSupper,viewStep,err,text,text2,ordernumber,App.productKey,App.deviceName)
         }
     }
 

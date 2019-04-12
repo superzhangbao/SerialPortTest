@@ -4,7 +4,6 @@ import android.util.Log;
 
 import com.xiaolan.serialporttest.dryer.DeviceEngineDryerService;
 import com.xiaolan.serialporttest.dryer.DryerManager;
-import com.xiaolan.serialporttest.mylib.event.WashStatusEvent;
 import com.xiaolan.serialporttest.mylib.listener.CurrentStatusListener;
 import com.xiaolan.serialporttest.mylib.listener.OnSendInstructionListener;
 import com.xiaolan.serialporttest.mylib.listener.SerialPortOnlineListener;

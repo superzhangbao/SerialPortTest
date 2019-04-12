@@ -6,6 +6,8 @@ import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.RadioGroup
+import com.xiaolan.iot.IotClient
+import com.xiaolan.serialporttest.App
 import com.xiaolan.serialporttest.R
 import com.xiaolan.serialporttest.mylib.DeviceAction
 import com.xiaolan.serialporttest.mylib.DeviceEngine
@@ -24,51 +26,6 @@ import java.util.*
  *巨人+Activity
  */
 class JuRenPlusWashActivity : AppCompatActivity(), RadioGroup.OnCheckedChangeListener, OnSendInstructionListener, CurrentStatusListener, SerialPortOnlineListener, View.OnClickListener {
-    override fun sendInstructionSuccess(key: Int, `object`: Any?) {
-        if (`object` is WashStatusEvent) {
-            var washStatusEvent = `object`
-            when (key) {
-                DeviceAction.JuRenPlus.ACTION_START -> {
-                    Log.e(TAG, "开始指令成功")
-                    ToastUtil.show("开始指令成功")
-                }
-                DeviceAction.JuRenPlus.ACTION_HOT -> {
-                    Log.e(TAG, "热水指令成功")
-                    ToastUtil.show("热水指令成功")
-                }
-                DeviceAction.JuRenPlus.ACTION_WARM -> {
-                    Log.e(TAG, "温水指令成功")
-                    ToastUtil.show("温水指令成功")
-                }
-                DeviceAction.JuRenPlus.ACTION_COLD -> {
-                    Log.e(TAG, "冷水指令成功")
-                    ToastUtil.show("冷水指令成功")
-                }
-                DeviceAction.JuRenPlus.ACTION_DELICATES -> {
-                    Log.e(TAG, "精致衣物指令成功")
-                    ToastUtil.show("精致衣物指令成功")
-                }
-                DeviceAction.JuRenPlus.ACTION_SUPER -> {
-                    Log.e(TAG, "加强洗指令成功")
-                    ToastUtil.show("加强洗指令成功")
-                }
-                DeviceAction.JuRenPlus.ACTION_SETTING -> {
-                    Log.e(TAG, "设置指令成功")
-                    ToastUtil.show("设置指令成功")
-                }
-                DeviceAction.JuRenPlus.ACTION_RESET -> {
-                    Log.e(TAG, "复位指令成功")
-                    ToastUtil.show("复位指令成功")
-                }
-                DeviceAction.JuRenPlus.ACTION_KILL -> {
-                    Log.e(TAG, "kill指令成功")
-                    ToastUtil.show("kill指令成功")
-                }
-            }
-            `object`.let { mDispQueueThread?.AddQueue(washStatusEvent) }//线程定时刷新显示
-        }
-    }
-
     companion object {
         const val TAG: String = "JuRenPlusWashActivity"
     }
@@ -77,6 +34,9 @@ class JuRenPlusWashActivity : AppCompatActivity(), RadioGroup.OnCheckedChangeLis
     private val mButtons = ArrayList<Button>()
     private var mDispQueueThread: DispQueueThread? = null
     private var mWashStatusEvent: WashStatusEvent? = null
+    private val ordernumber: String = "Ojrp1234567" +
+            ""
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ju_ren_plus_wash)
@@ -183,7 +143,7 @@ class JuRenPlusWashActivity : AppCompatActivity(), RadioGroup.OnCheckedChangeLis
                 checkIsOpen()
                 DeviceEngine.getInstance().push(DeviceAction.JuRenPlus.ACTION_RESET)
             }
-            R.id.btn_self_cleaning->{
+            R.id.btn_self_cleaning -> {
                 checkIsOpen()
                 DeviceEngine.getInstance().push(DeviceAction.JuRenPlus.ACTION_SELF_CLEANING)
             }
@@ -194,18 +154,78 @@ class JuRenPlusWashActivity : AppCompatActivity(), RadioGroup.OnCheckedChangeLis
         val s = MyFunc.ByteArrToHex(bytes)
         Log.e(TAG, "串口上线:$s")
         ToastUtil.show("串口上线$s")
+        IotClient.getInstance().uploadRestoreError(App.productKey, App.deviceName, ordernumber)
     }
 
     override fun onSerialPortOffline(msg: String?) {
         Log.e(TAG, msg)
         ToastUtil.show(msg)
+        IotClient.getInstance().uploadDxError(App.productKey, App.deviceName, ordernumber)
     }
 
     override fun currentStatus(washStatusEvent: Any?) {
-        if(washStatusEvent is WashStatusEvent) {
-            mWashStatusEvent =  washStatusEvent
+        if (washStatusEvent is WashStatusEvent) {
+            mWashStatusEvent = washStatusEvent
+            val washMode = washStatusEvent.washMode
+            val lightSupper = washStatusEvent.lightSupper
+            val viewStep = washStatusEvent.viewStep
+            val err = washStatusEvent.err
+            val text = washStatusEvent.text
+            val text2 = washStatusEvent.text2
+            val isRunning = washStatusEvent.isRunning
+            val isError = washStatusEvent.isError
+            val isWashing = washStatusEvent.isWashing
+            val period = washStatusEvent.period//洗衣阶段
+            //IOT去执行解析数据,上报数据
+            IotClient.getInstance().uploadWashRunning("1.0", isWashing, isRunning, isError, period,
+                    washMode, lightSupper, viewStep, err, text, text2, ordernumber, App.productKey, App.deviceName)
             Log.e(TAG, "屏显：" + washStatusEvent.logmsg.toString())
             mDispQueueThread?.AddQueue(washStatusEvent)
+        }
+    }
+
+    override fun sendInstructionSuccess(key: Int, `object`: Any?) {
+        if (`object` is WashStatusEvent) {
+            var washStatusEvent = `object`
+            when (key) {
+                DeviceAction.JuRenPlus.ACTION_START -> {
+                    Log.e(TAG, "开始指令成功")
+                    ToastUtil.show("开始指令成功")
+                }
+                DeviceAction.JuRenPlus.ACTION_HOT -> {
+                    Log.e(TAG, "热水指令成功")
+                    ToastUtil.show("热水指令成功")
+                }
+                DeviceAction.JuRenPlus.ACTION_WARM -> {
+                    Log.e(TAG, "温水指令成功")
+                    ToastUtil.show("温水指令成功")
+                }
+                DeviceAction.JuRenPlus.ACTION_COLD -> {
+                    Log.e(TAG, "冷水指令成功")
+                    ToastUtil.show("冷水指令成功")
+                }
+                DeviceAction.JuRenPlus.ACTION_DELICATES -> {
+                    Log.e(TAG, "精致衣物指令成功")
+                    ToastUtil.show("精致衣物指令成功")
+                }
+                DeviceAction.JuRenPlus.ACTION_SUPER -> {
+                    Log.e(TAG, "加强洗指令成功")
+                    ToastUtil.show("加强洗指令成功")
+                }
+                DeviceAction.JuRenPlus.ACTION_SETTING -> {
+                    Log.e(TAG, "设置指令成功")
+                    ToastUtil.show("设置指令成功")
+                }
+                DeviceAction.JuRenPlus.ACTION_RESET -> {
+                    Log.e(TAG, "复位指令成功")
+                    ToastUtil.show("复位指令成功")
+                }
+                DeviceAction.JuRenPlus.ACTION_KILL -> {
+                    Log.e(TAG, "kill指令成功")
+                    ToastUtil.show("kill指令成功")
+                }
+            }
+            `object`.let { mDispQueueThread?.AddQueue(washStatusEvent) }//线程定时刷新显示
         }
     }
 

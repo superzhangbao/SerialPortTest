@@ -192,8 +192,14 @@ public class JuRenPlusWashStatus {
             mWashStatusEvent.setMsgInt(mMsgInt);
             mWashStatusEvent.setText(mText);
             mWashStatusEvent.setLogmsg(mLogmsg);
+            mWashStatusEvent.setIsRunning(isRunning());
+            mWashStatusEvent.setIsError(isError());
+            mWashStatusEvent.setIsIdle(isIdle());
+            mWashStatusEvent.setWashPeriod(getPeriod(mViewStep));
         }else {
-            mWashStatusEvent = new WashStatusEvent(mIsSetting, mWashMode, mLights1, mLights2, mLights3, mLightSupper, mLightlock, mIsWashing, mViewStep, mErr, mMsgInt, mText,"", mLogmsg);
+            mWashStatusEvent = new WashStatusEvent(mIsSetting, mWashMode, mLights1, mLights2, mLights3,
+                    mLightSupper, mLightlock, mIsWashing, mViewStep, mErr, mMsgInt, mText,"", mLogmsg,
+                    isRunning(),isError(),isIdle(),getPeriod(mViewStep));
         }
         return mWashStatusEvent;
     }
@@ -216,7 +222,20 @@ public class JuRenPlusWashStatus {
      * 判断是否处于运行状态
      */
     public boolean isRunning() {//mViewStep == 2是暂停状态
-        return (mViewStep == 6 || mViewStep == 7 || mViewStep == 8) && mErr == 0;
+        return (mViewStep == 6 || mViewStep == 7 || mViewStep == 8 || mViewStep == 2||mViewStep == 0x0a) && mErr == 0;
+    }
+
+    public int getPeriod(int viewStep) {
+        switch (viewStep) {
+            case 6:
+                return 0;//洗涤
+            case 7:
+                return 1;//漂洗
+            case 8:
+                return 2;//脱水
+            default:
+                return -1;
+        }
     }
 
     /**

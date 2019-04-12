@@ -17,18 +17,21 @@ public class WashStatusEvent {
     private int msgInt;
     private String text;
     private String text2;
+    private StringBuilder logmsg;
 
     private boolean isRunning;
     private boolean isError;
     private boolean isIdle;
     private int period; //洗衣阶段  0,洗涤 1,漂洗 2,脱水 3,桶自洁
 
-    private StringBuilder logmsg;
 
     public WashStatusEvent() {
     }
 
-    public WashStatusEvent(boolean isSetting, int washMode, int lights1, int lights2, int lights3, int lightSupper, int lightlock, int isWashing, int viewStep, int err, int msgInt, String text, String text2, StringBuilder logmsg) {
+    public WashStatusEvent(boolean isSetting, int washMode, int lights1, int lights2, int lights3,
+                           int lightSupper, int lightlock, int isWashing, int viewStep, int err,
+                           int msgInt, String text, String text2, StringBuilder logmsg, boolean isRunning,
+                           boolean isError, boolean isIdle, int period) {
         this.isSetting = isSetting;
         this.washMode = washMode;
         this.lights1 = lights1;
@@ -43,6 +46,10 @@ public class WashStatusEvent {
         this.text = text;
         this.text2 = text2;
         this.logmsg = logmsg;
+        this.isRunning = isRunning;
+        this.isError = isError;
+        this.isIdle = isIdle;
+        this.period = period;
     }
 
     public int getWashMode() {
@@ -210,6 +217,10 @@ public class WashStatusEvent {
                 ", text='" + text + '\'' +
                 ", text2='" + text2 + '\'' +
                 ", logmsg=" + logmsg +
+                ", isRunning=" + isRunning +
+                ", isError=" + isError +
+                ", isIdle=" + isIdle +
+                ", period=" + period +
                 '}';
     }
 }

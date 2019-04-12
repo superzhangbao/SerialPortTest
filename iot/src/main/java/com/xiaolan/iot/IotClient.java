@@ -126,13 +126,13 @@ public class IotClient implements IConnectSendListener {
      * @param deviceName  设备名称
      * @param orderNumber 订单号
      */
-    public void uploadError(String productKey, String deviceName, String orderNumber) {
+    public void uploadDxError(String productKey, String deviceName, String orderNumber) {
         uploadData(productKey, deviceName, TopicManager.ERROR_TOPIC, getWash() + "DX," + orderNumber, this);
-        Log.e(TAG, "发送了故障topic----" + TopicManager.ERROR_TOPIC+"DX");
+        Log.e(TAG, "发送了故障topic----" + TopicManager.ERROR_TOPIC + "DX");
     }
 
     /**
-     * 错误恢复，主要用来单独上报串口上线
+     * 错误恢复,适用所有故障
      *
      * @param productKey  产品类型
      * @param deviceName  设备名称
@@ -144,7 +144,7 @@ public class IotClient implements IConnectSendListener {
         } else {
             uploadData(productKey, deviceName, TopicManager.RESTOREERROR_TOPIC, "REr," + orderNumber, this);
         }
-        Log.e(TAG, "发送了故障恢复topic----" + TopicManager.RESTOREERROR_TOPIC + "=DX");
+        Log.e(TAG, "发送了故障恢复topic----" + TopicManager.RESTOREERROR_TOPIC);
     }
 
     /**
@@ -308,8 +308,15 @@ public class IotClient implements IConnectSendListener {
      * 上报剩余时间
      */
     private void uploadRemainTime(String text, String text2, final String orderNumber, final String productKey, final String deviceName) {
+        final Integer time;
         try {
-            final Integer time = Integer.valueOf(text);
+            if ("0".equals(text)) {
+                time = Integer.valueOf(text2);
+                Log.e(TAG,"time:"+text2);
+            } else {
+                time = Integer.valueOf(text);
+                Log.e(TAG,"time:"+text);
+            }
             if (time != mPreTime) {
                 String payLoad = "T" + time + "," + orderNumber;
                 uploadData(productKey, deviceName, TopicManager.REMAINTIME_TOPIC, payLoad, IotClient.this);
